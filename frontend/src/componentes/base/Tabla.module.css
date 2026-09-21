@@ -1,0 +1,84 @@
+.contenedor {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.herramientas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--linea);
+  flex-wrap: wrap;
+}
+
+.busqueda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea-3);
+  min-width: 210px;
+}
+
+.busquedaEntrada {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--tinta);
+  font: 500 12.5px var(--fuente-texto);
+}
+
+.conteo {
+  margin-left: auto;
+  font: 500 11.5px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.desplazable {
+  overflow-x: auto;
+}
+
+.tabla {
+  min-width: 620px;
+}
+
+.filaCabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  background: var(--superficie-cabecera);
+}
+
+.columnaCabecera {
+  min-width: 0;
+  font: 600 10px var(--fuente-texto);
+  color: var(--tenue);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-top: 1px solid var(--linea-4);
+}
+
+.vacio {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  color: var(--apagado);
+  font: 500 12.5px var(--fuente-texto);
+}

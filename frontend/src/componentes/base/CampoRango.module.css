@@ -1,0 +1,30 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.etiqueta {
+  font: 600 10.5px var(--fuente-texto);
+  color: var(--apagado);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.entrada {
+  flex: 1;
+  accent-color: var(--primario);
+}
+
+.valor {
+  min-width: 58px;
+  text-align: right;
+  font: 600 12.5px var(--fuente-titulos);
+  color: var(--terciario);
+}

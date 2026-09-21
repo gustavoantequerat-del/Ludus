@@ -1,0 +1,172 @@
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.panelJuego {
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  color: var(--terciario);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  aspect-ratio: 8 / 5;
+  padding: 11px;
+  border-radius: 16px;
+  background: var(--superficie-cabecera);
+  border: 1px solid var(--linea);
+}
+
+.celda {
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font: 700 12px var(--fuente-titulos);
+  background: var(--celda);
+  color: var(--tenue);
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricaEtiqueta {
+  font: 500 10.5px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricaValor {
+  font: 600 19px var(--fuente-titulos);
+}
+
+.pieAcciones {
+  margin-left: auto;
+  display: flex;
+  gap: 7px;
+}
+
+.panelResultado {
+  border-radius: 20px;
+  background: var(--superficie-2);
+  border: 1px solid var(--primario-borde);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: aparecer-y-subir 0.3s ease;
+}
+
+.resultadoCabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resultadoIcono {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--primario-suave);
+  color: var(--terciario);
+  display: grid;
+  place-items: center;
+}
+
+.resultadoTitulo {
+  font: 600 16px var(--fuente-titulos);
+}
+
+.puntajeFila {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.puntajeGrande {
+  font: 600 40px/1 var(--fuente-titulos);
+  letter-spacing: -1.5px;
+}
+
+.puntajeMax {
+  font: 500 12px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.barra {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  overflow: hidden;
+}
+
+.barraRelleno {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primario), var(--secundario));
+}
+
+.calificacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.calificacionTextos {
+  display: flex;
+  flex-direction: column;
+}
+
+.calificacionTitulo {
+  font: 600 12.5px var(--fuente-texto);
+}
+
+.calificacionSub {
+  font: 400 11px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.resultadoAcciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

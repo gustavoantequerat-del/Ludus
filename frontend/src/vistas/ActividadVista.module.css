@@ -1,0 +1,47 @@
+.panel {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  padding: 8px 16px 16px;
+}
+
+.fila {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--linea-4);
+}
+
+.fila:last-child {
+  border-bottom: none;
+}
+
+.icono {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--superficie-2);
+  color: var(--terciario);
+  display: grid;
+  place-items: center;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.texto {
+  font: 500 12.5px/1.4 var(--fuente-texto);
+}
+
+.cuando {
+  font: 400 11px var(--fuente-texto);
+  color: var(--tenue);
+}

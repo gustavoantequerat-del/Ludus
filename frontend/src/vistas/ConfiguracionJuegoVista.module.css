@@ -1,0 +1,117 @@
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.panel {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.panelCabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panelTitulo {
+  font: 600 14px var(--fuente-titulos);
+}
+
+.pistaDerecha {
+  margin-left: auto;
+  font: 500 11px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.plantillas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.plantilla {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--linea-3);
+  background: var(--superficie-2);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.plantillaActiva {
+  border-color: var(--primario-borde);
+  background: var(--primario-suave-3);
+}
+
+.plantillaIcono {
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+  border-radius: 10px;
+  color: var(--sobre-brillante);
+  display: grid;
+  place-items: center;
+}
+
+.plantillaNombre {
+  font: 600 12.5px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.plantillaTagline {
+  font: 400 11px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+.previa {
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--linea);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.previaCabecera {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.previaChip {
+  padding: 4px 11px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  color: var(--terciario);
+  font: 600 10.5px var(--fuente-texto);
+}
+
+.previaTiempo {
+  margin-left: auto;
+  font: 600 12px var(--fuente-titulos);
+  color: var(--secundario);
+}
+
+.previaTexto {
+  font: 400 11.5px/1.45 var(--fuente-texto);
+  color: var(--apagado);
+}

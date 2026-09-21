@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script>
+(function(){
+  var D={xmlns:'http://www.w3.org/2000/svg',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':2,'stroke-linecap':'round','stroke-linejoin':'round',width:'100%',height:'100%'};
+  function at(o){return Object.keys(o||{}).map(function(k){return k+'="'+String(o[k]).replace(/"/g,'&quot;')+'"';}).join(' ');}
+  function ser(n){if(!Array.isArray(n))return '';if(typeof n[0]==='string'){var t=n[0],a=n[1]||{},c=n[2];return '<'+t+' '+at(a)+'>'+(Array.isArray(c)?c.map(ser).join(''):'')+'</'+t+'>';}return n.map(ser).join('');}
+  function pas(s){return String(s).replace(/(^|[-_])([a-z0-9])/g,function(m,a,b){return b.toUpperCase();});}
+  function paint(){var L=window.lucide;if(!L)return;document.querySelectorAll('[data-icon]').forEach(function(el){var n=el.getAttribute('data-icon');if(!n||el.getAttribute('data-ip')===n)return;var k=pas(n);var ic=(L.icons&&(L.icons[k]||L.icons[n]))||L[k];if(!ic){el.setAttribute('data-ip',n);return;}var inner=ser(ic);el.innerHTML=inner.indexOf('<svg')===0?inner:'<svg '+at(D)+'>'+inner+'</svg>';el.setAttribute('data-ip',n);});}
+  var t;function q(){clearTimeout(t);t=setTimeout(paint,16);}
+  new MutationObserver(q).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-icon']});
+  q();window.addEventListener('load',q);
+})();
+</script>
+<style>
+:root{color-scheme:dark;
+--bg:#0E0819;--surface:#160D2D;--surface2:#1E1435;--surface3:#2C1E4A;--surfaceHead:#130B26;--track:#3A2A5C;
+--ink:#F3EDFB;--mut:#9C8FB8;--dim:#7E7196;--soft:#C9BEE0;--onBright:#160D2D;--secInk:#0E0819;--priInkSoft:#DCC2FF;--infoInk:#C9EEF5;
+--pri:#A855F7;--sec:#00E5FF;--ter:#C084FC;--pink:#F0ABFC;--ok:#5EF2C4;--bad:#FF8A8A;--badStrong:#FF6B6B;--warn:#FFCE6A;
+--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);--line3:rgba(255,255,255,.1);--line4:rgba(255,255,255,.05);--line5:rgba(255,255,255,.16);--cell:rgba(255,255,255,.035);
+--priSoft:rgba(168,85,247,.16);--priSoft2:rgba(168,85,247,.2);--priSoft3:rgba(168,85,247,.1);--priBd:rgba(168,85,247,.45);--priBd2:rgba(168,85,247,.35);--priBd3:rgba(168,85,247,.3);
+--secSoft:rgba(0,229,255,.1);--secSoft2:rgba(0,229,255,.22);--secBd:rgba(0,229,255,.32);--okSoft:rgba(94,242,196,.12);--okBd:rgba(94,242,196,.35);--badSoft:rgba(255,138,138,.14);--warnSoft:rgba(255,206,106,.14);
+--scrim:rgba(8,4,16,.72);--chipOnBright:rgba(22,13,45,.82);--shadow:0 24px 60px rgba(0,0,0,.5)}
+[data-theme="light"]{color-scheme:light;
+--bg:#ECEEF2;--surface:#FFFFFF;--surface2:#F5F6FA;--surface3:#E3E7F1;--surfaceHead:#F5F6FA;--track:#D5DAE6;
+--ink:#210F55;--mut:#5C5480;--dim:#726A94;--soft:#3B3268;--onBright:#210F55;--secInk:#0B1220;--priInkSoft:#5B21B6;--infoInk:#0C4A6E;
+--pri:#8B5CF6;--sec:#38BDF8;--ter:#7C3AED;--pink:#C084FC;--ok:#0F9B76;--bad:#C62828;--badStrong:#DC2626;--warn:#B45309;
+--line:rgba(33,15,85,.1);--line2:rgba(33,15,85,.18);--line3:rgba(33,15,85,.14);--line4:rgba(33,15,85,.07);--line5:rgba(33,15,85,.22);--cell:rgba(33,15,85,.05);
+--priSoft:rgba(139,92,246,.13);--priSoft2:rgba(139,92,246,.16);--priSoft3:rgba(139,92,246,.1);--priBd:rgba(139,92,246,.4);--priBd2:rgba(139,92,246,.34);--priBd3:rgba(139,92,246,.28);
+--secSoft:rgba(56,189,248,.13);--secSoft2:rgba(56,189,248,.2);--secBd:rgba(56,189,248,.4);--okSoft:rgba(15,155,118,.12);--okBd:rgba(15,155,118,.32);--badSoft:rgba(198,40,40,.1);--warnSoft:rgba(180,83,9,.12);
+--scrim:rgba(33,15,85,.32);--chipOnBright:rgba(255,255,255,.88);--shadow:0 24px 60px rgba(33,15,85,.18)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:var(--ter);text-decoration:none}a:hover{color:var(--sec)}
+input,select,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
+[data-icon]{display:inline-flex;align-items:center;justify-content:center}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+</style></helmet>
+
+<div style="min-height:100vh;display:flex;flex-direction:column;background:var(--bg)">
+
+<header id="ludus-topbar" style="display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--surface);border-bottom:1px solid var(--line);position:relative;z-index:40;flex-wrap:wrap">
+  <button onClick="{{ toggleSide }}" style="width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line3);background:var(--surface2);color:var(--soft);cursor:pointer"><span data-icon="panel-left" style="width:17px;height:17px"></span></button>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(140deg,var(--pri),var(--sec));display:grid;place-items:center;color:var(--onBright)"><span data-icon="gamepad-2" style="width:19px;height:19px"></span></div>
+    <div style="display:flex;flex-direction:column;gap:1px">
+      <span style="font:600 14px/1.1 Sora,sans-serif;letter-spacing:-.2px">Ludus</span>
+      <span style="font:500 10.5px/1.1 Manrope,sans-serif;color:var(--mut);letter-spacing:.4px;text-transform:uppercase">{{ scopeLabel }}</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:4px;margin-left:auto;padding:3px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);flex-wrap:wrap">
+    <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+      <button onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:none;cursor:pointer;font:600 11.5px Manrope,sans-serif;background:{{ r.bg }};color:{{ r.fg }}">
+        <span data-icon="{{ r.icon }}" style="width:14px;height:14px"></span>{{ r.label }}
+      </button>
+    </sc-for>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button onClick="{{ toggleTheme }}" title="{{ themeLabel }}" style="display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:99px;border:1px solid var(--line3);background:var(--surface2);color:var(--soft);cursor:pointer;font:600 11.5px Manrope,sans-serif"><span data-icon="{{ themeIcon }}" style="width:16px;height:16px"></span>{{ themeName }}</button>
+    <button style="width:34px;height:34px;display:grid;place-items:center;border-radius:99px;border:1px solid var(--line3);background:var(--surface2);color:var(--soft);cursor:pointer"><span data-icon="bell" style="width:16px;height:16px"></span></button>
+    <div style="display:flex;align-items:center;gap:9px;padding:4px 12px 4px 4px;border-radius:99px;background:var(--surface2);border:1px solid var(--line)">
+      <div style="width:27px;height:27px;border-radius:99px;background:var(--pri);display:grid;place-items:center;font:700 11px Sora,sans-serif;color:#fff">{{ userInitials }}</div>
+      <div style="display:flex;flex-direction:column"><span style="font:600 11.5px/1.2 Manrope,sans-serif">{{ userName }}</span><span style="font:500 10px/1.2 Manrope,sans-serif;color:var(--mut)">{{ roleLabel }}</span></div>
+    </div>
+  </div>
+</header>
+
+<div style="display:flex;align-items:stretch;flex:1;min-height:0">
+  <nav style="width:{{ sideW }};flex:none;background:var(--surface);border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;z-index:10;align-self:flex-start;max-height:100vh;overflow:hidden auto;transition:width .18s ease">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="8">
+      <button onClick="{{ n.onClick }}" title="{{ n.label }}" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;border:1px solid {{ n.bd }};background:{{ n.bg }};color:{{ n.fg }};cursor:pointer;font:600 12.5px Manrope,sans-serif;text-align:left;white-space:nowrap;overflow:hidden">
+        <span data-icon="{{ n.icon }}" style="width:17px;height:17px;flex:none"></span>
+        <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span style="flex:1;overflow:hidden;text-overflow:ellipsis">{{ n.label }}</span></sc-if>
+        <sc-if value="{{ n.badge }}"><span style="flex:none;padding:1px 7px;border-radius:99px;background:var(--sec);color:var(--secInk);font:700 10px Sora,sans-serif">{{ n.badge }}</span></sc-if>
+      </button>
+    </sc-for>
+  </nav>
+
+  <main style="flex:1;min-width:0;padding:22px;display:flex;flex-direction:column;gap:18px">
+
+    <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+        <sc-if value="{{ crumb }}"><button onClick="{{ onBack }}" style="display:inline-flex;align-items:center;gap:6px;padding:0;border:none;background:none;color:var(--mut);font:600 11.5px Manrope,sans-serif;cursor:pointer;align-self:flex-start"><span data-icon="arrow-left" style="width:14px;height:14px"></span>{{ crumb }}</button></sc-if>
+        <h1 style="margin:0;font:600 25px/1.15 Sora,sans-serif;letter-spacing:-.6px">{{ title }}</h1>
+        <p style="margin:0;font:400 13px/1.4 Manrope,sans-serif;color:var(--mut);max-width:62ch;text-wrap:pretty">{{ subtitle }}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;margin-left:auto;flex-wrap:wrap">
+        <sc-if value="{{ secondaryAction }}"><button onClick="{{ onSecondary }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="{{ secondaryIcon }}" style="width:15px;height:15px"></span>{{ secondaryAction }}</button></sc-if>
+        <sc-if value="{{ primaryAction }}"><button onClick="{{ onPrimary }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 17px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 12.5px Manrope,sans-serif;cursor:pointer;box-shadow:0 6px 18px var(--priBd3)"><span data-icon="{{ primaryIcon }}" style="width:15px;height:15px"></span>{{ primaryAction }}</button></sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ vDash }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
+            <div style="padding:15px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span data-icon="{{ k.icon }}" style="width:32px;height:32px;padding:8px;border-radius:10px;background:{{ k.bg }};color:{{ k.fg }}"></span>
+                <span style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">{{ k.label }}</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font:600 27px/1 Sora,sans-serif;letter-spacing:-1px">{{ k.value }}</span>
+                <span style="font:600 11px Manrope,sans-serif;color:var(--ok)">{{ k.delta }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start">
+          <sc-if value="{{ hasPending }}">
+            <div style="padding:17px;border-radius:18px;background:var(--surface2);border:1px solid var(--priBd);display:flex;flex-direction:column;gap:13px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span data-icon="inbox" style="width:18px;height:18px;color:var(--ter)"></span>
+                <h3 style="margin:0;font:600 14px Sora,sans-serif">Solicitudes pendientes</h3>
+                <button onClick="{{ onSolicitudes }}" style="margin-left:auto;padding:5px 12px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 11px Manrope,sans-serif;cursor:pointer">Ver todas</button>
+              </div>
+              <sc-for list="{{ pending }}" as="p" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:11px;padding:10px;border-radius:12px;background:var(--surface);flex-wrap:wrap">
+                  <div style="width:29px;height:29px;border-radius:99px;background:var(--surface3);display:grid;place-items:center;font:700 11px Sora,sans-serif;color:var(--ter)">{{ p.ini }}</div>
+                  <div style="display:flex;flex-direction:column;min-width:0;flex:1">
+                    <span style="font:600 12.5px Manrope,sans-serif">{{ p.student }}</span>
+                    <span style="font:400 11px Manrope,sans-serif;color:var(--mut)">{{ p.desc }}</span>
+                  </div>
+                  <div style="display:flex;gap:6px">
+                    <button onClick="{{ p.onOk }}" style="padding:6px 13px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 11px Manrope,sans-serif;cursor:pointer">Aceptar</button>
+                    <button onClick="{{ p.onNo }}" style="padding:6px 13px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 11px Manrope,sans-serif;cursor:pointer">Rechazar</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="padding:17px;border-radius:18px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:13px">
+            <div style="display:flex;align-items:center;gap:9px"><span data-icon="trending-up" style="width:18px;height:18px;color:var(--sec)"></span><h3 style="margin:0;font:600 14px Sora,sans-serif">{{ progressTitle }}</h3></div>
+            <sc-for list="{{ progressRows }}" as="p" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:baseline;gap:8px"><span style="font:500 12px Manrope,sans-serif">{{ p.name }}</span><span style="margin-left:auto;font:600 11.5px Sora,sans-serif;color:var(--ter)">{{ p.pctLabel }}</span></div>
+                <div style="height:7px;border-radius:99px;background:var(--surface3);overflow:hidden"><div style="height:100%;width:{{ p.pct }};border-radius:99px;background:linear-gradient(90deg,var(--pri),var(--sec))"></div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:17px;border-radius:18px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:9px"><span data-icon="activity" style="width:18px;height:18px;color:var(--ter)"></span><h3 style="margin:0;font:600 14px Sora,sans-serif">Actividad reciente</h3></div>
+            <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+              <div style="display:flex;gap:11px;align-items:flex-start">
+                <span data-icon="{{ a.icon }}" style="width:28px;height:28px;flex:none;padding:7px;border-radius:9px;background:var(--surface3);color:var(--soft)"></span>
+                <div style="display:flex;flex-direction:column;min-width:0">
+                  <span style="font:500 12px/1.35 Manrope,sans-serif;text-wrap:pretty">{{ a.text }}</span>
+                  <span style="font:400 10.5px Manrope,sans-serif;color:var(--dim)">{{ a.when }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vTable }}">
+      <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line);flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:99px;background:var(--surface2);border:1px solid var(--line3);min-width:210px">
+            <span data-icon="search" style="width:15px;height:15px;color:var(--mut)"></span>
+            <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Buscar…" style="flex:1;min-width:0;border:none;background:none;outline:none;color:var(--ink);font:500 12.5px Manrope,sans-serif" />
+          </div>
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+            <button onClick="{{ f.onClick }}" style="padding:7px 14px;border-radius:99px;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};font:600 11.5px Manrope,sans-serif;cursor:pointer">{{ f.label }}</button>
+          </sc-for>
+          <span style="margin-left:auto;font:500 11.5px Manrope,sans-serif;color:var(--mut)">{{ rowCount }}</span>
+        </div>
+        <div style="overflow-x:auto">
+          <div style="min-width:620px">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 15px;background:var(--surfaceHead)">
+              <sc-for list="{{ cols }}" as="c" hint-placeholder-count="5">
+                <span style="flex:{{ c.flex }};min-width:0;font:600 10px Manrope,sans-serif;color:var(--dim);letter-spacing:.6px;text-transform:uppercase">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ rows }}" as="row" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 15px;border-top:1px solid var(--line4)">
+                <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+                  <div style="flex:{{ cell.flex }};min-width:0;display:flex;align-items:center;gap:9px">
+                    <sc-if value="{{ cell.ini }}"><div style="width:29px;height:29px;flex:none;border-radius:99px;background:var(--surface3);display:grid;place-items:center;font:700 10.5px Sora,sans-serif;color:var(--ter)">{{ cell.ini }}</div></sc-if>
+                    <sc-if value="{{ cell.badge }}"><span style="padding:3px 10px;border-radius:99px;font:600 10.5px Manrope,sans-serif;color:{{ cell.fg }};background:{{ cell.bg }}">{{ cell.badge }}</span></sc-if>
+                    <sc-if value="{{ cell.t }}">
+                      <div style="min-width:0;display:flex;flex-direction:column">
+                        <span style="font:600 12.5px/1.3 Manrope,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cell.t }}</span>
+                        <sc-if value="{{ cell.sub }}"><span style="font:400 10.5px Manrope,sans-serif;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cell.sub }}</span></sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <div style="flex:none;display:flex;align-items:center;gap:6px;justify-content:flex-end;min-width:96px">
+                  <sc-for list="{{ row.acts }}" as="a" hint-placeholder-count="3">
+                    <button onClick="{{ a.onClick }}" title="{{ a.label }}" style="display:inline-flex;align-items:center;gap:6px;padding:{{ a.pad }};border-radius:99px;border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};cursor:pointer;font:600 11px Manrope,sans-serif">
+                      <span data-icon="{{ a.icon }}" style="width:14px;height:14px"></span>
+                      <sc-if value="{{ a.text }}"><span>{{ a.text }}</span></sc-if>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ empty }}"><div style="padding:40px;display:flex;flex-direction:column;align-items:center;gap:9px"><span data-icon="search-x" style="width:26px;height:26px;color:var(--dim)"></span><span style="font:500 12.5px Manrope,sans-serif;color:var(--mut)">Sin resultados</span></div></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vCards }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:14px;align-items:start">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+          <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column">
+            <div style="height:84px;background:linear-gradient(135deg,{{ c.c1 }},{{ c.c2 }});display:flex;align-items:flex-end;justify-content:space-between;padding:11px 13px">
+              <span data-icon="{{ c.icon }}" style="width:30px;height:30px;color:var(--onBright)"></span>
+              <sc-if value="{{ c.tag }}"><span style="padding:3px 10px;border-radius:99px;background:var(--chipOnBright);color:var(--ink);font:600 10.5px Manrope,sans-serif">{{ c.tag }}</span></sc-if>
+            </div>
+            <div style="padding:14px;display:flex;flex-direction:column;gap:11px;flex:1">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <h3 style="margin:0;font:600 15px/1.25 Sora,sans-serif">{{ c.name }}</h3>
+                <p style="margin:0;font:400 12px/1.45 Manrope,sans-serif;color:var(--mut);text-wrap:pretty">{{ c.desc }}</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ c.metas }}" as="m" hint-placeholder-count="2">
+                  <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;background:var(--surface2);color:var(--soft);font:600 10.5px Manrope,sans-serif"><span data-icon="{{ m.icon }}" style="width:12px;height:12px"></span>{{ m.label }}</span>
+                </sc-for>
+              </div>
+              <sc-if value="{{ c.hasProgress }}">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:baseline"><span style="font:500 11px Manrope,sans-serif;color:var(--mut)">{{ c.progressLabel }}</span><span style="margin-left:auto;font:600 11px Sora,sans-serif;color:var(--ter)">{{ c.pctLabel }}</span></div>
+                  <div style="height:6px;border-radius:99px;background:var(--surface3);overflow:hidden"><div style="height:100%;width:{{ c.pct }};background:linear-gradient(90deg,var(--pri),var(--sec))"></div></div>
+                </div>
+              </sc-if>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:3px">
+                <button onClick="{{ c.onOpen }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px;border-radius:99px;border:none;background:{{ c.btnBg }};color:{{ c.btnFg }};font:600 12px Manrope,sans-serif;cursor:pointer"><span data-icon="{{ c.btnIcon }}" style="width:14px;height:14px"></span>{{ c.btnLabel }}</button>
+                <sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="2">
+                  <button onClick="{{ a.onClick }}" title="{{ a.label }}" style="width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:99px;border:1px solid var(--line2);background:transparent;color:{{ a.fg }};cursor:pointer"><span data-icon="{{ a.icon }}" style="width:15px;height:15px"></span></button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ canCreateCard }}">
+          <button onClick="{{ onPrimary }}" style="min-height:200px;border-radius:18px;border:1.5px dashed var(--priBd);background:var(--priSoft3);color:var(--ter);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font:600 12.5px Manrope,sans-serif">
+            <span data-icon="plus" style="width:38px;height:38px;padding:10px;border-radius:99px;background:var(--priSoft)"></span>{{ primaryAction }}
+          </button>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vCurso }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:start">
+        <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ cursoTags }}" as="t" hint-placeholder-count="3">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);color:var(--soft);font:600 11.5px Manrope,sans-serif"><span data-icon="{{ t.icon }}" style="width:13px;height:13px;color:var(--ter)"></span>{{ t.label }}</span>
+          </sc-for>
+        </div>
+        <div style="grid-column:1/-1;border-radius:18px;background:var(--surface);border:1px solid var(--line);overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)">
+            <span data-icon="layers" style="width:17px;height:17px;color:var(--ter)"></span>
+            <h3 style="margin:0;font:600 14px Sora,sans-serif">Módulos</h3>
+            <span style="font:400 11.5px Manrope,sans-serif;color:var(--dim)">{{ moduleHint }}</span>
+          </div>
+          <sc-for list="{{ modules }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:13px;padding:14px 16px;border-top:1px solid var(--line4);flex-wrap:wrap">
+              <div style="width:34px;height:34px;flex:none;border-radius:11px;background:var(--surface2);display:grid;place-items:center;font:600 13px Sora,sans-serif;color:var(--ter)">{{ m.order }}</div>
+              <div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:3px">
+                <span style="font:600 13.5px Manrope,sans-serif">{{ m.title }}</span>
+                <span style="font:400 11.5px/1.4 Manrope,sans-serif;color:var(--mut);text-wrap:pretty">{{ m.desc }}</span>
+              </div>
+              <div style="flex:none;display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:12px;background:{{ m.gameBg }};border:1px solid {{ m.gameBd }}">
+                <span data-icon="{{ m.gameIcon }}" style="width:15px;height:15px;color:{{ m.gameFg }}"></span>
+                <div style="display:flex;flex-direction:column"><span style="font:600 11.5px Manrope,sans-serif;color:{{ m.gameFg }}">{{ m.gameName }}</span><span style="font:400 10px Manrope,sans-serif;color:var(--dim)">{{ m.gradeLabel }}</span></div>
+              </div>
+              <div style="flex:none;display:flex;align-items:center;gap:6px">
+                <sc-for list="{{ m.acts }}" as="a" hint-placeholder-count="4">
+                  <button onClick="{{ a.onClick }}" title="{{ a.label }}" style="display:inline-flex;align-items:center;gap:6px;padding:{{ a.pad }};border-radius:99px;border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};cursor:pointer;font:600 11px Manrope,sans-serif">
+                    <span data-icon="{{ a.icon }}" style="width:14px;height:14px"></span><sc-if value="{{ a.text }}"><span>{{ a.text }}</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ cursoStudents }}">
+          <div style="grid-column:1/-1;border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span data-icon="users" style="width:17px;height:17px;color:var(--sec)"></span>
+              <h3 style="margin:0;font:600 14px Sora,sans-serif">Estudiantes inscritos</h3>
+              <button onClick="{{ onAssign }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 11.5px Manrope,sans-serif;cursor:pointer"><span data-icon="user-plus" style="width:14px;height:14px"></span>Asignar</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ enrolled }}" as="s" hint-placeholder-count="4">
+                <span style="display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 5px;border-radius:99px;background:var(--surface2);font:600 11.5px Manrope,sans-serif"><span style="width:24px;height:24px;border-radius:99px;background:var(--surface3);display:grid;place-items:center;font:700 10px Sora,sans-serif;color:var(--ter)">{{ s.ini }}</span>{{ s.name }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vRuta }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)">
+            <span data-icon="route" style="width:17px;height:17px;color:var(--sec)"></span>
+            <h3 style="margin:0;font:600 14px Sora,sans-serif">Secuencia de cursos</h3>
+            <span style="font:400 11.5px Manrope,sans-serif;color:var(--dim)">{{ moduleHint }}</span>
+          </div>
+          <sc-for list="{{ rutaCourses }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:13px;padding:13px 16px;border-top:1px solid var(--line4);flex-wrap:wrap">
+              <div style="width:30px;height:30px;flex:none;border-radius:99px;background:{{ c.dotBg }};display:grid;place-items:center;font:600 12px Sora,sans-serif;color:{{ c.dotFg }}">{{ c.order }}</div>
+              <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:2px">
+                <span style="font:600 13px Manrope,sans-serif">{{ c.name }}</span>
+                <span style="font:400 11px Manrope,sans-serif;color:var(--mut)">{{ c.meta }}</span>
+              </div>
+              <span style="padding:4px 11px;border-radius:99px;font:600 10.5px Manrope,sans-serif;color:{{ c.fg }};background:{{ c.bg }}">{{ c.badge }}</span>
+              <div style="flex:none;display:flex;gap:6px">
+                <sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="2">
+                  <button onClick="{{ a.onClick }}" title="{{ a.label }}" style="display:inline-flex;align-items:center;gap:6px;padding:{{ a.pad }};border-radius:99px;border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};cursor:pointer;font:600 11px Manrope,sans-serif"><span data-icon="{{ a.icon }}" style="width:14px;height:14px"></span><sc-if value="{{ a.text }}"><span>{{ a.text }}</span></sc-if></button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ cursoStudents }}">
+          <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span data-icon="users" style="width:17px;height:17px;color:var(--sec)"></span>
+              <h3 style="margin:0;font:600 14px Sora,sans-serif">Estudiantes en la ruta</h3>
+              <button onClick="{{ onAssign }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 11.5px Manrope,sans-serif;cursor:pointer"><span data-icon="user-plus" style="width:14px;height:14px"></span>Asignar</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ enrolled }}" as="s" hint-placeholder-count="4">
+                <span style="display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 5px;border-radius:99px;background:var(--surface2);font:600 11.5px Manrope,sans-serif"><span style="width:24px;height:24px;border-radius:99px;background:var(--surface3);display:grid;place-items:center;font:700 10px Sora,sans-serif;color:var(--ter)">{{ s.ini }}</span>{{ s.name }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vJuegos }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:var(--secSoft);border:1px solid var(--secBd)">
+          <span data-icon="info" style="width:17px;height:17px;flex:none;color:var(--sec)"></span>
+          <p style="margin:0;font:500 12px/1.45 Manrope,sans-serif;color:var(--infoInk);text-wrap:pretty">Las plantillas las programa el equipo de desarrollo. Aquí solo se seleccionan y se configuran sus parámetros.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;align-items:start">
+          <sc-for list="{{ games }}" as="g" hint-placeholder-count="6">
+            <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column">
+              <div style="height:104px;background:linear-gradient(135deg,{{ g.c1 }},{{ g.c2 }});display:grid;place-items:center">
+                <span data-icon="{{ g.icon }}" style="width:44px;height:44px;color:var(--onBright)"></span>
+              </div>
+              <div style="padding:14px;display:flex;flex-direction:column;gap:10px;flex:1">
+                <div style="display:flex;align-items:center;gap:8px"><h3 style="margin:0;font:600 14.5px Sora,sans-serif">{{ g.name }}</h3><span style="margin-left:auto;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--mut);font:600 10px Manrope,sans-serif">{{ g.category }}</span></div>
+                <p style="margin:0;font:400 12px/1.45 Manrope,sans-serif;color:var(--mut);text-wrap:pretty">{{ g.tagline }}</p>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <sc-for list="{{ g.paramTags }}" as="p" hint-placeholder-count="3"><span style="padding:3px 9px;border-radius:8px;background:var(--surface2);color:var(--soft);font:500 10px Manrope,sans-serif">{{ p.label }}</span></sc-for>
+                </div>
+                <div style="display:flex;gap:7px;margin-top:auto;padding-top:4px">
+                  <button onClick="{{ g.onConfig }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 12px Manrope,sans-serif;cursor:pointer"><span data-icon="sliders-horizontal" style="width:14px;height:14px"></span>Configurar</button>
+                  <button onClick="{{ g.onPreview }}" title="Vista previa" style="width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:99px;border:1px solid var(--line2);background:transparent;color:var(--soft);cursor:pointer"><span data-icon="play" style="width:15px;height:15px"></span></button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vConfig }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start">
+        <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:17px;display:flex;flex-direction:column;gap:15px">
+          <div style="display:flex;align-items:center;gap:10px"><span data-icon="sliders-horizontal" style="width:17px;height:17px;color:var(--ter)"></span><h3 style="margin:0;font:600 14px Sora,sans-serif">Parámetros de la plantilla</h3></div>
+          <sc-for list="{{ cfgFields }}" as="f" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <label style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">{{ f.label }}</label>
+              <sc-if value="{{ f.isText }}"><input value="{{ f.value }}" onChange="{{ f.onChange }}" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none;width:100%" /></sc-if>
+              <sc-if value="{{ f.isArea }}"><textarea value="{{ f.value }}" onChange="{{ f.onChange }}" rows="3" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none;width:100%;resize:vertical"></textarea></sc-if>
+              <sc-if value="{{ f.isSelect }}">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                  <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="padding:8px 15px;border-radius:99px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font:600 11.5px Manrope,sans-serif;cursor:pointer">{{ o.label }}</button></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ f.isRange }}">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <input type="range" min="{{ f.min }}" max="{{ f.max }}" value="{{ f.value }}" onChange="{{ f.onChange }}" style="flex:1;accent-color:var(--pri)" />
+                  <span style="min-width:58px;text-align:right;font:600 12.5px Sora,sans-serif;color:var(--ter)">{{ f.valueLabel }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ f.isSwitch }}">
+                <button onClick="{{ f.onChange }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid {{ f.bd }};background:{{ f.bg }};cursor:pointer;text-align:left">
+                  <span data-icon="{{ f.icon }}" style="width:17px;height:17px;color:{{ f.fg }}"></span>
+                  <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font:600 12.5px Manrope,sans-serif;color:var(--ink)">{{ f.help }}</span><span style="font:400 11px Manrope,sans-serif;color:var(--mut)">{{ f.sub }}</span></span>
+                  <span style="width:38px;height:21px;flex:none;border-radius:99px;background:{{ f.trackBg }};padding:3px;display:flex;justify-content:{{ f.knob }}"><span style="width:15px;height:15px;border-radius:99px;background:#fff"></span></span>
+                </button>
+              </sc-if>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;padding-top:4px">
+            <button onClick="{{ onSaveCfg }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="save" style="width:15px;height:15px"></span>Guardar configuración</button>
+            <button onClick="{{ onBack }}" style="padding:10px 18px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer">Cancelar</button>
+          </div>
+        </div>
+        <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:17px;display:flex;flex-direction:column;gap:13px">
+          <div style="display:flex;align-items:center;gap:10px"><span data-icon="eye" style="width:17px;height:17px;color:var(--sec)"></span><h3 style="margin:0;font:600 14px Sora,sans-serif">Vista previa</h3><span style="margin-left:auto;font:500 11px Manrope,sans-serif;color:var(--dim)">así lo verá el estudiante</span></div>
+          <div style="border-radius:14px;background:var(--bg);border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="padding:4px 11px;border-radius:99px;background:var(--surface2);color:var(--ter);font:600 10.5px Manrope,sans-serif">{{ cfgGameName }}</span>
+              <span style="margin-left:auto;font:600 12px Sora,sans-serif;color:var(--sec)">{{ cfgTimeLabel }}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;aspect-ratio:8/5;padding:9px;border-radius:12px;background:var(--surfaceHead);border:1px solid var(--line4)">
+              <sc-for list="{{ boardCells }}" as="b" hint-placeholder-count="40">
+                <div style="border-radius:5px;background:{{ b.bg }};display:grid;place-items:center;font:700 10px Sora,sans-serif;color:{{ b.fg }}">{{ b.label }}</div>
+              </sc-for>
+            </div>
+            <p style="margin:0;font:400 11.5px/1.45 Manrope,sans-serif;color:var(--mut);text-wrap:pretty">{{ cfgDesc }}</p>
+          </div>
+          <button onClick="{{ onPlayPreview }}" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px;border-radius:99px;border:1px solid var(--sec);background:transparent;color:var(--sec);font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="play" style="width:15px;height:15px"></span>Probar juego</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vPlay }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start">
+        <div style="border-radius:20px;background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:13px">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;background:var(--surface2);color:var(--ter);font:600 11.5px Manrope,sans-serif"><span data-icon="{{ playIcon }}" style="width:14px;height:14px"></span>{{ playGame }}</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;background:var(--surface2);color:var(--sec);font:600 11.5px Sora,sans-serif"><span data-icon="timer" style="width:14px;height:14px"></span>{{ playTime }}</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;background:var(--surface2);color:var(--soft);font:600 11.5px Manrope,sans-serif"><span data-icon="repeat" style="width:14px;height:14px"></span>{{ playAttempt }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:5px;aspect-ratio:8/5;padding:11px;border-radius:16px;background:var(--surfaceHead);border:1px solid var(--line)">
+            <sc-for list="{{ boardCells }}" as="b" hint-placeholder-count="40">
+              <div style="border-radius:6px;background:{{ b.bg }};display:grid;place-items:center;font:700 12px Sora,sans-serif;color:{{ b.fg }}">{{ b.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column"><span style="font:500 10.5px Manrope,sans-serif;color:var(--mut);text-transform:uppercase;letter-spacing:.5px">Puntaje</span><span style="font:600 19px Sora,sans-serif;color:var(--ink)">{{ playScore }}</span></div>
+            <div style="display:flex;flex-direction:column"><span style="font:500 10.5px Manrope,sans-serif;color:var(--mut);text-transform:uppercase;letter-spacing:.5px">Objetivo</span><span style="font:600 13px Manrope,sans-serif;color:var(--soft)">{{ playGoal }}</span></div>
+            <div style="margin-left:auto;display:flex;gap:7px">
+              <button onClick="{{ onFinish }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 17px;border-radius:99px;border:none;background:var(--sec);color:var(--secInk);font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="flag" style="width:14px;height:14px"></span>Terminar</button>
+              <button onClick="{{ onBack }}" style="padding:10px 17px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer">Salir</button>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ hasResult }}">
+          <div style="border-radius:20px;background:var(--surface2);border:1px solid var(--priBd);padding:18px;display:flex;flex-direction:column;gap:14px;animation:pop .3s ease">
+            <div style="display:flex;align-items:center;gap:10px"><span data-icon="party-popper" style="width:34px;height:34px;padding:8px;border-radius:12px;background:var(--priSoft);color:var(--ter)"></span><h3 style="margin:0;font:600 16px Sora,sans-serif">Módulo completado</h3></div>
+            <div style="display:flex;align-items:baseline;gap:9px"><span style="font:600 40px/1 Sora,sans-serif;letter-spacing:-1.5px">{{ resScore }}</span><span style="font:500 12px Manrope,sans-serif;color:var(--mut)">puntos de {{ resMax }}</span></div>
+            <div style="height:8px;border-radius:99px;background:var(--surface3);overflow:hidden"><div style="height:100%;width:{{ resPct }};background:linear-gradient(90deg,var(--pri),var(--sec))"></div></div>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--surface)">
+              <span data-icon="{{ resIcon }}" style="width:17px;height:17px;color:var(--sec)"></span>
+              <div style="display:flex;flex-direction:column"><span style="font:600 12.5px Manrope,sans-serif">{{ resGradeLabel }}</span><span style="font:400 11px Manrope,sans-serif;color:var(--mut)">{{ resGradeSub }}</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button onClick="{{ onNextModule }}" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="arrow-right" style="width:15px;height:15px"></span>Siguiente módulo</button>
+              <button onClick="{{ onRetry }}" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="rotate-ccw" style="width:15px;height:15px"></span>Reintentar</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vActividad }}">
+      <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:8px 16px 16px">
+        <sc-for list="{{ activity }}" as="a" hint-placeholder-count="8">
+          <div style="display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line4)">
+            <span data-icon="{{ a.icon }}" style="width:32px;height:32px;flex:none;padding:8px;border-radius:10px;background:var(--surface2);color:var(--ter)"></span>
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">
+              <span style="font:500 12.5px/1.4 Manrope,sans-serif;text-wrap:pretty">{{ a.text }}</span>
+              <span style="font:400 11px Manrope,sans-serif;color:var(--dim)">{{ a.when }} · {{ a.scope }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ vAjustes }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:start">
+        <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:17px;display:flex;flex-direction:column;gap:14px">
+          <h3 style="margin:0;font:600 14px Sora,sans-serif">Datos de la cuenta</h3>
+          <div style="display:flex;flex-direction:column;gap:7px"><label style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">Nombre</label><input value="{{ userName }}" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none" /></div>
+          <div style="display:flex;flex-direction:column;gap:7px"><label style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">Correo</label><input value="{{ userMail }}" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none" /></div>
+          <div style="display:flex;flex-direction:column;gap:7px"><label style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">Alcance</label><div style="padding:11px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font:500 12.5px Manrope,sans-serif;color:var(--soft)">{{ scopeLabel }}</div></div>
+          <button onClick="{{ onSaveAjustes }}" style="align-self:flex-start;padding:10px 18px;border-radius:99px;border:none;background:var(--pri);color:#fff;font:600 12.5px Manrope,sans-serif;cursor:pointer">Guardar cambios</button>
+        </div>
+        <div style="border-radius:18px;background:var(--surface);border:1px solid var(--line);padding:17px;display:flex;flex-direction:column;gap:12px">
+          <h3 style="margin:0;font:600 14px Sora,sans-serif">Permisos de este rol</h3>
+          <sc-for list="{{ perms }}" as="p" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface2)">
+              <span data-icon="{{ p.icon }}" style="width:16px;height:16px;flex:none;color:{{ p.fg }}"></span>
+              <span style="flex:1;font:500 12px Manrope,sans-serif">{{ p.label }}</span>
+              <span style="font:600 10.5px Manrope,sans-serif;color:{{ p.fg }}">{{ p.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+
+<sc-if value="{{ modalOpen }}">
+  <div style="position:fixed;inset:0;z-index:80;background:var(--scrim);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .16s ease">
+    <div style="width:100%;max-width:{{ modalW }};max-height:88vh;overflow:auto;border-radius:20px;background:var(--surface);border:1px solid var(--line3);box-shadow:var(--shadow);animation:pop .2s ease">
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:18px 18px 0">
+        <span data-icon="{{ modalIcon }}" style="width:36px;height:36px;flex:none;padding:9px;border-radius:12px;background:{{ modalIconBg }};color:{{ modalIconFg }}"></span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+          <h3 style="margin:0;font:600 16px/1.25 Sora,sans-serif">{{ modalTitle }}</h3>
+          <p style="margin:0;font:400 12px/1.45 Manrope,sans-serif;color:var(--mut);text-wrap:pretty">{{ modalDesc }}</p>
+        </div>
+        <button onClick="{{ onCloseModal }}" style="width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:99px;border:1px solid var(--line3);background:transparent;color:var(--mut);cursor:pointer"><span data-icon="x" style="width:15px;height:15px"></span></button>
+      </div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:13px">
+        <sc-for list="{{ modalFields }}" as="f" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <label style="font:600 10.5px Manrope,sans-serif;color:var(--mut);letter-spacing:.5px;text-transform:uppercase">{{ f.label }}</label>
+            <sc-if value="{{ f.isText }}"><input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none;width:100%" /></sc-if>
+            <sc-if value="{{ f.isArea }}"><textarea value="{{ f.value }}" onChange="{{ f.onChange }}" rows="3" placeholder="{{ f.ph }}" style="padding:11px 14px;border-radius:12px;border:1px solid var(--line3);background:var(--surface2);color:var(--ink);font:500 12.5px Manrope,sans-serif;outline:none;width:100%;resize:vertical"></textarea></sc-if>
+            <sc-if value="{{ f.isSelect }}">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.onClick }}" style="padding:8px 14px;border-radius:99px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font:600 11.5px Manrope,sans-serif;cursor:pointer">{{ o.label }}</button></sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ f.isSwitch }}">
+              <button onClick="{{ f.onChange }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid {{ f.bd }};background:{{ f.bg }};cursor:pointer;text-align:left">
+                <span style="flex:1;font:600 12.5px Manrope,sans-serif;color:var(--ink)">{{ f.help }}</span>
+                <span style="width:38px;height:21px;flex:none;border-radius:99px;background:{{ f.trackBg }};padding:3px;display:flex;justify-content:{{ f.knob }}"><span style="width:15px;height:15px;border-radius:99px;background:#fff"></span></span>
+              </button>
+            </sc-if>
+            <sc-if value="{{ f.isChecks }}">
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="4">
+                  <button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:12px;border:1px solid {{ o.bd }};background:{{ o.bg }};cursor:pointer;text-align:left">
+                    <span data-icon="{{ o.icon }}" style="width:16px;height:16px;flex:none;color:{{ o.fg }}"></span>
+                    <span style="flex:1;font:600 12px Manrope,sans-serif;color:var(--ink)">{{ o.label }}</span>
+                    <span style="font:400 11px Manrope,sans-serif;color:var(--mut)">{{ o.sub }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ modalGames }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+            <sc-for list="{{ games }}" as="g" hint-placeholder-count="6">
+              <button onClick="{{ g.onPick }}" style="padding:12px;border-radius:14px;border:1px solid {{ g.pickBd }};background:{{ g.pickBg }};cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left">
+                <span data-icon="{{ g.icon }}" style="width:30px;height:30px;padding:7px;border-radius:10px;background:linear-gradient(135deg,{{ g.c1 }},{{ g.c2 }});color:var(--onBright)"></span>
+                <span style="font:600 12.5px Sora,sans-serif;color:var(--ink)">{{ g.name }}</span>
+                <span style="font:400 11px/1.4 Manrope,sans-serif;color:var(--mut)">{{ g.tagline }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line);flex-wrap:wrap">
+        <button onClick="{{ onCloseModal }}" style="padding:10px 18px;border-radius:99px;border:1px solid var(--line5);background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer">Cancelar</button>
+        <sc-if value="{{ modalConfirm }}"><button onClick="{{ onConfirmModal }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:99px;border:none;background:{{ confirmBg }};color:{{ confirmFg }};font:600 12.5px Manrope,sans-serif;cursor:pointer"><span data-icon="{{ confirmIcon }}" style="width:15px;height:15px"></span>{{ modalConfirm }}</button></sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toast }}">
+  <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:99px;background:var(--surface2);border:1px solid var(--secBd);box-shadow:0 12px 34px rgba(0,0,0,.45);animation:pop .22s ease">
+    <span data-icon="check-circle-2" style="width:17px;height:17px;color:var(--sec)"></span>
+    <span style="font:600 12.5px Manrope,sans-serif;color:var(--ink)">{{ toast }}</span>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;super&quot;,&quot;admin&quot;,&quot;teacher&quot;,&quot;student&quot;],&quot;default&quot;:&quot;super&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+const ID = (p) => p + Math.random().toString(36).slice(2, 7);
+const ini = (n) => n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const PRI = 'var(--pri)', SEC = 'var(--sec)', TER = 'var(--ter)';
+const TONE = {
+  ok: { fg: 'var(--ok)', bg: 'var(--okSoft)' },
+  info: { fg: 'var(--sec)', bg: 'var(--secSoft)' },
+  warn: { fg: 'var(--warn)', bg: 'var(--warnSoft)' },
+  bad: { fg: 'var(--bad)', bg: 'var(--badSoft)' },
+  mut: { fg: 'var(--soft)', bg: 'var(--line)' },
+  pri: { fg: 'var(--priInkSoft)', bg: 'var(--priSoft2)' }
+};
+
+const GAMES = [
+  { id: 'g1', name: 'Viborita Numérica', category: 'Arcade', icon: 'worm', c1: 'var(--pri)', c2: 'var(--sec)', tagline: 'La víbora crece comiendo solo las respuestas correctas.', params: ['Velocidad', 'Pares', 'Vidas'], desc: 'Guía la víbora hacia el resultado correcto. Cada acierto la hace crecer; un error cuesta una vida.' },
+  { id: 'g2', name: 'Torre de Bloques', category: 'Lógica', icon: 'blocks', c1: 'var(--ter)', c2: 'var(--pri)', tagline: 'Encaja la pieza donde coincide el concepto.', params: ['Caída', 'Niveles', 'Piezas'], desc: 'Las piezas caen con un valor; encájalas en la columna que corresponde antes de que la torre llegue arriba.' },
+  { id: 'g3', name: 'Memorama', category: 'Memoria', icon: 'layout-grid', c1: 'var(--sec)', c2: 'var(--ter)', tagline: 'Empareja imagen y concepto contra el reloj.', params: ['Pares', 'Tiempo', 'Pistas'], desc: 'Voltea dos cartas por turno y encuentra los pares de imagen y concepto.' },
+  { id: 'g4', name: 'Burbujas', category: 'Velocidad', icon: 'circle-dot', c1: 'var(--pri)', c2: 'var(--pink)', tagline: 'Revienta la burbuja con la equivalencia correcta.', params: ['Flujo', 'Objetivo', 'Vidas'], desc: 'Las burbujas suben con valores; revienta solo las equivalentes al objetivo del nivel.' },
+  { id: 'g5', name: 'Ordena la Secuencia', category: 'Lógica', icon: 'arrow-down-up', c1: 'var(--sec)', c2: 'var(--ok)', tagline: 'Arrastra los elementos hasta el orden correcto.', params: ['Elementos', 'Tiempo', 'Intentos'], desc: 'Arrastra las piezas hasta formar la secuencia correcta antes de que termine el tiempo.' },
+  { id: 'g6', name: 'Laberinto', category: 'Arcade', icon: 'map', c1: 'var(--ter)', c2: 'var(--sec)', tagline: 'Avanza por el camino que resuelve la pista.', params: ['Tamaño', 'Pistas', 'Vidas'], desc: 'Recorre el laberinto tomando en cada bifurcación el camino que responde a la pista.' }
+];
+
+const ACTIVITY = [
+  { icon: 'user-plus', text: 'Marta Ibarra creó al estudiante Guillermo Salas', when: 'hace 12 min', scope: 'NEXUM' },
+  { icon: 'gamepad-2', text: 'Sergio Ríos completó Sumas básicas con 92 puntos', when: 'hace 40 min', scope: 'NEXUM' },
+  { icon: 'route', text: 'Javier Mora agregó Fracciones a la ruta Matemáticas Iniciales', when: 'hace 1 h', scope: 'NEXUM' },
+  { icon: 'building-2', text: 'Se dio de alta la institución PLATZI', when: 'hace 3 h', scope: 'Global' },
+  { icon: 'inbox', text: 'Daniel Cruz solicitó inscribirse a Lectura Veloz', when: 'hace 5 h', scope: 'ADA' },
+  { icon: 'sliders-horizontal', text: 'Lucía Ortega reconfiguró Torre de Bloques en Operaciones', when: 'ayer', scope: 'ADA' },
+  { icon: 'graduation-cap', text: 'Gustavo Peña terminó la ruta Refuerzo Escolar', when: 'ayer', scope: 'NEXUM' },
+  { icon: 'trash-2', text: 'Se eliminó el módulo Repaso rápido de Geografía Interactiva', when: 'hace 2 días', scope: 'PLATZI' }
+];
+
+class Component extends DCLogic {
+  state = {
+    role: 'super', route: 'dashboard', collapsed: false, search: '', filter: 'Todos',
+    modal: null, form: {}, toast: null, detail: null, play: null, result: null, cfg: null, theme: 'dark',
+    institutions: [
+      { id: 'i1', name: 'NEXUM', sub: 'nexum.edu.mx', teachers: 8, students: 124, courses: 12, routes: 3, status: 'Activa' },
+      { id: 'i2', name: 'ADA', sub: 'ada-school.org', teachers: 5, students: 86, courses: 9, routes: 2, status: 'Activa' },
+      { id: 'i3', name: 'PLATZI', sub: 'platzi.institute', teachers: 11, students: 203, courses: 18, routes: 5, status: 'Activa' }
+    ],
+    users: [
+      { id: 'u1', name: 'Marta Ibarra', mail: 'marta@nexum.edu.mx', role: 'Admin institución', inst: 'NEXUM', status: 'Activo' },
+      { id: 'u2', name: 'Javier Mora', mail: 'javier@nexum.edu.mx', role: 'Docente', inst: 'NEXUM', status: 'Activo' },
+      { id: 'u3', name: 'Lucía Ortega', mail: 'lucia@nexum.edu.mx', role: 'Docente', inst: 'NEXUM', status: 'Activo' },
+      { id: 'u4', name: 'Sergio Ríos', mail: 'sergio@nexum.edu.mx', role: 'Estudiante', inst: 'NEXUM', status: 'Activo' },
+      { id: 'u5', name: 'Gustavo Peña', mail: 'gustavo@nexum.edu.mx', role: 'Estudiante', inst: 'NEXUM', status: 'Activo' },
+      { id: 'u6', name: 'Daniel Cruz', mail: 'daniel@ada-school.org', role: 'Estudiante', inst: 'ADA', status: 'Activo' },
+      { id: 'u7', name: 'Guillermo Salas', mail: 'guillermo@platzi.institute', role: 'Estudiante', inst: 'PLATZI', status: 'Inactivo' },
+      { id: 'u8', name: 'Andrés Vela', mail: 'andres@platzi.institute', role: 'Docente', inst: 'PLATZI', status: 'Activo' }
+    ],
+    courses: [
+      { id: 'c1', name: 'Matemáticas Básicas', desc: 'Sumas, restas y primeras operaciones con juegos de acción.', inst: 'NEXUM', teacher: 'Javier Mora', students: ['u4', 'u5'], modules: [
+        { id: 'm1', title: 'Sumas básicas', desc: 'Resolver sumas de una y dos cifras.', game: 'g1', graded: true },
+        { id: 'm2', title: 'Restas sin llevar', desc: 'Restas simples con apoyo visual.', game: 'g4', graded: false },
+        { id: 'm3', title: 'Tablas del 2 al 5', desc: 'Memorizar tablas con pares imagen-resultado.', game: 'g3', graded: true },
+        { id: 'm4', title: 'Repaso general', desc: 'Mezcla de operaciones del curso.', game: null, graded: true }
+      ] },
+      { id: 'c2', name: 'Operaciones', desc: 'Multiplicación y división con retos de velocidad.', inst: 'NEXUM', teacher: 'Javier Mora', students: ['u4'], modules: [
+        { id: 'm5', title: 'Multiplicar por 10', desc: 'Patrones al multiplicar por decenas.', game: 'g2', graded: true },
+        { id: 'm6', title: 'División exacta', desc: 'Repartos sin residuo.', game: 'g5', graded: true },
+        { id: 'm7', title: 'Práctica libre', desc: 'Sesión sin calificación.', game: 'g1', graded: false }
+      ] },
+      { id: 'c3', name: 'Fracciones', desc: 'Equivalencias y comparación de fracciones.', inst: 'NEXUM', teacher: 'Lucía Ortega', students: ['u5'], modules: [
+        { id: 'm8', title: 'Mitades y cuartos', desc: 'Reconocer fracciones en figuras.', game: 'g4', graded: true },
+        { id: 'm9', title: 'Equivalencias', desc: 'Encontrar fracciones equivalentes.', game: 'g3', graded: true }
+      ] },
+      { id: 'c4', name: 'Álgebra Inicial', desc: 'Primeras ecuaciones y valores desconocidos.', inst: 'NEXUM', teacher: 'Javier Mora', students: [], modules: [
+        { id: 'm10', title: 'El valor oculto', desc: 'Encontrar la incógnita en sumas.', game: 'g6', graded: true }
+      ] },
+      { id: 'c5', name: 'Lectura Veloz', desc: 'Comprensión y vocabulario en formato arcade.', inst: 'ADA', teacher: 'Lucía Ortega', students: ['u6'], modules: [
+        { id: 'm11', title: 'Sinónimos', desc: 'Asociar palabras de significado cercano.', game: 'g3', graded: true },
+        { id: 'm12', title: 'Orden de la historia', desc: 'Ordenar los hechos de un relato.', game: 'g5', graded: false }
+      ] },
+      { id: 'c6', name: 'Geografía Interactiva', desc: 'Mapas, capitales y relieve.', inst: 'PLATZI', teacher: 'Andrés Vela', students: ['u7'], modules: [
+        { id: 'm13', title: 'Capitales', desc: 'Relacionar país y capital.', game: 'g6', graded: true }
+      ] }
+    ],
+    routes: [
+      { id: 'r1', name: 'Matemáticas Iniciales', desc: 'Recorrido completo de aritmética para primaria.', inst: 'NEXUM', courseIds: ['c1', 'c2', 'c3', 'c4'], students: ['u4', 'u5'] },
+      { id: 'r2', name: 'Refuerzo Escolar', desc: 'Apoyo para estudiantes que vienen de otro ciclo.', inst: 'NEXUM', courseIds: ['c1', 'c3'], students: ['u5'] },
+      { id: 'r3', name: 'Lectoescritura', desc: 'Comprensión lectora y vocabulario.', inst: 'ADA', courseIds: ['c5'], students: ['u6'] }
+    ],
+    requests: [
+      { id: 'q1', student: 'Daniel Cruz', type: 'Ingreso', target: 'Lectura Veloz', date: '08 sep', status: 'Pendiente' },
+      { id: 'q2', student: 'Gustavo Peña', type: 'Salida', target: 'Fracciones', date: '08 sep', status: 'Pendiente' },
+      { id: 'q3', student: 'Guillermo Salas', type: 'Ingreso', target: 'Ruta: Matemáticas Iniciales', date: '07 sep', status: 'Pendiente' },
+      { id: 'q4', student: 'Sergio Ríos', type: 'Ingreso', target: 'Álgebra Inicial', date: '06 sep', status: 'Pendiente' },
+      { id: 'q5', student: 'Gustavo Peña', type: 'Ingreso', target: 'Operaciones', date: '02 sep', status: 'Aprobada' },
+      { id: 'q6', student: 'Daniel Cruz', type: 'Salida', target: 'Geografía Interactiva', date: '29 ago', status: 'Rechazada' }
+    ],
+    results: [
+      { student: 'Sergio Ríos', course: 'Matemáticas Básicas', module: 'Sumas básicas', attempt: 1, score: 92, grade: '9.2', date: '10 sep' },
+      { student: 'Sergio Ríos', course: 'Matemáticas Básicas', module: 'Restas sin llevar', attempt: 2, score: 70, grade: '—', date: '10 sep' },
+      { student: 'Gustavo Peña', course: 'Matemáticas Básicas', module: 'Sumas básicas', attempt: 1, score: 78, grade: '7.8', date: '09 sep' },
+      { student: 'Gustavo Peña', course: 'Fracciones', module: 'Equivalencias', attempt: 3, score: 85, grade: '8.5', date: '09 sep' },
+      { student: 'Daniel Cruz', course: 'Lectura Veloz', module: 'Sinónimos', attempt: 1, score: 64, grade: '6.4', date: '08 sep' },
+      { student: 'Guillermo Salas', course: 'Geografía Interactiva', module: 'Capitales', attempt: 1, score: 95, grade: '9.5', date: '07 sep' }
+    ],
+    progress: { c1: 3, c2: 1, c3: 0 }
+  };
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem('ludus-theme', theme); } catch (e) {}
+  }
+
+  componentDidMount() {
+    let saved = null;
+    try { saved = localStorage.getItem('ludus-theme'); } catch (e) {}
+    const theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+    this.setState({ theme });
+    this.applyTheme(theme);
+    if (this.props.initialRole) this.setState({ role: this.props.initialRole, route: this.home(this.props.initialRole) });
+
+    this._r = () => { if (window.innerWidth < 980 && !this._touched) this.setState({ collapsed: true }); };
+    this._r(); window.addEventListener('resize', this._r);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._r); clearTimeout(this._t); }
+
+  toast(msg) { this.setState({ toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 2600); }
+  home(role) { return role === 'student' ? 'inicio' : 'dashboard'; }
+  go(route) { this.setState({ route, detail: null, play: null, result: null, cfg: null, search: '', filter: 'Todos' }); }
+  setRole(role) { this.setState({ role, route: this.home(role), detail: null, play: null, result: null, cfg: null, search: '', filter: 'Todos', modal: null }); }
+
+  /* ---------- scope ---------- */
+  get myInst() { return this.state.role === 'student' ? 'NEXUM' : this.state.role === 'teacher' ? 'NEXUM' : this.state.role === 'admin' ? 'NEXUM' : null; }
+  get meName() { return { super: 'Elena Vargas', admin: 'Marta Ibarra', teacher: 'Javier Mora', student: 'Sergio Ríos' }[this.state.role]; }
+  get meMail() { return { super: 'elena@ludus.io', admin: 'marta@nexum.edu.mx', teacher: 'javier@nexum.edu.mx', student: 'sergio@nexum.edu.mx' }[this.state.role]; }
+  get roleLabel() { return { super: 'Superadministrador', admin: 'Admin institución', teacher: 'Docente', student: 'Estudiante' }[this.state.role]; }
+  scopedCourses() {
+    const { role, courses } = this.state;
+    if (role === 'super') return courses;
+    if (role === 'admin') return courses.filter(c => c.inst === 'NEXUM');
+    if (role === 'teacher') return courses.filter(c => c.teacher === 'Javier Mora');
+    return courses.filter(c => c.students.indexOf('u4') > -1);
+  }
+  scopedRoutes() {
+    const { role, routes } = this.state;
+    if (role === 'super') return routes;
+    if (role === 'student') return routes.filter(r => r.students.indexOf('u4') > -1);
+    return routes.filter(r => r.inst === 'NEXUM');
+  }
+  pendingReqs() { return this.state.requests.filter(r => r.status === 'Pendiente'); }
+  game(id) { return GAMES.filter(g => g.id === id)[0]; }
+  course(id) { return this.state.courses.filter(c => c.id === id)[0]; }
+
+  /* ---------- nav ---------- */
+  navItems() {
+    const r = this.state.role;
+    const mk = (key, label, icon, badge) => ({ key, label, icon, badge });
+    if (r === 'super') return [mk('dashboard', 'Dashboard', 'layout-dashboard'), mk('instituciones', 'Instituciones', 'building-2'), mk('usuarios', 'Usuarios', 'users'), mk('cursos', 'Cursos', 'book-open'), mk('rutas', 'Rutas', 'route'), mk('juegos', 'Juegos', 'gamepad-2'), mk('actividad', 'Actividad', 'activity'), mk('ajustes', 'Configuración', 'settings')];
+    if (r === 'admin') return [mk('dashboard', 'Dashboard', 'layout-dashboard'), mk('estudiantes', 'Estudiantes', 'graduation-cap'), mk('docentes', 'Docentes', 'user-round-cog'), mk('cursos', 'Cursos', 'book-open'), mk('rutas', 'Rutas', 'route'), mk('solicitudes', 'Solicitudes', 'inbox', String(this.pendingReqs().length)), mk('juegos', 'Juegos', 'gamepad-2'), mk('ajustes', 'Configuración', 'settings')];
+    if (r === 'teacher') return [mk('dashboard', 'Dashboard', 'layout-dashboard'), mk('cursos', 'Mis cursos', 'book-open'), mk('rutas', 'Mis rutas', 'route'), mk('juegos', 'Juegos', 'gamepad-2'), mk('estudiantes', 'Estudiantes', 'graduation-cap'), mk('resultados', 'Resultados', 'bar-chart-3')];
+    return [mk('inicio', 'Inicio', 'house'), mk('cursos', 'Mis cursos', 'book-open'), mk('rutas', 'Mis rutas', 'route'), mk('explorar', 'Explorar cursos', 'compass'), mk('solicitudes', 'Solicitudes', 'inbox'), mk('progreso', 'Progreso', 'trending-up'), mk('calificaciones', 'Calificaciones', 'award')];
+  }
+
+  /* ---------- modals ---------- */
+  fieldsFor(entity, item) {
+    const insts = this.state.institutions.map(i => i.name);
+    const teachers = this.state.users.filter(u => u.role === 'Docente').map(u => u.name);
+    if (entity === 'inst') return [{ k: 'name', label: 'Nombre de la institución', t: 'text', ph: 'NEXUM' }, { k: 'sub', label: 'Dominio', t: 'text', ph: 'nexum.edu.mx' }, { k: 'status', label: 'Estado', t: 'select', options: ['Activa', 'Inactiva'] }];
+    if (entity === 'user') {
+      const roles = this.state.role === 'super' ? ['Admin institución', 'Docente', 'Estudiante'] : ['Docente', 'Estudiante'];
+      const f = [{ k: 'name', label: 'Nombre', t: 'text', ph: 'Nombre y apellido' }, { k: 'mail', label: 'Correo', t: 'text', ph: 'correo@institucion.mx' }, { k: 'role', label: 'Rol', t: 'select', options: roles }];
+      if (this.state.role === 'super') f.push({ k: 'inst', label: 'Institución', t: 'select', options: insts });
+      f.push({ k: 'status', label: 'Estado', t: 'select', options: ['Activo', 'Inactivo'] });
+      return f;
+    }
+    if (entity === 'course') {
+      const f = [{ k: 'name', label: 'Nombre del curso', t: 'text', ph: 'Matemáticas Básicas' }, { k: 'desc', label: 'Descripción', t: 'area', ph: 'De qué trata el curso' }];
+      if (this.state.role !== 'teacher') f.push({ k: 'teacher', label: 'Docente asignado', t: 'select', options: teachers });
+      if (this.state.role === 'super') f.push({ k: 'inst', label: 'Institución', t: 'select', options: insts });
+      return f;
+    }
+    if (entity === 'route') return [{ k: 'name', label: 'Nombre de la ruta', t: 'text', ph: 'Matemáticas Iniciales' }, { k: 'desc', label: 'Descripción', t: 'area', ph: 'Qué recorrido cubre' }];
+    if (entity === 'module') return [{ k: 'title', label: 'Título del módulo', t: 'text', ph: 'Sumas básicas' }, { k: 'desc', label: 'Descripción breve', t: 'area', ph: 'Qué se practica aquí' }, { k: 'graded', label: 'Calificación', t: 'switch', help: 'Este módulo genera calificación' }];
+    return [];
+  }
+  openForm(entity, item) {
+    const fields = this.fieldsFor(entity, item);
+    const form = {};
+    fields.forEach(f => { form[f.k] = item ? item[f.k] : (f.t === 'select' ? f.options[0] : f.t === 'switch' ? true : ''); });
+    const names = { inst: 'institución', user: 'usuario', course: 'curso', route: 'ruta', module: 'módulo' };
+    this.setState({ form, modal: { kind: 'form', entity, id: item ? item.id : null, fields, icon: item ? 'pencil' : 'plus', title: (item ? 'Editar ' : 'Nueva ') + names[entity], desc: item ? 'Modifica los datos y guarda los cambios.' : 'Completa los datos para crear el registro.', confirm: item ? 'Guardar cambios' : 'Crear' } });
+  }
+  openDelete(entity, item, label) {
+    this.setState({ modal: { kind: 'delete', entity, id: item.id, icon: 'trash-2', danger: true, title: '¿Eliminar ' + label + '?', desc: 'Esta acción elimina «' + (item.name || item.title) + '» y su configuración asociada. No se puede deshacer.', confirm: 'Eliminar' } });
+  }
+  openView(item, label) {
+    const rows = Object.keys(item).filter(k => ['id', 'modules', 'students', 'courseIds'].indexOf(k) < 0);
+    this.setState({ modal: { kind: 'view', icon: 'eye', title: item.name || item.title || label, desc: rows.map(k => k + ': ' + item[k]).join(' · ') } });
+  }
+  openAssign() {
+    const det = this.state.detail;
+    const list = this.state.users.filter(u => u.role === 'Estudiante' && (this.state.role === 'super' || u.inst === 'NEXUM'));
+    const target = det.type === 'course' ? this.course(det.id) : this.state.routes.filter(r => r.id === det.id)[0];
+    this.setState({ form: { picked: (target.students || []).slice() }, modal: { kind: 'assign', icon: 'user-plus', title: 'Asignar estudiantes', desc: 'Selecciona quién queda inscrito en ' + target.name + '.', list, confirm: 'Guardar asignación' } });
+  }
+  openGamePick(moduleId) {
+    this.setState({ modal: { kind: 'game', icon: 'gamepad-2', moduleId, w: '640px', title: 'Elegir plantilla de juego', desc: 'Las plantillas están programadas por el equipo de desarrollo. Selecciona una y configura sus parámetros.' } });
+  }
+  openRequest(course, type) {
+    this.setState({ modal: { kind: 'request', icon: type === 'Ingreso' ? 'inbox' : 'log-out', course: course.name, type, title: type === 'Ingreso' ? '¿Solicitar inscripción?' : '¿Solicitar salida del curso?', desc: type === 'Ingreso' ? 'Se enviará una solicitud al administrador de NEXUM para inscribirte en «' + course.name + '».' : 'Se enviará una solicitud para darte de baja de «' + course.name + '». El administrador decide.', confirm: 'Enviar solicitud' } });
+  }
+  closeModal() { this.setState({ modal: null, form: {} }); }
+
+  confirmModal() {
+    const m = this.state.modal, f = this.state.form;
+    if (!m) return;
+    if (m.kind === 'form') {
+      const S = this.state;
+      if (m.entity === 'inst') {
+        if (m.id) this.setState({ institutions: S.institutions.map(i => i.id === m.id ? Object.assign({}, i, f) : i) });
+        else this.setState({ institutions: S.institutions.concat([Object.assign({ id: ID('i'), teachers: 0, students: 0, courses: 0, routes: 0 }, f)]) });
+      } else if (m.entity === 'user') {
+        const base = { inst: this.myInst || 'NEXUM' };
+        if (m.id) this.setState({ users: S.users.map(u => u.id === m.id ? Object.assign({}, u, f) : u) });
+        else this.setState({ users: S.users.concat([Object.assign({ id: ID('u') }, base, f)]) });
+      } else if (m.entity === 'course') {
+        const base = { inst: this.myInst || 'NEXUM', teacher: this.state.role === 'teacher' ? 'Javier Mora' : 'Javier Mora', students: [], modules: [] };
+        if (m.id) this.setState({ courses: S.courses.map(c => c.id === m.id ? Object.assign({}, c, f) : c) });
+        else this.setState({ courses: S.courses.concat([Object.assign({ id: ID('c') }, base, f)]) });
+      } else if (m.entity === 'route') {
+        if (m.id) this.setState({ routes: S.routes.map(r => r.id === m.id ? Object.assign({}, r, f) : r) });
+        else this.setState({ routes: S.routes.concat([Object.assign({ id: ID('r'), inst: this.myInst || 'NEXUM', courseIds: [], students: [] }, f)]) });
+      } else if (m.entity === 'module') {
+        const cid = this.state.detail.id;
+        this.setState({ courses: S.courses.map(c => {
+          if (c.id !== cid) return c;
+          const mods = m.id ? c.modules.map(x => x.id === m.id ? Object.assign({}, x, f) : x) : c.modules.concat([Object.assign({ id: ID('m'), game: null }, f)]);
+          return Object.assign({}, c, { modules: mods });
+        }) });
+      }
+      this.toast(m.id ? 'Cambios guardados' : 'Registro creado');
+    } else if (m.kind === 'delete') {
+      const S = this.state;
+      if (m.entity === 'inst') this.setState({ institutions: S.institutions.filter(i => i.id !== m.id) });
+      if (m.entity === 'user') this.setState({ users: S.users.filter(u => u.id !== m.id) });
+      if (m.entity === 'course') this.setState({ courses: S.courses.filter(c => c.id !== m.id), detail: null });
+      if (m.entity === 'route') this.setState({ routes: S.routes.filter(r => r.id !== m.id), detail: null });
+      if (m.entity === 'module') this.setState({ courses: S.courses.map(c => Object.assign({}, c, { modules: c.modules.filter(x => x.id !== m.id) })) });
+      if (m.entity === 'routeCourse') this.setState({ routes: S.routes.map(r => r.id === this.state.detail.id ? Object.assign({}, r, { courseIds: r.courseIds.filter(x => x !== m.id) }) : r) });
+      this.toast('Eliminado');
+    } else if (m.kind === 'assign') {
+      const det = this.state.detail, picked = f.picked || [];
+      if (det.type === 'course') this.setState({ courses: this.state.courses.map(c => c.id === det.id ? Object.assign({}, c, { students: picked }) : c) });
+      else this.setState({ routes: this.state.routes.map(r => r.id === det.id ? Object.assign({}, r, { students: picked }) : r) });
+      this.toast(picked.length + ' estudiantes asignados');
+    } else if (m.kind === 'request') {
+      this.setState({ requests: this.state.requests.concat([{ id: ID('q'), student: 'Sergio Ríos', type: m.type, target: m.course, date: '11 sep', status: 'Pendiente' }]) });
+      this.toast('Solicitud enviada');
+    }
+    this.closeModal();
+  }
+
+  pickGame(gameId) {
+    const m = this.state.modal, cid = this.state.detail && this.state.detail.id;
+    this.setState({ courses: this.state.courses.map(c => c.id === cid ? Object.assign({}, c, { modules: c.modules.map(x => x.id === m.moduleId ? Object.assign({}, x, { game: gameId }) : x) }) : c), modal: null });
+    this.openCfg(gameId, m.moduleId);
+  }
+  openCfg(gameId, moduleId) {
+    const g = this.game(gameId);
+    this.setState({ cfg: { gameId, moduleId, title: g.name, desc: g.desc, speed: 'Media', time: 180, attempts: 3, score: 100, graded: true, pairs: 8 } });
+  }
+  setCfg(k, v) { this.setState({ cfg: Object.assign({}, this.state.cfg, { [k]: v }) }); }
+
+  moveModule(cid, idx, dir) {
+    const to = idx + dir;
+    this.setState({ courses: this.state.courses.map(c => {
+      if (c.id !== cid) return c;
+      const mods = c.modules.slice();
+      if (to < 0 || to >= mods.length) return c;
+      const tmp = mods[idx]; mods[idx] = mods[to]; mods[to] = tmp;
+      return Object.assign({}, c, { modules: mods });
+    }) });
+  }
+  resolveReq(id, status) {
+    this.setState({ requests: this.state.requests.map(r => r.id === id ? Object.assign({}, r, { status }) : r) });
+    this.toast(status === 'Aprobada' ? 'Solicitud aprobada' : 'Solicitud rechazada');
+  }
+
+  /* ---------- board mock ---------- */
+  board(seed) {
+    const cells = [];
+    const snake = [18, 19, 20, 28], food = [13, 35], bad = [22, 41];
+    const labels = { 13: '7', 35: '9', 22: '4', 41: '3' };
+    for (let i = 0; i < 40; i++) {
+      let bg = 'var(--cell)', fg = 'var(--dim)', label = '';
+      if (snake.indexOf(i) > -1) { bg = i === 18 ? SEC : 'var(--pri)'; fg = 'var(--onBright)'; label = i === 18 ? '=' : ''; }
+      else if (food.indexOf(i) > -1) { bg = 'var(--secSoft2)'; fg = SEC; label = labels[i]; }
+      else if (bad.indexOf(i) > -1) { bg = 'var(--badSoft)'; fg = 'var(--bad)'; label = labels[i]; }
+      cells.push({ bg, fg, label });
+    }
+    return cells;
+  }
+
+  /* ---------- table data ---------- */
+  tableData() {
+    const r = this.state.route, role = this.state.role, q = this.state.search.toLowerCase(), filter = this.state.filter;
+    const act = (icon, label, onClick, tone, text) => ({ icon, label, text, pad: text ? '6px 13px' : '7px', bd: tone === 'pri' ? 'transparent' : 'var(--line2)', bg: tone === 'pri' ? PRI : 'transparent', fg: tone === 'pri' ? '#fff' : tone === 'bad' ? 'var(--bad)' : 'var(--soft)', onClick });
+    const cell = (t, sub, flex) => ({ t, sub, flex: flex || 1 });
+    const badge = (label, tone, flex) => ({ badge: label, fg: TONE[tone].fg, bg: TONE[tone].bg, flex: flex || 1 });
+    const match = (s) => !q || s.toLowerCase().indexOf(q) > -1;
+
+    if (r === 'instituciones') {
+      const rows = this.state.institutions.filter(i => match(i.name)).map(i => ({
+        cells: [Object.assign(cell(i.name, i.sub, 1.8), { ini: ini(i.name) }), cell(String(i.teachers), 'docentes', .8), cell(String(i.students), 'estudiantes', .9), cell(String(i.courses), 'cursos', .8), badge(i.status, i.status === 'Activa' ? 'ok' : 'mut', .9)],
+        acts: [act('eye', 'Ver', () => this.openView(i, 'Institución')), act('pencil', 'Editar', () => this.openForm('inst', i)), act('trash-2', 'Eliminar', () => this.openDelete('inst', i, 'institución'), 'bad')]
+      }));
+      return { cols: [{ label: 'Institución', flex: 1.8 }, { label: 'Docentes', flex: .8 }, { label: 'Estudiantes', flex: .9 }, { label: 'Cursos', flex: .8 }, { label: 'Estado', flex: .9 }], rows, filters: [] };
+    }
+    if (r === 'usuarios' || r === 'estudiantes' || r === 'docentes') {
+      let list = this.state.users;
+      if (role !== 'super') list = list.filter(u => u.inst === 'NEXUM');
+      if (r === 'estudiantes') list = list.filter(u => u.role === 'Estudiante');
+      if (r === 'docentes') list = list.filter(u => u.role === 'Docente');
+      if (r === 'usuarios' && filter !== 'Todos') list = list.filter(u => u.role === filter);
+      if (role === 'teacher') { const mine = this.scopedCourses().reduce((a, c) => a.concat(c.students), []); list = list.filter(u => mine.indexOf(u.id) > -1); }
+      const rows = list.filter(u => match(u.name + u.mail)).map(u => ({
+        cells: [Object.assign(cell(u.name, u.mail, 1.9), { ini: ini(u.name) }), badge(u.role, u.role === 'Docente' ? 'info' : u.role === 'Estudiante' ? 'pri' : 'warn', 1.1), cell(u.inst, null, .9), badge(u.status, u.status === 'Activo' ? 'ok' : 'mut', .8)],
+        acts: role === 'teacher' ? [act('eye', 'Ver', () => this.openView(u, 'Usuario'))] : [act('eye', 'Ver', () => this.openView(u, 'Usuario')), act('pencil', 'Editar', () => this.openForm('user', u)), act('trash-2', 'Eliminar', () => this.openDelete('user', u, 'usuario'), 'bad')]
+      }));
+      const filters = r === 'usuarios' ? ['Todos', 'Admin institución', 'Docente', 'Estudiante'] : [];
+      return { cols: [{ label: 'Nombre', flex: 1.9 }, { label: 'Rol', flex: 1.1 }, { label: 'Institución', flex: .9 }, { label: 'Estado', flex: .8 }], rows, filters };
+    }
+    if (r === 'solicitudes') {
+      let list = this.state.requests;
+      if (role === 'student') list = list.filter(x => x.student === 'Sergio Ríos');
+      if (filter !== 'Todos') list = list.filter(x => x.status === filter);
+      const rows = list.filter(x => match(x.student + x.target)).map(x => ({
+        cells: [Object.assign(cell(x.student, x.date, 1.4), { ini: ini(x.student) }), badge(x.type, x.type === 'Ingreso' ? 'info' : 'warn', .8), cell(x.target, null, 1.5), badge(x.status, x.status === 'Aprobada' ? 'ok' : x.status === 'Rechazada' ? 'bad' : 'warn', .9)],
+        acts: role === 'student' || x.status !== 'Pendiente' ? [] : [act('check', 'Aceptar', () => this.resolveReq(x.id, 'Aprobada'), 'pri', 'Aceptar'), act('x', 'Rechazar', () => this.resolveReq(x.id, 'Rechazada'), null, 'Rechazar')]
+      }));
+      return { cols: [{ label: 'Estudiante', flex: 1.4 }, { label: 'Tipo', flex: .8 }, { label: 'Curso / Ruta', flex: 1.5 }, { label: 'Estado', flex: .9 }], rows, filters: ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'] };
+    }
+    if (r === 'resultados' || r === 'calificaciones') {
+      let list = this.state.results;
+      if (role === 'student') list = list.filter(x => x.student === 'Sergio Ríos');
+      if (role === 'teacher') list = list.filter(x => ['Matemáticas Básicas', 'Operaciones', 'Álgebra Inicial'].indexOf(x.course) > -1);
+      const rows = list.filter(x => match(x.student + x.course + x.module)).map(x => ({
+        cells: [Object.assign(cell(x.student, null, 1.3), { ini: ini(x.student) }), cell(x.course, x.module, 1.5), cell(String(x.attempt), 'intento', .6), cell(String(x.score) + ' pts', null, .8), badge(x.grade, x.grade === '—' ? 'mut' : 'ok', .7), cell(x.date, null, .7)],
+        acts: []
+      }));
+      return { cols: [{ label: 'Estudiante', flex: 1.3 }, { label: 'Curso / Módulo', flex: 1.5 }, { label: 'Intento', flex: .6 }, { label: 'Puntaje', flex: .8 }, { label: 'Nota', flex: .7 }, { label: 'Fecha', flex: .7 }], rows, filters: [] };
+    }
+    return { cols: [], rows: [], filters: [] };
+  }
+
+  /* ---------- cards ---------- */
+  courseCards() {
+    const role = this.state.role, isStu = role === 'student';
+    const pal = [['var(--pri)', 'var(--sec)'], ['var(--ter)', 'var(--pri)'], ['var(--sec)', 'var(--ter)'], ['var(--pri)', 'var(--pink)'], ['var(--sec)', 'var(--ok)'], ['var(--ter)', 'var(--sec)']];
+    return this.scopedCourses().map((c, i) => {
+      const inRoute = this.state.routes.filter(r => r.courseIds.indexOf(c.id) > -1);
+      const done = this.state.progress[c.id] || 0, total = c.modules.length || 1;
+      const acts = isStu ? [{ icon: 'log-out', label: 'Solicitar salida', fg: 'var(--bad)', onClick: () => this.openRequest(c, 'Salida') }]
+        : [{ icon: 'pencil', label: 'Editar', fg: 'var(--soft)', onClick: () => this.openForm('course', c) }, { icon: 'trash-2', label: 'Eliminar', fg: 'var(--bad)', onClick: () => this.openDelete('course', c, 'curso') }];
+      return {
+        c1: pal[i % 6][0], c2: pal[i % 6][1], icon: 'book-open', name: c.name, desc: c.desc,
+        tag: isStu ? null : (inRoute.length ? 'En ' + inRoute.length + ' ruta' + (inRoute.length > 1 ? 's' : '') : 'Sin ruta'),
+        metas: isStu ? [{ icon: 'layers', label: total + ' módulos' }, { icon: 'user-round', label: c.teacher }]
+          : [{ icon: 'layers', label: total + ' módulos' }, { icon: 'users', label: c.students.length + ' alumnos' }, { icon: 'user-round', label: c.teacher }],
+        hasProgress: isStu, progressLabel: done + ' de ' + total + ' módulos', pct: Math.round(done / total * 100) + '%', pctLabel: Math.round(done / total * 100) + '%',
+        btnLabel: isStu ? 'Continuar' : 'Abrir curso', btnIcon: isStu ? 'play' : 'arrow-right', btnBg: isStu ? SEC : PRI, btnFg: isStu ? 'var(--secInk)' : '#fff',
+        onOpen: () => this.setState({ detail: { type: 'course', id: c.id }, result: null, play: null }), acts
+      };
+    });
+  }
+  routeCards() {
+    const isStu = this.state.role === 'student';
+    const pal = [['var(--sec)', 'var(--pri)'], ['var(--ter)', 'var(--sec)'], ['var(--pri)', 'var(--ter)']];
+    return this.scopedRoutes().map((r, i) => {
+      const done = r.courseIds.filter(id => { const c = this.course(id); return c && (this.state.progress[id] || 0) >= c.modules.length; }).length;
+      const total = r.courseIds.length || 1;
+      return {
+        c1: pal[i % 3][0], c2: pal[i % 3][1], icon: 'route', name: r.name, desc: r.desc, tag: r.courseIds.length + ' cursos',
+        metas: [{ icon: 'book-open', label: r.courseIds.length + ' cursos' }, { icon: 'users', label: r.students.length + ' estudiantes' }],
+        hasProgress: isStu, progressLabel: done + ' de ' + total + ' cursos', pct: Math.round(done / total * 100) + '%', pctLabel: Math.round(done / total * 100) + '%',
+        btnLabel: isStu ? 'Ver ruta' : 'Abrir ruta', btnIcon: 'arrow-right', btnBg: PRI, btnFg: '#fff',
+        onOpen: () => this.setState({ detail: { type: 'route', id: r.id } }),
+        acts: isStu ? [] : [{ icon: 'pencil', label: 'Editar', fg: 'var(--soft)', onClick: () => this.openForm('route', r) }, { icon: 'trash-2', label: 'Eliminar', fg: 'var(--bad)', onClick: () => this.openDelete('route', r, 'ruta') }]
+      };
+    });
+  }
+  exploreCards() {
+    const mine = this.scopedCourses().map(c => c.id);
+    const pal = [['var(--sec)', 'var(--ok)'], ['var(--pri)', 'var(--pink)'], ['var(--ter)', 'var(--sec)']];
+    const pend = this.state.requests.filter(q => q.status === 'Pendiente' && q.student === 'Sergio Ríos').map(q => q.target);
+    return this.state.courses.filter(c => c.inst === 'NEXUM' && mine.indexOf(c.id) < 0).map((c, i) => {
+      const asked = pend.indexOf(c.name) > -1;
+      return {
+        c1: pal[i % 3][0], c2: pal[i % 3][1], icon: 'compass', name: c.name, desc: c.desc, tag: asked ? 'Solicitado' : null,
+        metas: [{ icon: 'layers', label: c.modules.length + ' módulos' }, { icon: 'user-round', label: c.teacher }],
+        hasProgress: false, btnLabel: asked ? 'Solicitud enviada' : 'Solicitar inscripción', btnIcon: asked ? 'clock' : 'inbox',
+        btnBg: asked ? 'var(--surface3)' : PRI, btnFg: asked ? 'var(--mut)' : '#fff',
+        onOpen: () => { if (!asked) this.openRequest(c, 'Ingreso'); }, acts: []
+      };
+    });
+  }
+
+  /* ---------- dashboard ---------- */
+  kpis() {
+    const role = this.state.role, S = this.state;
+    const k = (label, value, icon, tone, delta) => ({ label, value: String(value), icon, delta: delta || '', bg: TONE[tone].bg, fg: TONE[tone].fg });
+    if (role === 'super') return [k('Instituciones', S.institutions.length, 'building-2', 'pri', '+1'), k('Usuarios', S.users.length, 'users', 'info'), k('Docentes', S.users.filter(u => u.role === 'Docente').length, 'user-round-cog', 'ok'), k('Estudiantes', S.users.filter(u => u.role === 'Estudiante').length, 'graduation-cap', 'pri'), k('Cursos', S.courses.length, 'book-open', 'info'), k('Rutas', S.routes.length, 'route', 'warn')];
+    if (role === 'admin') return [k('Docentes', S.users.filter(u => u.role === 'Docente' && u.inst === 'NEXUM').length, 'user-round-cog', 'info'), k('Estudiantes', S.users.filter(u => u.role === 'Estudiante' && u.inst === 'NEXUM').length, 'graduation-cap', 'pri'), k('Cursos', this.scopedCourses().length, 'book-open', 'ok'), k('Rutas', this.scopedRoutes().length, 'route', 'warn'), k('Solicitudes', this.pendingReqs().length, 'inbox', 'bad')];
+    return [k('Mis cursos', this.scopedCourses().length, 'book-open', 'pri'), k('Mis rutas', this.scopedRoutes().length, 'route', 'info'), k('Estudiantes', this.scopedCourses().reduce((a, c) => a + c.students.length, 0), 'graduation-cap', 'ok'), k('Juegos configurados', this.scopedCourses().reduce((a, c) => a + c.modules.filter(m => m.game).length, 0), 'gamepad-2', 'warn')];
+  }
+  progressRows() {
+    if (this.state.role === 'student') {
+      return this.scopedCourses().map(c => { const p = Math.round((this.state.progress[c.id] || 0) / (c.modules.length || 1) * 100); return { name: c.name, pct: p + '%', pctLabel: p + '%' }; });
+    }
+    return this.scopedCourses().slice(0, 5).map((c, i) => { const p = [78, 64, 45, 32, 20][i] || 25; return { name: c.name, pct: p + '%', pctLabel: p + '%' }; });
+  }
+
+  renderVals() {
+    const S = this.state, role = S.role, det = S.detail;
+    const roles = [
+      { key: 'super', label: 'Superadmin', icon: 'shield' },
+      { key: 'admin', label: 'Admin', icon: 'building-2' },
+      { key: 'teacher', label: 'Docente', icon: 'user-round-cog' },
+      { key: 'student', label: 'Estudiante', icon: 'graduation-cap' }
+    ].map(r => Object.assign({}, r, { onClick: () => this.setRole(r.key), bg: role === r.key ? PRI : 'transparent', fg: role === r.key ? '#fff' : 'var(--mut)' }));
+
+    const nav = this.navItems().map(n => Object.assign({}, n, {
+      onClick: () => this.go(n.key),
+      bg: S.route === n.key ? 'var(--priSoft)' : 'transparent',
+      bd: S.route === n.key ? 'var(--priBd)' : 'transparent',
+      fg: S.route === n.key ? 'var(--ink)' : 'var(--mut)',
+      badge: n.badge && n.badge !== '0' ? n.badge : null
+    }));
+
+    const route = S.route;
+    const isTable = ['instituciones', 'usuarios', 'estudiantes', 'docentes', 'solicitudes', 'resultados', 'calificaciones'].indexOf(route) > -1;
+    const isCards = ['cursos', 'rutas', 'explorar'].indexOf(route) > -1;
+    const tbl = isTable && !det ? this.tableData() : { cols: [], rows: [], filters: [] };
+
+    let vDash = false, vTable = false, vCards = false, vCurso = false, vRuta = false, vJuegos = false, vConfig = false, vPlay = false, vActividad = false, vAjustes = false;
+    let title = '', subtitle = '', crumb = null, primaryAction = null, primaryIcon = 'plus', onPrimary = () => {}, secondaryAction = null, secondaryIcon = 'plus', onSecondary = () => {};
+
+    const backToList = () => this.setState({ detail: null, play: null, result: null, cfg: null });
+
+    if (S.play) {
+      vPlay = true;
+      const c = this.course(S.play.cid), m = c.modules.filter(x => x.id === S.play.mid)[0];
+      title = m.title; subtitle = c.name + ' · ' + (m.graded ? 'este módulo genera calificación' : 'práctica sin calificación');
+      crumb = 'Volver al curso';
+    } else if (S.cfg) {
+      vConfig = true;
+      const g = this.game(S.cfg.gameId);
+      title = 'Configurar ' + g.name; subtitle = 'Solo se muestran los parámetros que declara esta plantilla.'; crumb = 'Volver';
+    } else if (det && det.type === 'course') {
+      vCurso = true;
+      const c = this.course(det.id);
+      title = c.name; subtitle = c.desc; crumb = 'Cursos';
+      if (role !== 'student') { primaryAction = 'Nuevo módulo'; onPrimary = () => this.openForm('module', null); secondaryAction = 'Editar curso'; secondaryIcon = 'pencil'; onSecondary = () => this.openForm('course', c); }
+    } else if (det && det.type === 'route') {
+      vRuta = true;
+      const r = S.routes.filter(x => x.id === det.id)[0];
+      title = r.name; subtitle = r.desc; crumb = 'Rutas';
+      if (role !== 'student') { primaryAction = 'Agregar curso'; onPrimary = () => this.toast('Selector de cursos existentes'); }
+    } else if (route === 'dashboard' || route === 'inicio' || route === 'progreso') {
+      vDash = true;
+      if (route === 'progreso') { title = 'Mi progreso'; subtitle = 'Avance por curso y por ruta asignada.'; }
+      else if (role === 'student') { title = 'Hola, Sergio'; subtitle = 'Continúa donde te quedaste. Tienes ' + this.scopedCourses().length + ' cursos asignados.'; }
+      else { title = 'Dashboard'; subtitle = role === 'super' ? 'Vista global de todas las instituciones del sistema.' : role === 'admin' ? 'Resumen de NEXUM: usuarios, cursos, rutas y solicitudes.' : 'Resumen de tus cursos, rutas y el avance de tus estudiantes.'; }
+    } else if (isTable) {
+      vTable = true;
+      const meta = {
+        instituciones: ['Instituciones', 'Cada institución mantiene sus usuarios, cursos y rutas aislados.', 'Nueva institución', 'inst'],
+        usuarios: ['Usuarios', 'Todos los usuarios del sistema, con su rol y alcance institucional.', 'Nuevo usuario', 'user'],
+        estudiantes: ['Estudiantes', role === 'teacher' ? 'Estudiantes inscritos en tus cursos.' : 'Estudiantes de NEXUM.', role === 'teacher' ? null : 'Nuevo estudiante', 'user'],
+        docentes: ['Docentes', 'Docentes de NEXUM y los cursos que administran.', 'Nuevo docente', 'user'],
+        solicitudes: ['Solicitudes', role === 'student' ? 'Estado de tus solicitudes de inscripción y salida.' : 'Inscripciones y salidas por resolver.', null, null],
+        resultados: ['Resultados', 'Puntajes por estudiante, módulo e intento.', null, null],
+        calificaciones: ['Calificaciones', 'Solo los módulos configurados para generar nota.', null, null]
+      }[route];
+      title = meta[0]; subtitle = meta[1];
+      if (meta[2]) { primaryAction = meta[2]; onPrimary = () => this.openForm(meta[3], null); }
+    } else if (isCards) {
+      vCards = true;
+      if (route === 'cursos') {
+        title = role === 'student' ? 'Mis cursos' : role === 'teacher' ? 'Mis cursos' : 'Cursos';
+        subtitle = role === 'student' ? 'Cursos asignados por tu institución.' : 'Un curso existe por sí solo; puede o no pertenecer a una ruta.';
+        if (role !== 'student') { primaryAction = 'Nuevo curso'; onPrimary = () => this.openForm('course', null); }
+      } else if (route === 'rutas') {
+        title = role === 'student' ? 'Mis rutas' : 'Rutas de cursos';
+        subtitle = 'Una ruta es una secuencia ordenada de cursos que ya existen.';
+        if (role !== 'student') { primaryAction = 'Nueva ruta'; onPrimary = () => this.openForm('route', null); }
+      } else {
+        title = 'Explorar cursos'; subtitle = 'Cursos abiertos de NEXUM. Puedes solicitar inscripción y el administrador decide.';
+      }
+    } else if (route === 'juegos') {
+      vJuegos = true; title = 'Biblioteca de juegos'; subtitle = 'Plantillas reutilizables listas para configurarse dentro de un módulo.';
+    } else if (route === 'actividad') {
+      vActividad = true; title = 'Actividad'; subtitle = 'Registro de acciones administrativas y de juego.';
+    } else {
+      vAjustes = true; title = 'Configuración'; subtitle = 'Datos de la cuenta y permisos vigentes de este rol.';
+    }
+
+    const cards = route === 'cursos' ? this.courseCards() : route === 'rutas' ? this.routeCards() : route === 'explorar' ? this.exploreCards() : [];
+
+    /* curso detail */
+    let modules = [], cursoTags = [], enrolled = [], rutaCourses = [];
+    if (vCurso) {
+      const c = this.course(det.id);
+      cursoTags = [{ icon: 'building-2', label: c.inst }, { icon: 'user-round-cog', label: 'Docente: ' + c.teacher }, { icon: 'layers', label: c.modules.length + ' módulos' }, { icon: 'users', label: c.students.length + ' estudiantes' }];
+      modules = c.modules.map((m, i) => {
+        const g = m.game ? this.game(m.game) : null;
+        const acts = role === 'student'
+          ? [{ icon: 'play', label: 'Jugar', text: 'Jugar', pad: '7px 14px', bd: 'transparent', bg: SEC, fg: 'var(--secInk)', onClick: () => this.setState({ play: { cid: c.id, mid: m.id }, result: null }) }]
+          : [
+            { icon: 'chevron-up', label: 'Subir', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--soft)', onClick: () => this.moveModule(c.id, i, -1) },
+            { icon: 'chevron-down', label: 'Bajar', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--soft)', onClick: () => this.moveModule(c.id, i, 1) },
+            { icon: g ? 'sliders-horizontal' : 'gamepad-2', label: g ? 'Configurar juego' : 'Elegir juego', text: g ? 'Configurar' : 'Elegir juego', pad: '7px 13px', bd: 'transparent', bg: PRI, fg: '#fff', onClick: () => g ? this.openCfg(g.id, m.id) : this.openGamePick(m.id) },
+            { icon: 'pencil', label: 'Editar módulo', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--soft)', onClick: () => this.openForm('module', m) },
+            { icon: 'trash-2', label: 'Eliminar', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--bad)', onClick: () => this.openDelete('module', m, 'módulo') }
+          ];
+        return {
+          order: String(i + 1), title: m.title, desc: m.desc,
+          gameName: g ? g.name : 'Sin juego', gameIcon: g ? g.icon : 'circle-slash',
+          gameBg: g ? 'var(--priSoft3)' : 'var(--cell)', gameBd: g ? 'var(--priBd2)' : 'var(--line3)',
+          gameFg: g ? 'var(--priInkSoft)' : 'var(--mut)', gradeLabel: m.graded ? 'Genera calificación' : 'Sin calificación', acts
+        };
+      });
+      enrolled = c.students.map(id => { const u = S.users.filter(x => x.id === id)[0]; return u ? { name: u.name, ini: ini(u.name) } : null; }).filter(Boolean);
+    }
+    if (vRuta) {
+      const r = S.routes.filter(x => x.id === det.id)[0];
+      rutaCourses = r.courseIds.map((id, i) => {
+        const c = this.course(id);
+        const done = (S.progress[id] || 0) >= (c ? c.modules.length : 1);
+        const started = (S.progress[id] || 0) > 0;
+        const tone = done ? 'ok' : started ? 'info' : 'mut';
+        return {
+          order: String(i + 1), name: c ? c.name : 'Curso eliminado', meta: c ? c.modules.length + ' módulos · ' + c.teacher : '',
+          badge: role === 'student' ? (done ? 'Completado' : started ? 'En progreso' : 'No iniciado') : (c ? c.students.length + ' alumnos' : '—'),
+          fg: TONE[tone].fg, bg: TONE[tone].bg, dotBg: done ? 'var(--okSoft)' : 'var(--priSoft)', dotFg: done ? 'var(--ok)' : 'var(--ter)',
+          acts: role === 'student'
+            ? [{ icon: 'arrow-right', label: 'Abrir', text: 'Abrir', pad: '7px 13px', bd: 'transparent', bg: PRI, fg: '#fff', onClick: () => this.setState({ detail: { type: 'course', id: id } }) }]
+            : [{ icon: 'arrow-right', label: 'Abrir', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--soft)', onClick: () => this.setState({ detail: { type: 'course', id: id } }) },
+               { icon: 'x', label: 'Quitar de la ruta', pad: '7px', bd: 'var(--line2)', bg: 'transparent', fg: 'var(--bad)', onClick: () => this.setState({ modal: { kind: 'delete', entity: 'routeCourse', id: id, icon: 'x', danger: true, title: '¿Quitar curso de la ruta?', desc: 'El curso seguirá existiendo por su cuenta; solo sale de esta ruta.', confirm: 'Quitar' } }) }]
+        };
+      });
+      enrolled = r.students.map(id => { const u = S.users.filter(x => x.id === id)[0]; return u ? { name: u.name, ini: ini(u.name) } : null; }).filter(Boolean);
+    }
+
+    /* game config fields */
+    let cfgFields = [], cfgGameName = '', cfgDesc = '', cfgTimeLabel = '';
+    if (vConfig) {
+      const cfg = S.cfg, g = this.game(cfg.gameId);
+      cfgGameName = g.name; cfgDesc = g.desc; cfgTimeLabel = Math.floor(cfg.time / 60) + ':' + String(cfg.time % 60).padStart(2, '0');
+      const sel = (label, k, options) => ({ label, isSelect: true, options: options.map(o => ({ label: o, onClick: () => this.setCfg(k, o), bd: cfg[k] === o ? 'transparent' : 'var(--line2)', bg: cfg[k] === o ? PRI : 'transparent', fg: cfg[k] === o ? '#fff' : 'var(--soft)' })) });
+      const rng = (label, k, min, max, unit) => ({ label, isRange: true, min: min, max: max, value: cfg[k], valueLabel: cfg[k] + (unit || ''), onChange: (e) => this.setCfg(k, Number(e.target.value)) });
+      cfgFields = [
+        { label: 'Título del juego', isText: true, value: cfg.title, onChange: (e) => this.setCfg('title', e.target.value) },
+        { label: 'Instrucciones para el estudiante', isArea: true, value: cfg.desc, onChange: (e) => this.setCfg('desc', e.target.value) },
+        sel('Velocidad', 'speed', ['Baja', 'Media', 'Alta']),
+        rng('Tiempo límite (segundos)', 'time', 30, 600, ' s'),
+        rng('Pares de contenido', 'pairs', 4, 24, ''),
+        rng('Intentos permitidos', 'attempts', 1, 5, ''),
+        rng('Puntaje máximo', 'score', 10, 200, ' pts'),
+        { label: 'Calificación', isSwitch: true, help: cfg.graded ? 'Genera calificación' : 'Sin calificación', sub: cfg.graded ? 'El resultado se convierte en nota del módulo.' : 'Cuenta solo como práctica; no afecta el promedio.', icon: cfg.graded ? 'award' : 'circle-slash', fg: cfg.graded ? 'var(--ok)' : 'var(--mut)', bd: cfg.graded ? 'var(--okBd)' : 'var(--line3)', bg: cfg.graded ? 'var(--okSoft)' : 'var(--surface2)', trackBg: cfg.graded ? 'var(--ok)' : 'var(--track)', knob: cfg.graded ? 'flex-end' : 'flex-start', onChange: () => this.setCfg('graded', !cfg.graded) }
+      ];
+    }
+
+    /* play */
+    let playGame = '', playIcon = 'gamepad-2', playTime = '03:00', playAttempt = '', playScore = '0', playGoal = '';
+    let hasResult = false, resScore = '0', resMax = '100', resPct = '0%', resGradeLabel = '', resGradeSub = '', resIcon = 'award';
+    if (vPlay) {
+      const c = this.course(S.play.cid), m = c.modules.filter(x => x.id === S.play.mid)[0], g = m.game ? this.game(m.game) : GAMES[0];
+      playGame = g.name; playIcon = g.icon; playAttempt = 'Intento 1 de 3'; playGoal = 'Llegar a 100 puntos'; playScore = S.result ? String(S.result.score) : '64';
+      hasResult = !!S.result;
+      if (S.result) {
+        resScore = String(S.result.score); resMax = '100'; resPct = S.result.score + '%';
+        resGradeLabel = m.graded ? 'Calificación: ' + (S.result.score / 10).toFixed(1) : 'Sin calificación';
+        resGradeSub = m.graded ? 'Registrada en el módulo ' + m.title : 'Este módulo está configurado como práctica.';
+        resIcon = m.graded ? 'award' : 'circle-slash';
+      }
+    }
+
+    /* modal */
+    const m = S.modal;
+    let modalFields = [];
+    if (m && m.kind === 'form') {
+      modalFields = m.fields.map(f => {
+        const base = { label: f.label, ph: f.ph || '' };
+        if (f.t === 'select') return Object.assign(base, { isSelect: true, options: f.options.map(o => ({ label: o, onClick: () => this.setState({ form: Object.assign({}, S.form, { [f.k]: o }) }), bd: S.form[f.k] === o ? 'transparent' : 'var(--line2)', bg: S.form[f.k] === o ? PRI : 'transparent', fg: S.form[f.k] === o ? '#fff' : 'var(--soft)' })) });
+        if (f.t === 'switch') { const on = !!S.form[f.k]; return Object.assign(base, { isSwitch: true, help: f.help, bd: on ? 'var(--okBd)' : 'var(--line3)', bg: on ? 'var(--okSoft)' : 'var(--surface2)', trackBg: on ? 'var(--ok)' : 'var(--track)', knob: on ? 'flex-end' : 'flex-start', onChange: () => this.setState({ form: Object.assign({}, S.form, { [f.k]: !on }) }) }); }
+        if (f.t === 'area') return Object.assign(base, { isArea: true, value: S.form[f.k] || '', onChange: (e) => this.setState({ form: Object.assign({}, S.form, { [f.k]: e.target.value }) }) });
+        return Object.assign(base, { isText: true, value: S.form[f.k] || '', onChange: (e) => this.setState({ form: Object.assign({}, S.form, { [f.k]: e.target.value }) }) });
+      });
+    }
+    if (m && m.kind === 'assign') {
+      const picked = S.form.picked || [];
+      modalFields = [{ label: 'Estudiantes de la institución', isChecks: true, options: m.list.map(u => {
+        const on = picked.indexOf(u.id) > -1;
+        return { label: u.name, sub: u.inst, icon: on ? 'check-square' : 'square', fg: on ? 'var(--ok)' : 'var(--dim)', bd: on ? 'var(--okBd)' : 'var(--line3)', bg: on ? 'var(--okSoft)' : 'var(--surface2)',
+          onClick: () => this.setState({ form: { picked: on ? picked.filter(x => x !== u.id) : picked.concat([u.id]) } }) };
+      }) }];
+    }
+
+    const games = GAMES.map(g => Object.assign({}, g, {
+      paramTags: g.params.map(p => ({ label: p })),
+      onConfig: () => this.openCfg(g.id, null),
+      onPreview: () => this.toast('Vista previa de ' + g.name),
+      onPick: () => this.pickGame(g.id),
+      pickBd: 'var(--line3)', pickBg: 'var(--surface2)'
+    }));
+
+    const perms = {
+      super: [{ icon: 'building-2', label: 'Instituciones', value: 'CRUD total', fg: 'var(--ok)' }, { icon: 'users', label: 'Usuarios (todos los roles)', value: 'CRUD total', fg: 'var(--ok)' }, { icon: 'book-open', label: 'Cursos y rutas', value: 'CRUD total', fg: 'var(--ok)' }, { icon: 'globe', label: 'Alcance', value: 'Global', fg: 'var(--sec)' }],
+      admin: [{ icon: 'graduation-cap', label: 'Estudiantes', value: 'CRUD', fg: 'var(--ok)' }, { icon: 'user-round-cog', label: 'Docentes', value: 'CRUD', fg: 'var(--ok)' }, { icon: 'book-open', label: 'Cursos y rutas', value: 'CRUD', fg: 'var(--ok)' }, { icon: 'inbox', label: 'Solicitudes', value: 'Resolver', fg: 'var(--sec)' }, { icon: 'building-2', label: 'Otras instituciones', value: 'Sin acceso', fg: 'var(--bad)' }],
+      teacher: [{ icon: 'book-open', label: 'Cursos propios', value: 'CRUD', fg: 'var(--ok)' }, { icon: 'route', label: 'Rutas propias', value: 'CRUD', fg: 'var(--ok)' }, { icon: 'gamepad-2', label: 'Configurar juegos', value: 'Permitido', fg: 'var(--ok)' }, { icon: 'users', label: 'Usuarios', value: 'Solo consulta', fg: 'var(--warn)' }, { icon: 'building-2', label: 'Instituciones', value: 'Sin acceso', fg: 'var(--bad)' }],
+      student: [{ icon: 'book-open', label: 'Cursos asignados', value: 'Jugar', fg: 'var(--ok)' }, { icon: 'inbox', label: 'Inscripción y salida', value: 'Solicitar', fg: 'var(--sec)' }, { icon: 'award', label: 'Calificaciones', value: 'Consultar', fg: 'var(--sec)' }, { icon: 'sliders-horizontal', label: 'Configurar juegos', value: 'Sin acceso', fg: 'var(--bad)' }]
+    }[role];
+
+    const filters = (tbl.filters || []).map(f => ({ label: f, onClick: () => this.setState({ filter: f }), bd: S.filter === f ? 'transparent' : 'var(--line2)', bg: S.filter === f ? PRI : 'transparent', fg: S.filter === f ? '#fff' : 'var(--soft)' }));
+
+    return {
+      roles, nav, showLabels: !S.collapsed, sideW: S.collapsed ? '62px' : '228px',
+      toggleSide: () => { this._touched = true; this.setState({ collapsed: !S.collapsed }); },
+      scopeLabel: role === 'super' ? 'Todas las instituciones' : 'NEXUM',
+      themeIcon: S.theme === 'light' ? 'moon' : 'sun',
+      themeName: S.theme === 'light' ? 'Oscuro' : 'Claro',
+      themeLabel: S.theme === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro',
+      toggleTheme: () => { const t = S.theme === 'light' ? 'dark' : 'light'; this.setState({ theme: t }); this.applyTheme(t); },
+      userName: this.meName, userMail: this.meMail, userInitials: ini(this.meName), roleLabel: this.roleLabel,
+      title, subtitle, crumb, onBack: backToList,
+      primaryAction, primaryIcon, onPrimary, secondaryAction, secondaryIcon, onSecondary,
+      vDash, vTable, vCards, vCurso, vRuta, vJuegos, vConfig, vPlay, vActividad, vAjustes,
+      kpis: this.kpis(), progressRows: this.progressRows(), progressTitle: role === 'student' ? 'Mi avance' : 'Progreso de estudiantes',
+      activity: role === 'super' ? ACTIVITY : ACTIVITY.filter(a => a.scope === 'NEXUM' || a.scope === 'Global'),
+      hasPending: (role === 'admin' || role === 'super') && this.pendingReqs().length > 0,
+      pending: this.pendingReqs().slice(0, 3).map(p => ({ ini: ini(p.student), student: p.student, desc: (p.type === 'Ingreso' ? 'Solicita entrar a ' : 'Solicita salir de ') + p.target, onOk: () => this.resolveReq(p.id, 'Aprobada'), onNo: () => this.resolveReq(p.id, 'Rechazada') })),
+      onSolicitudes: () => this.go('solicitudes'),
+      cols: tbl.cols, rows: tbl.rows, filters, rowCount: tbl.rows.length + ' registros', empty: isTable && tbl.rows.length === 0,
+      search: S.search, onSearch: (e) => this.setState({ search: e.target.value }),
+      cards, canCreateCard: vCards && !!primaryAction,
+      cursoTags, modules, enrolled, rutaCourses,
+      cursoStudents: (vCurso || vRuta) && role !== 'student', onAssign: () => this.openAssign(),
+      moduleHint: role === 'student' ? 'completa los módulos en orden' : 'usa las flechas para reordenar',
+      games, cfgFields, cfgGameName, cfgDesc, cfgTimeLabel, boardCells: this.board(),
+      onSaveCfg: () => { this.toast('Configuración guardada'); this.setState({ cfg: null }); },
+      onPlayPreview: () => this.toast('Simulación del juego'),
+      playGame, playIcon, playTime, playAttempt, playScore, playGoal,
+      hasResult, resScore, resMax, resPct, resGradeLabel, resGradeSub, resIcon,
+      onFinish: () => this.setState({ result: { score: 86 } }),
+      onRetry: () => this.setState({ result: null }),
+      onNextModule: () => { this.setState({ result: null, play: null }); this.toast('Módulo siguiente desbloqueado'); },
+      perms, onSaveAjustes: () => this.toast('Cambios guardados'),
+      modalOpen: !!m, modalTitle: m ? m.title : '', modalDesc: m ? m.desc : '', modalIcon: m ? m.icon : 'info',
+      modalIconBg: m && m.danger ? 'var(--badSoft)' : 'var(--priSoft)', modalIconFg: m && m.danger ? 'var(--bad)' : 'var(--ter)',
+      modalW: m && m.w ? m.w : '460px', modalFields, modalGames: !!(m && m.kind === 'game'),
+      modalConfirm: m ? m.confirm : null, confirmBg: m && m.danger ? 'var(--badStrong)' : PRI, confirmFg: '#fff',
+      confirmIcon: m && m.danger ? 'trash-2' : 'check',
+      onCloseModal: () => this.closeModal(), onConfirmModal: () => this.confirmModal(),
+      toast: S.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

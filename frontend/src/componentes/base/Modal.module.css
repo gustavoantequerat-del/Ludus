@@ -1,0 +1,98 @@
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: var(--velo);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: aparecer 0.16s ease;
+}
+
+.caja {
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-3);
+  box-shadow: var(--sombra);
+  animation: aparecer-y-subir 0.2s ease;
+}
+
+.cajaAncha {
+  max-width: 640px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 18px 0;
+}
+
+.iconoCabecera {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primario-suave);
+  color: var(--terciario);
+}
+
+.iconoCabeceraPeligro {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.textosCabecera {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.titulo {
+  font: 600 16px/1.25 var(--fuente-titulos);
+}
+
+.descripcion {
+  font: 400 12px/1.45 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.cerrar {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  border: 1px solid var(--linea-3);
+  background: transparent;
+  color: var(--apagado);
+  cursor: pointer;
+}
+
+.cuerpo {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  justify-content: flex-end;
+  padding: 14px 18px;
+  border-top: 1px solid var(--linea);
+  flex-wrap: wrap;
+}

@@ -1,0 +1,153 @@
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.etiquetas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  color: var(--suave);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.panel {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.panelCabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--linea);
+}
+
+.panelTitulo {
+  font: 600 14px var(--fuente-titulos);
+}
+
+.pista {
+  font: 400 11.5px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.modulo {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--linea-4);
+  flex-wrap: wrap;
+}
+
+.orden {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 11px;
+  background: var(--superficie-2);
+  display: grid;
+  place-items: center;
+  font: 600 13px var(--fuente-titulos);
+  color: var(--terciario);
+}
+
+.moduloTextos {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.moduloTitulo {
+  font: 600 13.5px var(--fuente-texto);
+}
+
+.moduloDesc {
+  font: 400 11.5px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.juegoChip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: var(--primario-suave-3);
+  border: 1px solid var(--primario-borde-2);
+}
+
+.juegoChipVacio {
+  background: var(--celda);
+  border-color: var(--linea-3);
+}
+
+.juegoChipTextos {
+  display: flex;
+  flex-direction: column;
+}
+
+.juegoChipNombre {
+  font: 600 11.5px var(--fuente-texto);
+  color: var(--tinta-primaria-suave);
+}
+
+.juegoChipGrado {
+  font: 400 10px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.acciones {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.estudiantes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+
+.chipEstudiante {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 13px 5px 5px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.chipAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  display: grid;
+  place-items: center;
+  font: 700 10px var(--fuente-titulos);
+  color: var(--terciario);
+}

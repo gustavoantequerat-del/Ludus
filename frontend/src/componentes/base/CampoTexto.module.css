@@ -1,0 +1,28 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.etiqueta {
+  font: 600 10.5px var(--fuente-texto);
+  color: var(--apagado);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.entrada {
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--linea-3);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font: 500 12.5px var(--fuente-texto);
+  outline: none;
+  width: 100%;
+  resize: vertical;
+}
+
+.entrada:focus {
+  border-color: var(--primario-borde);
+}

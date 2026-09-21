@@ -1,0 +1,166 @@
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--linea);
+  position: relative;
+  z-index: 40;
+  flex-wrap: wrap;
+}
+
+.botonPanel {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--linea-3);
+  background: var(--superficie-2);
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(140deg, var(--primario), var(--secundario));
+  display: grid;
+  place-items: center;
+  color: var(--sobre-brillante);
+}
+
+.marcaTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nombreApp {
+  font: 600 14px/1.1 var(--fuente-titulos);
+  letter-spacing: -0.2px;
+}
+
+.alcance {
+  font: 500 10.5px/1.1 var(--fuente-texto);
+  color: var(--apagado);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.botonTema {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 99px;
+  border: 1px solid var(--linea-3);
+  background: var(--superficie-2);
+  color: var(--suave);
+  cursor: pointer;
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.menuUsuario {
+  position: relative;
+}
+
+.perfil {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  cursor: pointer;
+}
+
+.desplegable {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 190px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 14px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-3);
+  box-shadow: var(--sombra);
+  animation: aparecer-y-subir 0.14s ease;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--tinta);
+  cursor: pointer;
+  font: 600 12px var(--fuente-texto);
+  text-align: left;
+  width: 100%;
+}
+
+.opcion:hover {
+  background: var(--superficie-2);
+}
+
+.opcionPeligro {
+  color: var(--error);
+}
+
+.separador {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--linea);
+}
+
+.avatar {
+  width: 27px;
+  height: 27px;
+  border-radius: 99px;
+  background: var(--primario);
+  display: grid;
+  place-items: center;
+  font: 700 11px var(--fuente-titulos);
+  color: #fff;
+}
+
+.perfilTextos {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.perfilNombre {
+  font: 600 11.5px/1.2 var(--fuente-texto);
+}
+
+.perfilRol {
+  font: 500 10px/1.2 var(--fuente-texto);
+  color: var(--apagado);
+}

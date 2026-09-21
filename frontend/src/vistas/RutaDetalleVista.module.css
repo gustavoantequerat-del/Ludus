@@ -1,0 +1,102 @@
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.panelCabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--linea);
+}
+
+.panelTitulo {
+  font: 600 14px var(--fuente-titulos);
+}
+
+.pista {
+  font: 400 11.5px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--linea-4);
+  flex-wrap: wrap;
+}
+
+.punto {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 99px;
+  background: var(--primario-suave);
+  display: grid;
+  place-items: center;
+  font: 600 12px var(--fuente-titulos);
+  color: var(--terciario);
+}
+
+.textos {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nombre {
+  font: 600 13px var(--fuente-texto);
+}
+
+.meta {
+  font: 400 11px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.acciones {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+.estudiantes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+
+.chipEstudiante {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 13px 5px 5px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.chipAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  display: grid;
+  place-items: center;
+  font: 700 10px var(--fuente-titulos);
+  color: var(--terciario);
+}

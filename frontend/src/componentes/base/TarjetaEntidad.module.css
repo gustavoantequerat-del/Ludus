@@ -1,0 +1,182 @@
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.tarjeta {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cabecera {
+  height: 84px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 11px 13px;
+  color: var(--sobre-brillante);
+}
+
+.etiqueta {
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--chip-sobre-brillante);
+  color: var(--tinta);
+  font: 600 10.5px var(--fuente-texto);
+}
+
+.cuerpo {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  flex: 1;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titulo {
+  font: 600 15px/1.25 var(--fuente-titulos);
+}
+
+.descripcion {
+  font: 400 12px/1.45 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.metas {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  color: var(--suave);
+  font: 600 10.5px var(--fuente-texto);
+}
+
+.progresoFila {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progresoCabecera {
+  display: flex;
+  align-items: baseline;
+}
+
+.progresoEtiqueta {
+  font: 500 11px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.progresoPct {
+  margin-left: auto;
+  font: 600 11px var(--fuente-titulos);
+  color: var(--terciario);
+}
+
+.barra {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  overflow: hidden;
+}
+
+.barraRelleno {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primario), var(--secundario));
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 3px;
+}
+
+.botonPrincipal {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px;
+  border-radius: 99px;
+  border: none;
+  background: var(--primario);
+  color: #fff;
+  font: 600 12px var(--fuente-texto);
+  cursor: pointer;
+}
+
+.botonSecundarioTono {
+  background: var(--secundario);
+  color: var(--tinta-secundaria);
+}
+
+.botonApagado {
+  background: var(--superficie-3);
+  color: var(--apagado);
+}
+
+.accion {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+  border: 1px solid var(--linea-2);
+  background: transparent;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.accionPeligro {
+  color: var(--error);
+}
+
+.tarjetaCrear {
+  min-height: 200px;
+  border-radius: 18px;
+  border: 1.5px dashed var(--primario-borde);
+  background: var(--primario-suave-3);
+  color: var(--terciario);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font: 600 12.5px var(--fuente-texto);
+}
+
+.tarjetaCrearIcono {
+  width: 38px;
+  height: 38px;
+  padding: 10px;
+  border-radius: 99px;
+  background: var(--primario-suave);
+  display: grid;
+  place-items: center;
+}

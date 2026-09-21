@@ -1,0 +1,114 @@
+/*
+ * Tokens de diseno (colores, tipografia) tomados de la ficha del prototipo
+ * Claude Design. Tema oscuro por defecto; [data-theme="light"] lo sobrescribe.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #0e0819;
+  --superficie: #160d2d;
+  --superficie-2: #1e1435;
+  --superficie-3: #2c1e4a;
+  --superficie-cabecera: #130b26;
+  --pista: #3a2a5c;
+
+  --tinta: #f3edfb;
+  --apagado: #9c8fb8;
+  --tenue: #7e7196;
+  --suave: #c9bee0;
+  --sobre-brillante: #160d2d;
+  --tinta-secundaria: #0e0819;
+  --tinta-primaria-suave: #dcc2ff;
+  --tinta-info: #c9eef5;
+
+  --primario: #a855f7;
+  --secundario: #00e5ff;
+  --terciario: #c084fc;
+  --rosa: #f0abfc;
+  --exito: #5ef2c4;
+  --error: #ff8a8a;
+  --error-fuerte: #ff6b6b;
+  --alerta: #ffce6a;
+
+  --linea: rgba(255, 255, 255, 0.07);
+  --linea-2: rgba(255, 255, 255, 0.13);
+  --linea-3: rgba(255, 255, 255, 0.1);
+  --linea-4: rgba(255, 255, 255, 0.05);
+  --linea-5: rgba(255, 255, 255, 0.16);
+  --celda: rgba(255, 255, 255, 0.035);
+
+  --primario-suave: rgba(168, 85, 247, 0.16);
+  --primario-suave-2: rgba(168, 85, 247, 0.2);
+  --primario-suave-3: rgba(168, 85, 247, 0.1);
+  --primario-borde: rgba(168, 85, 247, 0.45);
+  --primario-borde-2: rgba(168, 85, 247, 0.35);
+  --primario-borde-3: rgba(168, 85, 247, 0.3);
+
+  --secundario-suave: rgba(0, 229, 255, 0.1);
+  --secundario-suave-2: rgba(0, 229, 255, 0.22);
+  --secundario-borde: rgba(0, 229, 255, 0.32);
+  --exito-suave: rgba(94, 242, 196, 0.12);
+  --exito-borde: rgba(94, 242, 196, 0.35);
+  --error-suave: rgba(255, 138, 138, 0.14);
+  --alerta-suave: rgba(255, 206, 106, 0.14);
+
+  --velo: rgba(8, 4, 16, 0.72);
+  --chip-sobre-brillante: rgba(22, 13, 45, 0.82);
+  --sombra: 0 24px 60px rgba(0, 0, 0, 0.5);
+
+  --fuente-titulos: 'Sora', system-ui, sans-serif;
+  --fuente-texto: 'Manrope', system-ui, sans-serif;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #eceef2;
+  --superficie: #ffffff;
+  --superficie-2: #f5f6fa;
+  --superficie-3: #e3e7f1;
+  --superficie-cabecera: #f5f6fa;
+  --pista: #d5dae6;
+
+  --tinta: #210f55;
+  --apagado: #5c5480;
+  --tenue: #726a94;
+  --suave: #3b3268;
+  --sobre-brillante: #210f55;
+  --tinta-secundaria: #0b1220;
+  --tinta-primaria-suave: #5b21b6;
+  --tinta-info: #0c4a6e;
+
+  --primario: #8b5cf6;
+  --secundario: #38bdf8;
+  --terciario: #7c3aed;
+  --rosa: #c084fc;
+  --exito: #0f9b76;
+  --error: #c62828;
+  --error-fuerte: #dc2626;
+  --alerta: #b45309;
+
+  --linea: rgba(33, 15, 85, 0.1);
+  --linea-2: rgba(33, 15, 85, 0.18);
+  --linea-3: rgba(33, 15, 85, 0.14);
+  --linea-4: rgba(33, 15, 85, 0.07);
+  --linea-5: rgba(33, 15, 85, 0.22);
+  --celda: rgba(33, 15, 85, 0.05);
+
+  --primario-suave: rgba(139, 92, 246, 0.13);
+  --primario-suave-2: rgba(139, 92, 246, 0.16);
+  --primario-suave-3: rgba(139, 92, 246, 0.1);
+  --primario-borde: rgba(139, 92, 246, 0.4);
+  --primario-borde-2: rgba(139, 92, 246, 0.34);
+  --primario-borde-3: rgba(139, 92, 246, 0.28);
+
+  --secundario-suave: rgba(56, 189, 248, 0.13);
+  --secundario-suave-2: rgba(56, 189, 248, 0.2);
+  --secundario-borde: rgba(56, 189, 248, 0.4);
+  --exito-suave: rgba(15, 155, 118, 0.12);
+  --exito-borde: rgba(15, 155, 118, 0.32);
+  --error-suave: rgba(198, 40, 40, 0.1);
+  --alerta-suave: rgba(180, 83, 9, 0.12);
+
+  --velo: rgba(33, 15, 85, 0.32);
+  --chip-sobre-brillante: rgba(255, 255, 255, 0.88);
+  --sombra: 0 24px 60px rgba(33, 15, 85, 0.18);
+}

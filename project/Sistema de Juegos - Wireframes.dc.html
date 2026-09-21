@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0eee9;font-family:Manrope,system-ui,sans-serif}
+a{color:#2a78d6}a:hover{color:#1a5aa8}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 Manrope,system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:100%}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#A855F7;color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 Manrope,system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.wf{font:400 12px/1.4 Manrope,system-ui,sans-serif;color:#1f1f1f}
+.wf-top{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1.5px dashed #b9b6b0}
+.wf-body{display:flex;align-items:stretch;min-height:260px}
+.wf-nav{width:126px;flex:none;padding:10px 9px;display:flex;flex-direction:column;gap:5px;border-right:1.5px dashed #b9b6b0}
+.wf-main{flex:1;min-width:0;padding:13px;display:flex;flex-direction:column;gap:11px}
+.h{font:400 13px/1.2 'Architects Daughter',cursive;color:#141414}
+.h2{font:400 11.5px/1.2 'Architects Daughter',cursive;color:#141414}
+.mut{font-size:10px;color:#8d8a85;font-family:'Architects Daughter',cursive}
+.b{border:1.5px dashed #b9b6b0;border-radius:6px}
+.bs{border:1.5px solid #2b2b2b;border-radius:6px}
+.pad{padding:9px}
+.ln{height:7px;border-radius:4px;background:#dedbd6}
+.ico{width:17px;height:17px;flex:none;border:1.5px dashed #a9a6a0;border-radius:5px}
+.icos{width:17px;height:17px;flex:none;border:1.5px solid #2b2b2b;border-radius:5px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px solid #2b2b2b;border-radius:99px;font:400 10.5px 'Architects Daughter',cursive;background:#fff;white-space:nowrap}
+.btnf{border-color:#A855F7;background:#f3e4ff;color:#5b2185}
+.tag{display:inline-block;padding:2px 8px;border:1.5px dashed #a9a6a0;border-radius:99px;font:400 10px 'Architects Daughter',cursive;color:#6b6862}
+.row{display:flex;align-items:center;gap:8px}
+.col{display:flex;flex-direction:column;gap:8px}
+.navi{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;font:400 10.5px 'Architects Daughter',cursive;color:#3a3a3a}
+.navi-on{background:#f3e4ff;border:1.5px solid #A855F7;color:#5b2185}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tr{display:flex;align-items:center;gap:10px;padding:8px 9px;border-bottom:1.5px dashed #ddd9d3}
+.note{font:400 10px/1.35 'Architects Daughter',cursive;color:#A855F7}
+</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Mapa de pantallas — estructura del CMS de juegos (4 roles)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Superadmin · shell + dashboard global · sidebar colapsable y selector de rol</div>
+<div class="dv-card" style="width:680px">
+<div class="wf">
+<div class="wf-top"><div class="icos"></div><span class="h">Sistema de Juegos</span><span class="tag">Rol: Superadmin ▾</span><div class="row" style="margin-left:auto;gap:7px"><div class="b" style="width:140px;height:22px"></div><div class="ico"></div><div class="ico" style="border-radius:99px"></div></div></div>
+<div class="wf-body">
+<div class="wf-nav">
+<div class="row" style="justify-content:space-between;margin-bottom:4px"><span class="mut">MENÚ</span><div class="ico" style="width:14px;height:14px"></div></div>
+<div class="navi navi-on"><div class="icos"></div>Dashboard</div>
+<div class="navi"><div class="ico"></div>Instituciones</div>
+<div class="navi"><div class="ico"></div>Usuarios</div>
+<div class="navi"><div class="ico"></div>Cursos</div>
+<div class="navi"><div class="ico"></div>Rutas</div>
+<div class="navi"><div class="ico"></div>Juegos</div>
+<div class="navi"><div class="ico"></div>Actividad</div>
+<div class="navi" style="margin-top:auto"><div class="ico"></div>Configuración</div>
+</div>
+<div class="wf-main">
+<div class="row"><span class="h">Resumen global</span><span class="mut" style="margin-left:auto">Últimos 30 días ▾</span></div>
+<div class="g3">
+<div class="b pad col" style="gap:6px"><span class="mut">INSTITUCIONES</span><div class="ln" style="width:34px;height:16px"></div></div>
+<div class="b pad col" style="gap:6px"><span class="mut">USUARIOS</span><div class="ln" style="width:44px;height:16px"></div></div>
+<div class="b pad col" style="gap:6px"><span class="mut">DOCENTES</span><div class="ln" style="width:34px;height:16px"></div></div>
+<div class="b pad col" style="gap:6px"><span class="mut">ESTUDIANTES</span><div class="ln" style="width:44px;height:16px"></div></div>
+<div class="b pad col" style="gap:6px"><span class="mut">CURSOS</span><div class="ln" style="width:34px;height:16px"></div></div>
+<div class="b pad col" style="gap:6px"><span class="mut">RUTAS</span><div class="ln" style="width:30px;height:16px"></div></div>
+</div>
+<div class="g2" style="align-items:start">
+<div class="b pad col"><span class="h2">Instituciones</span><div class="row"><div class="ico"></div><div class="ln" style="width:70px"></div><span class="tag" style="margin-left:auto">Activa</span></div><div class="row"><div class="ico"></div><div class="ln" style="width:52px"></div><span class="tag" style="margin-left:auto">Activa</span></div><div class="row"><div class="ico"></div><div class="ln" style="width:84px"></div><span class="tag" style="margin-left:auto">Activa</span></div><span class="mut">NEXUM · ADA · PLATZI</span></div>
+<div class="b pad col"><span class="h2">Actividad reciente</span><div class="ln" style="width:90%"></div><div class="ln" style="width:72%"></div><div class="ln" style="width:80%"></div><div class="ln" style="width:60%"></div><span class="mut">quién · qué · cuándo</span></div>
+</div>
+<span class="note">El selector de rol vive en la topbar solo para la demo; en producción el rol viene de la sesión.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Instituciones · listado + CRUD + confirmación destructiva</div>
+<div class="dv-card" style="width:560px">
+<div class="wf">
+<div class="wf-top"><span class="h">Instituciones</span><div class="row" style="margin-left:auto;gap:6px"><div class="b" style="width:110px;height:22px"></div><span class="btn btnf">+ Nueva institución</span></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row"><span class="tag">Todas</span><span class="tag">Activas</span><span class="tag">Inactivas</span><span class="mut" style="margin-left:auto">3 resultados</span></div>
+<div class="b" style="overflow:hidden">
+<div class="tr" style="background:#faf8f5"><span class="mut" style="width:150px">INSTITUCIÓN</span><span class="mut" style="width:60px">DOCENTES</span><span class="mut" style="width:70px">ESTUDIANTES</span><span class="mut" style="width:50px">CURSOS</span><span class="mut" style="margin-left:auto">ACCIONES</span></div>
+<div class="tr"><div class="row" style="width:150px"><div class="ico"></div><div class="ln" style="width:60px"></div></div><div class="ln" style="width:18px"></div><div class="ln" style="width:22px;margin-left:42px"></div><div class="ln" style="width:18px;margin-left:48px"></div><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div><div class="icos"></div></div></div>
+<div class="tr"><div class="row" style="width:150px"><div class="ico"></div><div class="ln" style="width:42px"></div></div><div class="ln" style="width:18px"></div><div class="ln" style="width:22px;margin-left:42px"></div><div class="ln" style="width:18px;margin-left:48px"></div><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div><div class="icos"></div></div></div>
+<div class="tr" style="border-bottom:none"><div class="row" style="width:150px"><div class="ico"></div><div class="ln" style="width:66px"></div></div><div class="ln" style="width:18px"></div><div class="ln" style="width:22px;margin-left:42px"></div><div class="ln" style="width:18px;margin-left:48px"></div><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div><div class="icos"></div></div></div>
+</div>
+<span class="mut">Acciones = ver / editar / eliminar (iconos Lucide, sin texto)</span>
+<div class="bs pad col" style="margin-top:4px;background:#fcfaf7;box-shadow:0 4px 14px rgba(0,0,0,.08)">
+<span class="h2">¿Eliminar institución?</span>
+<div class="ln" style="width:88%"></div><div class="ln" style="width:64%"></div>
+<div class="row" style="justify-content:flex-end;margin-top:4px"><span class="btn">Cancelar</span><span class="btn" style="border-color:#c0392b;color:#c0392b">Eliminar</span></div>
+</div>
+<span class="note">Mismo patrón de modal para todo borrado: usuarios, cursos, rutas, módulos.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Usuarios · alcance global (superadmin) con filtro de institución y rol</div>
+<div class="dv-card" style="width:560px">
+<div class="wf">
+<div class="wf-top"><span class="h">Usuarios</span><div class="row" style="margin-left:auto;gap:6px"><div class="b" style="width:110px;height:22px"></div><span class="btn btnf">+ Nuevo usuario</span></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row"><div class="b" style="width:120px;height:24px"></div><div class="b" style="width:96px;height:24px"></div><span class="mut">institución ▾ · rol ▾</span></div>
+<div class="b" style="overflow:hidden">
+<div class="tr" style="background:#faf8f5"><span class="mut" style="width:130px">NOMBRE</span><span class="mut" style="width:74px">ROL</span><span class="mut" style="width:80px">INSTITUCIÓN</span><span class="mut" style="width:56px">ESTADO</span><span class="mut" style="margin-left:auto"></span></div>
+<div class="tr"><div class="row" style="width:130px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:54px"></div></div><span class="tag" style="width:64px;text-align:center">Docente</span><div class="ln" style="width:40px;margin-left:16px"></div><span class="tag" style="margin-left:40px">Activo</span><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+<div class="tr"><div class="row" style="width:130px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:44px"></div></div><span class="tag" style="width:64px;text-align:center">Estudiante</span><div class="ln" style="width:34px;margin-left:16px"></div><span class="tag" style="margin-left:40px">Activo</span><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+<div class="tr" style="border-bottom:none"><div class="row" style="width:130px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:62px"></div></div><span class="tag" style="width:64px;text-align:center">Admin inst.</span><div class="ln" style="width:46px;margin-left:16px"></div><span class="tag" style="margin-left:40px">Inactivo</span><div class="row" style="margin-left:auto;gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+</div>
+<div class="b pad col" style="background:#fcfaf7">
+<span class="h2">Crear usuario (panel lateral o modal)</span>
+<div class="g2"><div class="b" style="height:22px"></div><div class="b" style="height:22px"></div><div class="b" style="height:22px"></div><div class="b" style="height:22px"></div></div>
+<span class="mut">nombre · correo · rol ▾ · institución ▾</span>
+<span class="note">El admin de institución ve esta misma tabla sin la columna Institución y sin poder elegir rol admin.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1d">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Admin de institución · dashboard con solicitudes pendientes al frente</div>
+<div class="dv-card" style="width:680px">
+<div class="wf">
+<div class="wf-top"><div class="icos"></div><span class="h">NEXUM</span><span class="tag">Rol: Admin institución ▾</span><div class="row" style="margin-left:auto;gap:7px"><div class="b" style="width:120px;height:22px"></div><div class="ico" style="border-radius:99px"></div></div></div>
+<div class="wf-body">
+<div class="wf-nav">
+<div class="row" style="justify-content:space-between;margin-bottom:4px"><span class="mut">MENÚ</span><div class="ico" style="width:14px;height:14px"></div></div>
+<div class="navi navi-on"><div class="icos"></div>Dashboard</div>
+<div class="navi"><div class="ico"></div>Estudiantes</div>
+<div class="navi"><div class="ico"></div>Docentes</div>
+<div class="navi"><div class="ico"></div>Cursos</div>
+<div class="navi"><div class="ico"></div>Rutas</div>
+<div class="navi"><div class="ico"></div>Solicitudes <span class="tag" style="padding:0 5px">4</span></div>
+<div class="navi"><div class="ico"></div>Juegos</div>
+<div class="navi" style="margin-top:auto"><div class="ico"></div>Configuración</div>
+</div>
+<div class="wf-main">
+<div class="g4">
+<div class="b pad col" style="gap:5px"><span class="mut">DOCENTES</span><div class="ln" style="width:26px;height:15px"></div></div>
+<div class="b pad col" style="gap:5px"><span class="mut">ESTUDIANTES</span><div class="ln" style="width:34px;height:15px"></div></div>
+<div class="b pad col" style="gap:5px"><span class="mut">CURSOS</span><div class="ln" style="width:26px;height:15px"></div></div>
+<div class="b pad col" style="gap:5px"><span class="mut">RUTAS</span><div class="ln" style="width:22px;height:15px"></div></div>
+</div>
+<div class="bs pad col" style="border-color:#A855F7;background:#fdf8ff">
+<div class="row"><span class="h2">Solicitudes pendientes</span><span class="btn" style="margin-left:auto">Ver todas</span></div>
+<div class="row"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:64px"></div><span class="mut">→ curso</span><div class="ln" style="width:80px"></div><div class="row" style="margin-left:auto;gap:5px"><span class="btn btnf">Aceptar</span><span class="btn">Rechazar</span></div></div>
+<div class="row"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:52px"></div><span class="mut">← salida</span><div class="ln" style="width:70px"></div><div class="row" style="margin-left:auto;gap:5px"><span class="btn btnf">Aceptar</span><span class="btn">Rechazar</span></div></div>
+</div>
+<div class="g2" style="align-items:start">
+<div class="b pad col"><span class="h2">Progreso general</span><div class="col" style="gap:6px"><div class="ln" style="width:90%"></div><div class="ln" style="width:74%"></div><div class="ln" style="width:56%"></div><div class="ln" style="width:38%"></div></div><span class="mut">barras por curso</span></div>
+<div class="b pad col"><span class="h2">Actividad reciente</span><div class="ln" style="width:86%"></div><div class="ln" style="width:66%"></div><div class="ln" style="width:78%"></div><div class="ln" style="width:52%"></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1e">
+<div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Cursos · listado en tarjetas (docente ve solo los suyos)</div>
+<div class="dv-card" style="width:520px">
+<div class="wf">
+<div class="wf-top"><span class="h">Cursos</span><div class="row" style="margin-left:auto;gap:6px"><div class="b" style="width:100px;height:22px"></div><div class="ico"></div><span class="btn btnf">+ Nuevo curso</span></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row"><span class="tag">Todos</span><span class="tag">Mis cursos</span><span class="tag">En ruta</span><span class="tag">Sin ruta</span></div>
+<div class="g2">
+<div class="b pad col" style="gap:7px"><div class="row"><div class="ico"></div><div class="ln" style="width:86px"></div><div class="icos" style="margin-left:auto"></div></div><div class="ln" style="width:100%"></div><div class="ln" style="width:70%"></div><div class="row"><span class="tag">4 módulos</span><span class="tag">12 alumnos</span></div><div class="row"><div class="ico" style="border-radius:99px"></div><span class="mut">docente asignado</span></div></div>
+<div class="b pad col" style="gap:7px"><div class="row"><div class="ico"></div><div class="ln" style="width:70px"></div><div class="icos" style="margin-left:auto"></div></div><div class="ln" style="width:100%"></div><div class="ln" style="width:58%"></div><div class="row"><span class="tag">3 módulos</span><span class="tag">8 alumnos</span></div><div class="row"><div class="ico" style="border-radius:99px"></div><span class="mut">docente asignado</span></div></div>
+<div class="b pad col" style="gap:7px"><div class="row"><div class="ico"></div><div class="ln" style="width:78px"></div><div class="icos" style="margin-left:auto"></div></div><div class="ln" style="width:100%"></div><div class="ln" style="width:64%"></div><div class="row"><span class="tag">5 módulos</span><span class="tag">21 alumnos</span></div><div class="row"><div class="ico" style="border-radius:99px"></div><span class="mut">docente asignado</span></div></div>
+<div class="b pad col" style="gap:7px;border-style:dashed;align-items:center;justify-content:center;min-height:96px"><div class="ico" style="width:26px;height:26px;border-radius:99px"></div><span class="mut">Crear curso</span></div>
+</div>
+<span class="note">Un curso existe sin ruta. La etiqueta "En ruta / Sin ruta" lo hace evidente en el listado.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1f">
+<div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Curso · detalle con módulos ordenables, cada módulo lleva un juego</div>
+<div class="dv-card" style="width:560px">
+<div class="wf">
+<div class="wf-top"><div class="icos"></div><span class="mut">Cursos /</span><span class="h">Matemáticas Básicas</span><div class="row" style="margin-left:auto;gap:6px"><span class="btn">Editar</span><span class="btn">Estudiantes</span><div class="icos"></div></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row"><span class="tag">NEXUM</span><span class="tag">Docente: Javier</span><span class="tag">En 2 rutas</span></div>
+<div class="row"><span class="h2">Módulos</span><span class="mut">arrastrar para reordenar</span><span class="btn btnf" style="margin-left:auto">+ Módulo</span></div>
+<div class="col" style="gap:7px">
+<div class="b pad row" style="gap:9px"><div class="col" style="gap:2px"><div class="ico" style="width:12px;height:5px;border-radius:2px"></div><div class="ico" style="width:12px;height:5px;border-radius:2px"></div></div><span class="h2">1</span><div class="col" style="flex:1;gap:5px"><div class="ln" style="width:120px"></div><div class="ln" style="width:76%"></div></div><div class="b pad row" style="gap:6px;background:#fdf8ff;border-color:#A855F7"><div class="ico" style="border-color:#A855F7"></div><span class="mut" style="color:#5b2185">Viborita Numérica</span></div><div class="row" style="gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+<div class="b pad row" style="gap:9px"><div class="col" style="gap:2px"><div class="ico" style="width:12px;height:5px;border-radius:2px"></div><div class="ico" style="width:12px;height:5px;border-radius:2px"></div></div><span class="h2">2</span><div class="col" style="flex:1;gap:5px"><div class="ln" style="width:100px"></div><div class="ln" style="width:64%"></div></div><div class="b pad row" style="gap:6px;background:#fdf8ff;border-color:#A855F7"><div class="ico" style="border-color:#A855F7"></div><span class="mut" style="color:#5b2185">Torre de Bloques</span></div><div class="row" style="gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+<div class="b pad row" style="gap:9px"><div class="col" style="gap:2px"><div class="ico" style="width:12px;height:5px;border-radius:2px"></div><div class="ico" style="width:12px;height:5px;border-radius:2px"></div></div><span class="h2">3</span><div class="col" style="flex:1;gap:5px"><div class="ln" style="width:132px"></div><div class="ln" style="width:70%"></div></div><div class="b pad row" style="gap:6px"><div class="ico"></div><span class="mut">sin juego</span></div><div class="row" style="gap:5px"><div class="icos"></div><div class="icos"></div></div></div>
+</div>
+<span class="note">Módulo = título + descripción breve + 1 juego + orden. El juego se elige de la biblioteca (<a class="dv-oid" href="#1h">1h</a>).</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1g">
+<div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Ruta de cursos · secuencia ordenada + asignación de estudiantes</div>
+<div class="dv-card" style="width:520px">
+<div class="wf">
+<div class="wf-top"><div class="icos"></div><span class="mut">Rutas /</span><span class="h">Matemáticas Iniciales</span><div class="row" style="margin-left:auto;gap:6px"><span class="btn">Editar</span><div class="icos"></div></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row"><span class="tag">4 cursos</span><span class="tag">18 estudiantes</span><span class="btn btnf" style="margin-left:auto">+ Agregar curso</span></div>
+<div class="col" style="gap:6px">
+<div class="b pad row" style="gap:9px"><span class="h2">1</span><div class="ico"></div><div class="ln" style="width:110px"></div><span class="tag" style="margin-left:auto">4 módulos</span><div class="icos"></div></div>
+<div class="b pad row" style="gap:9px"><span class="h2">2</span><div class="ico"></div><div class="ln" style="width:86px"></div><span class="tag" style="margin-left:auto">3 módulos</span><div class="icos"></div></div>
+<div class="b pad row" style="gap:9px"><span class="h2">3</span><div class="ico"></div><div class="ln" style="width:96px"></div><span class="tag" style="margin-left:auto">5 módulos</span><div class="icos"></div></div>
+<div class="b pad row" style="gap:9px"><span class="h2">4</span><div class="ico"></div><div class="ln" style="width:78px"></div><span class="tag" style="margin-left:auto">2 módulos</span><div class="icos"></div></div>
+</div>
+<div class="b pad col" style="background:#fcfaf7">
+<div class="row"><span class="h2">Estudiantes asignados</span><span class="btn" style="margin-left:auto">+ Asignar</span></div>
+<div class="row" style="flex-wrap:wrap;gap:6px"><span class="tag">Sergio</span><span class="tag">Gustavo</span><span class="tag">Javier</span><span class="tag">Daniel</span><span class="tag">Guillermo</span></div>
+</div>
+<span class="note">La ruta solo puede componerse de cursos que ya existen; el mismo curso puede estar en varias rutas.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1h">
+<div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Biblioteca de plantillas de juegos · solo selección, no creación</div>
+<div class="dv-card" style="width:540px">
+<div class="wf">
+<div class="wf-top"><span class="h">Biblioteca de juegos</span><span class="mut">plantillas programadas por el equipo</span><div class="b" style="width:110px;height:22px;margin-left:auto"></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row" style="flex-wrap:wrap"><span class="tag">Todas</span><span class="tag">Arcade</span><span class="tag">Lógica</span><span class="tag">Memoria</span><span class="tag">Velocidad</span></div>
+<div class="g3">
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Viborita Numérica</span><span class="mut">come la respuesta correcta</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Torre de Bloques</span><span class="mut">encaja piezas que coinciden</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Memorama</span><span class="mut">pares imagen–concepto</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Burbujas</span><span class="mut">revienta la equivalencia</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Ordena la Secuencia</span><span class="mut">arrastrar en orden</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:48px;background:#faf8f5"></div><span class="h2">Laberinto</span><span class="mut">ruta según la pista</span><span class="btn btnf" style="align-self:flex-start">Seleccionar</span></div>
+</div>
+<span class="note">Nombres propuestos (juegos de acción, no cuestionarios). Cambiables cuando definas el catálogo real.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1i">
+<div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Configurar juego · variante A: dos columnas con vista previa viva</div>
+<div class="dv-card" style="width:560px">
+<div class="wf">
+<div class="wf-top"><div class="icos"></div><span class="mut">Módulo 1 /</span><span class="h">Configurar Viborita Numérica</span><div class="row" style="margin-left:auto;gap:6px"><span class="btn">Cancelar</span><span class="btn btnf">Guardar</span></div></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:0">
+<div style="padding:12px 13px" class="col">
+<span class="h2">Parámetros de la plantilla</span>
+<div class="col" style="gap:9px">
+<div class="col" style="gap:4px"><span class="mut">TÍTULO</span><div class="b" style="height:22px"></div></div>
+<div class="col" style="gap:4px"><span class="mut">DESCRIPCIÓN</span><div class="b" style="height:40px"></div></div>
+<div class="g2"><div class="col" style="gap:4px"><span class="mut">VELOCIDAD</span><div class="b" style="height:22px"></div></div><div class="col" style="gap:4px"><span class="mut">TIEMPO LÍMITE</span><div class="b" style="height:22px"></div></div></div>
+<div class="col" style="gap:4px"><span class="mut">CONTENIDO A PRACTICAR (pares)</span><div class="b pad col" style="gap:6px"><div class="row"><div class="b" style="flex:1;height:18px"></div><div class="b" style="flex:1;height:18px"></div><div class="icos"></div></div><div class="row"><div class="b" style="flex:1;height:18px"></div><div class="b" style="flex:1;height:18px"></div><div class="icos"></div></div><span class="btn" style="align-self:flex-start">+ Agregar</span></div></div>
+<div class="b pad row" style="gap:9px;background:#fdf8ff;border-color:#A855F7"><div class="icos" style="border-radius:99px;border-color:#A855F7"></div><div class="col" style="gap:3px"><span class="h2">¿Genera calificación?</span><span class="mut">si no, cuenta solo como práctica</span></div><div class="b" style="margin-left:auto;width:34px;height:18px;border-radius:99px"></div></div>
+<div class="g2"><div class="col" style="gap:4px"><span class="mut">INTENTOS</span><div class="b" style="height:22px"></div></div><div class="col" style="gap:4px"><span class="mut">PUNTAJE MÁX.</span><div class="b" style="height:22px"></div></div></div>
+</div>
+</div>
+<div style="padding:12px;border-left:1.5px dashed #b9b6b0" class="col">
+<span class="h2">Vista previa</span>
+<div class="b" style="height:150px;background:#faf8f5"></div>
+<span class="mut">así lo verá el estudiante</span>
+<span class="btn">Probar juego</span>
+</div>
+</div>
+<span class="note" style="display:block;padding:0 13px 12px">Solo se muestran los parámetros que declara la plantilla elegida.</span>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1j">
+<div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Configurar juego · variante B: asistente por pasos</div>
+<div class="dv-card" style="width:420px">
+<div class="wf">
+<div class="wf-top"><span class="h">Nuevo juego en Módulo 1</span><div class="icos" style="margin-left:auto"></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row" style="gap:5px"><span class="btn btnf">1 Plantilla</span><span class="mut">›</span><span class="btn">2 Contenido</span><span class="mut">›</span><span class="btn">3 Reglas</span><span class="mut">›</span><span class="btn">4 Revisar</span></div>
+<div class="b pad col" style="gap:9px;min-height:190px">
+<span class="h2">Paso 2 · Contenido</span>
+<div class="ln" style="width:80%"></div>
+<div class="col" style="gap:6px"><div class="row"><div class="b" style="flex:1;height:20px"></div><div class="b" style="flex:1;height:20px"></div></div><div class="row"><div class="b" style="flex:1;height:20px"></div><div class="b" style="flex:1;height:20px"></div></div><div class="row"><div class="b" style="flex:1;height:20px"></div><div class="b" style="flex:1;height:20px"></div></div></div>
+<span class="btn" style="align-self:flex-start">+ Agregar par</span>
+</div>
+<div class="row"><span class="btn">Atrás</span><span class="btn btnf" style="margin-left:auto">Siguiente</span></div>
+<span class="note">Más guiado para docentes nuevos; más lento para quien configura a diario. Elige uno: <a class="dv-oid" href="#1i">1i</a> o <a class="dv-oid" href="#1j">1j</a>.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1k">
+<div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Solicitudes · bandeja de inscripción y salida</div>
+<div class="dv-card" style="width:480px">
+<div class="wf">
+<div class="wf-top"><span class="h">Solicitudes</span><div class="row" style="margin-left:auto;gap:6px"><span class="tag">Pendientes 4</span><span class="tag">Aprobadas</span><span class="tag">Rechazadas</span></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="b" style="overflow:hidden">
+<div class="tr" style="background:#faf8f5"><span class="mut" style="width:100px">ESTUDIANTE</span><span class="mut" style="width:64px">TIPO</span><span class="mut" style="width:96px">CURSO / RUTA</span><span class="mut" style="margin-left:auto"></span></div>
+<div class="tr"><div class="row" style="width:100px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:44px"></div></div><span class="tag" style="width:56px;text-align:center">Ingreso</span><div class="ln" style="width:70px;margin-left:14px"></div><div class="row" style="margin-left:auto;gap:5px"><span class="btn btnf">Aceptar</span><span class="btn">Rechazar</span></div></div>
+<div class="tr"><div class="row" style="width:100px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:54px"></div></div><span class="tag" style="width:56px;text-align:center">Salida</span><div class="ln" style="width:60px;margin-left:14px"></div><div class="row" style="margin-left:auto;gap:5px"><span class="btn btnf">Aceptar</span><span class="btn">Rechazar</span></div></div>
+<div class="tr" style="border-bottom:none"><div class="row" style="width:100px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:48px"></div></div><span class="tag" style="width:56px;text-align:center">Ingreso</span><div class="ln" style="width:78px;margin-left:14px"></div><div class="row" style="margin-left:auto;gap:5px"><span class="btn btnf">Aceptar</span><span class="btn">Rechazar</span></div></div>
+</div>
+<span class="mut">Toda solicitud queda registrada con fecha y resolución.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1l">
+<div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Estudiante · inicio en escritorio y móvil</div>
+<div class="dv-card" style="width:640px">
+<div class="wf" style="display:flex;align-items:stretch">
+<div style="flex:1;min-width:0;border-right:1.5px dashed #b9b6b0">
+<div class="wf-top"><div class="icos"></div><span class="h">Hola, Sergio</span><span class="tag">Rol: Estudiante ▾</span><div class="ico" style="margin-left:auto;border-radius:99px"></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="row" style="flex-wrap:wrap;gap:5px"><span class="tag">Inicio</span><span class="tag">Mis cursos</span><span class="tag">Mis rutas</span><span class="tag">Explorar</span><span class="tag">Progreso</span></div>
+<div class="bs pad col" style="border-color:#A855F7;background:#fdf8ff"><span class="h2">Continuar donde quedaste</span><div class="row"><div class="b" style="width:52px;height:38px;background:#fff"></div><div class="col" style="flex:1;gap:5px"><div class="ln" style="width:100px"></div><div class="ln" style="width:60%"></div></div><span class="btn btnf">Jugar</span></div></div>
+<div class="g2">
+<div class="b pad col" style="gap:6px"><div class="b" style="height:40px;background:#faf8f5"></div><div class="ln" style="width:80px"></div><div class="ln" style="width:100%;height:5px;background:#e6d4f7"></div><span class="mut">3 de 4 módulos</span></div>
+<div class="b pad col" style="gap:6px"><div class="b" style="height:40px;background:#faf8f5"></div><div class="ln" style="width:66px"></div><div class="ln" style="width:100%;height:5px;background:#e6d4f7"></div><span class="mut">1 de 3 módulos</span></div>
+</div>
+<div class="b pad col"><span class="h2">Mi ruta</span><div class="row" style="gap:6px"><div class="icos" style="border-radius:99px"></div><div class="ln" style="flex:1;height:4px"></div><div class="icos" style="border-radius:99px"></div><div class="ln" style="flex:1;height:4px"></div><div class="ico" style="border-radius:99px"></div><div class="ln" style="flex:1;height:4px"></div><div class="ico" style="border-radius:99px"></div></div><span class="mut">curso 2 de 4</span></div>
+</div>
+</div>
+<div style="width:180px;flex:none;padding:12px" class="col">
+<span class="mut">MÓVIL</span>
+<div class="bs col" style="border-radius:16px;padding:9px;gap:8px">
+<div class="row"><div class="icos"></div><div class="ln" style="width:54px"></div><div class="ico" style="margin-left:auto;border-radius:99px"></div></div>
+<div class="bs pad col" style="gap:5px;border-color:#A855F7;background:#fdf8ff"><div class="ln" style="width:70px"></div><span class="btn btnf" style="align-self:stretch;justify-content:center">Jugar</span></div>
+<div class="b pad col" style="gap:5px"><div class="b" style="height:32px;background:#faf8f5"></div><div class="ln" style="width:60px"></div><div class="ln" style="width:100%;height:5px;background:#e6d4f7"></div></div>
+<div class="b pad col" style="gap:5px"><div class="b" style="height:32px;background:#faf8f5"></div><div class="ln" style="width:48px"></div><div class="ln" style="width:100%;height:5px;background:#e6d4f7"></div></div>
+<div class="row" style="justify-content:space-around;border-top:1.5px dashed #b9b6b0;padding-top:7px"><div class="icos" style="border-radius:99px"></div><div class="ico" style="border-radius:99px"></div><div class="ico" style="border-radius:99px"></div><div class="ico" style="border-radius:99px"></div></div>
+</div>
+<span class="note">En móvil el sidebar se vuelve barra inferior.</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1m">
+<div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Estudiante · jugar un módulo y resultado (maqueta, sin juego real)</div>
+<div class="dv-card" style="width:560px">
+<div class="wf" style="display:flex;align-items:stretch">
+<div style="flex:1;min-width:0;border-right:1.5px dashed #b9b6b0">
+<div class="wf-top"><div class="icos"></div><span class="mut">Matemáticas Básicas / Módulo 1</span><div class="row" style="margin-left:auto;gap:7px"><span class="tag">02:41</span><span class="tag">Intento 1/3</span></div></div>
+<div style="padding:12px 13px" class="col">
+<div class="b" style="height:180px;background:#faf8f5;display:flex;align-items:center;justify-content:center"><span class="mut">área de juego · pantalla completa opcional</span></div>
+<div class="row"><span class="mut">Puntaje</span><div class="ln" style="width:44px;height:12px"></div><span class="mut" style="margin-left:auto">Vidas</span><div class="row" style="gap:4px"><div class="icos" style="width:12px;height:12px;border-radius:99px"></div><div class="icos" style="width:12px;height:12px;border-radius:99px"></div><div class="ico" style="width:12px;height:12px;border-radius:99px"></div></div></div>
+<span class="note">Sin barra lateral ni controles de configuración: el estudiante nunca ve la vista del docente.</span>
+</div>
+</div>
+<div style="width:190px;flex:none;padding:12px" class="col">
+<span class="mut">RESULTADO</span>
+<div class="bs pad col" style="border-color:#A855F7;background:#fdf8ff;gap:8px">
+<span class="h2">¡Módulo completado!</span>
+<div class="row"><div class="ln" style="width:40px;height:18px"></div><span class="mut">pts</span></div>
+<div class="ln" style="width:100%;height:5px;background:#e6d4f7"></div>
+<div class="col" style="gap:4px"><span class="mut">Calificación: 8.5</span><span class="mut">o bien: sin calificación</span></div>
+<div class="col" style="gap:5px"><span class="btn btnf" style="justify-content:center">Siguiente módulo</span><span class="btn" style="justify-content:center">Reintentar</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1n">
+<div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Resultados y calificaciones · vista del docente</div>
+<div class="dv-card" style="width:560px">
+<div class="wf">
+<div class="wf-top"><span class="h">Resultados</span><div class="row" style="margin-left:auto;gap:6px"><div class="b" style="width:96px;height:22px"></div><div class="b" style="width:80px;height:22px"></div><div class="icos"></div></div></div>
+<div style="padding:12px 13px" class="col">
+<span class="mut">curso ▾ · módulo ▾ · exportar</span>
+<div class="b" style="overflow:hidden">
+<div class="tr" style="background:#faf8f5"><span class="mut" style="width:96px">ESTUDIANTE</span><span class="mut" style="width:84px">MÓDULO</span><span class="mut" style="width:54px">INTENTO</span><span class="mut" style="width:54px">PUNTAJE</span><span class="mut" style="width:44px">NOTA</span><span class="mut" style="margin-left:auto">FECHA</span></div>
+<div class="tr"><div class="row" style="width:96px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:42px"></div></div><div class="ln" style="width:62px;margin-right:22px"></div><div class="ln" style="width:14px;margin-right:40px"></div><div class="ln" style="width:24px;margin-right:30px"></div><span class="tag">8.5</span><div class="ln" style="width:44px;margin-left:auto"></div></div>
+<div class="tr"><div class="row" style="width:96px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:50px"></div></div><div class="ln" style="width:54px;margin-right:30px"></div><div class="ln" style="width:14px;margin-right:40px"></div><div class="ln" style="width:24px;margin-right:30px"></div><span class="tag">—</span><div class="ln" style="width:44px;margin-left:auto"></div></div>
+<div class="tr" style="border-bottom:none"><div class="row" style="width:96px"><div class="ico" style="border-radius:99px"></div><div class="ln" style="width:38px"></div></div><div class="ln" style="width:66px;margin-right:18px"></div><div class="ln" style="width:14px;margin-right:40px"></div><div class="ln" style="width:24px;margin-right:30px"></div><span class="tag">9.0</span><div class="ln" style="width:44px;margin-left:auto"></div></div>
+</div>
+<div class="g2" style="align-items:start">
+<div class="b pad col"><span class="h2">Promedio por módulo</span><div class="row" style="align-items:flex-end;gap:6px;height:52px"><div class="ln" style="width:14px;height:30px"></div><div class="ln" style="width:14px;height:44px"></div><div class="ln" style="width:14px;height:22px"></div><div class="ln" style="width:14px;height:38px"></div></div></div>
+<div class="b pad col"><span class="h2">Sin calificación</span><span class="mut">los juegos de práctica aparecen con nota "—" y no afectan el promedio</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Prueba con: "me quedo con <a class="dv-oid" href="#1i">1i</a> para configurar juegos, pasa todo a hi-fi" · "en <a class="dv-oid" href="#1f">1f</a> el módulo debería permitir varios juegos" · "agrega la pantalla de login y de institución nueva"</p>
+</section>
+</x-dc>
+</body>
+</html>

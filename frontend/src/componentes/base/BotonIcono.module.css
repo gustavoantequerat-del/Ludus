@@ -1,0 +1,26 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border-radius: 99px;
+  border: 1px solid var(--linea-2);
+  background: transparent;
+  color: var(--suave);
+  cursor: pointer;
+  font: 600 11px var(--fuente-texto);
+}
+
+.conTexto {
+  padding: 7px 13px;
+}
+
+.peligro {
+  color: var(--error);
+}
+
+.relleno {
+  border-color: transparent;
+  background: var(--primario);
+  color: #fff;
+}

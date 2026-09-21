@@ -1,0 +1,84 @@
+.cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.panel {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panelTitulo {
+  font: 600 14px var(--fuente-titulos);
+}
+
+.campoSoloLectura {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.etiqueta {
+  font: 600 10.5px var(--fuente-texto);
+  color: var(--apagado);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.soloLectura {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  font: 500 12.5px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.mensajeError {
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: var(--error-suave);
+  color: var(--error);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.mensajeExito {
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: var(--exito-suave);
+  color: var(--exito);
+  font: 600 11.5px var(--fuente-texto);
+}
+
+.permiso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.permisoTexto {
+  flex: 1;
+  font: 500 12px var(--fuente-texto);
+}
+
+.permisoValor {
+  font: 600 10.5px var(--fuente-texto);
+}

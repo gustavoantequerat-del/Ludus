@@ -1,0 +1,31 @@
+.insignia {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font: 600 10.5px var(--fuente-texto);
+  white-space: nowrap;
+}
+
+.ok {
+  color: var(--exito);
+  background: var(--exito-suave);
+}
+.info {
+  color: var(--secundario);
+  background: var(--secundario-suave);
+}
+.alerta {
+  color: var(--alerta);
+  background: var(--alerta-suave);
+}
+.error {
+  color: var(--error);
+  background: var(--error-suave);
+}
+.neutro {
+  color: var(--suave);
+  background: var(--linea);
+}
+.primario {
+  color: var(--tinta-primaria-suave);
+  background: var(--primario-suave-2);
+}

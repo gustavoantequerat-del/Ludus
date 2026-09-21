@@ -1,0 +1,45 @@
+.fila {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--apagado);
+  font: 600 11.5px var(--fuente-texto);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.titulo {
+  font: 600 25px/1.15 var(--fuente-titulos);
+  letter-spacing: -0.6px;
+}
+
+.subtitulo {
+  font: 400 13px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+  max-width: 62ch;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
