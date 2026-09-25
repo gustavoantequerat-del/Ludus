@@ -75,6 +75,16 @@ export interface CampoExpediente {
   valor: string;
 }
 
+/** El CEO que aparece en escena a defender su expediente. */
+export interface Personaje {
+  id: string;
+  nombre: string;
+  cargo: string;
+  /** Ruta publica servida por el backend (/archivos/personajes/...). */
+  imagen: string;
+  institucionId: string | null;
+}
+
 export interface CasoCumplimiento {
   id: string;
   entidad: string;
@@ -82,6 +92,31 @@ export interface CasoCumplimiento {
   jurisdiccion: string;
   solicitud: string;
   campos: CampoExpediente[];
+  personaje: Pick<Personaje, 'nombre' | 'cargo' | 'imagen'> | null;
+}
+
+/** Caso tal como lo edita el docente, con la respuesta y sus seis campos. */
+export interface CasoEditable {
+  id: string;
+  entidad: string;
+  tipo: string;
+  jurisdiccion: string;
+  solicitud: string;
+  registroLicencia: string;
+  travelRule: string;
+  beneficiarioFinal: string;
+  controlesAml: string;
+  sanciones: string;
+  exposicionOnchain: string;
+  camposExtra: CampoExpediente[];
+  decisionCorrecta: DecisionCumplimiento;
+  regla: string;
+  explicacion: string;
+  origen: string;
+  personajeId: string | null;
+  personaje: Personaje | null;
+  institucionId: string | null;
+  activo: boolean;
 }
 
 export interface PartidaCumplimiento {
@@ -89,6 +124,7 @@ export interface PartidaCumplimiento {
   titulo: string;
   instrucciones: string;
   tiempoLimiteSegundos: number;
+  escena: { fondo: string };
   casos: CasoCumplimiento[];
 }
 

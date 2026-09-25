@@ -3,7 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuracion, { ConfiguracionApp } from './configuracion/configuracion';
 import { construirOpcionesTypeOrm } from './configuracion/opciones-typeorm';
+import { ArchivosModule } from './archivos/archivos.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
+import { PersonajesModule } from './personajes/personajes.module';
 import { InstitucionesModule } from './instituciones/instituciones.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { CursosModule } from './cursos/cursos.module';
@@ -23,7 +25,9 @@ import { ScormModule } from './scorm/scorm.module';
       useFactory: (config: ConfigService<ConfiguracionApp, true>) =>
         construirOpcionesTypeOrm(config),
     }),
+    ArchivosModule,
     AutenticacionModule,
+    PersonajesModule,
     InstitucionesModule,
     UsuariosModule,
     CursosModule,

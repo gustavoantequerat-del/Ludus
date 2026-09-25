@@ -16,6 +16,12 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // Imagenes del juego (personajes y fondos): el backend las sirve fuera
+      // del prefijo /api.
+      '/archivos': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
 });

@@ -144,6 +144,16 @@
     return CONFIG.urlApi.replace(/\/$/, '') + '/scorm/publico/' + CONFIG.token + ruta;
   }
 
+  /*
+   * Las imagenes del juego se sirven fuera del prefijo /api, y el paquete corre
+   * en el dominio del LMS: hay que anteponer el host de Ludus.
+   */
+  function urlArchivo(ruta) {
+    if (!ruta) return '';
+    if (/^https?:\/\//.test(ruta)) return ruta;
+    return CONFIG.urlApi.replace(/\/$/, '').replace(/\/api$/, '') + ruta;
+  }
+
   function mensajeDeError(cuerpo, respaldo) {
     if (!cuerpo) return respaldo;
     if (Array.isArray(cuerpo.message)) return cuerpo.message[0];
@@ -251,6 +261,12 @@
         elemento('mesa-instrucciones').textContent = datos.instrucciones;
         elemento('mesa-estudiante').textContent = sesion.estudiante.nombre;
 
+        var fondo = datos.escena && datos.escena.fondo;
+        elemento('mesa-escena').style.setProperty(
+          '--fondo-escena',
+          fondo ? 'url("' + urlArchivo(fondo) + '")' : 'none',
+        );
+
         if (mesa.reloj) clearInterval(mesa.reloj);
         mesa.reloj = setInterval(function () {
           mesa.restante -= 1;
@@ -273,6 +289,46 @@
     elemento('mesa-tiempo').textContent = formatearTiempo(Math.max(0, mesa.restante));
   }
 
+  /**
+   * Pone en escena al CEO del caso. Sin personaje asignado queda la silueta
+   * neutra, que es un caso normal y no un error.
+   *
+   * Reiniciar la clase del contenedor vuelve a disparar la animacion de
+   * entrada en cada expediente.
+   */
+  function pintarPersonaje(personaje) {
+    var contenedor = elemento('mesa-personaje');
+    var imagen = elemento('mesa-personaje-imagen');
+    var silueta = elemento('mesa-silueta');
+    var placa = elemento('mesa-placa');
+
+    if (personaje) {
+      imagen.src = urlArchivo(personaje.imagen);
+      imagen.alt = personaje.nombre;
+      imagen.classList.remove('oculto');
+      silueta.classList.add('oculto');
+      elemento('mesa-personaje-nombre').textContent = personaje.nombre;
+      elemento('mesa-personaje-cargo').textContent = personaje.cargo || '';
+      placa.classList.remove('oculto');
+    } else {
+      imagen.classList.add('oculto');
+      silueta.classList.remove('oculto');
+      placa.classList.add('oculto');
+    }
+
+    contenedor.className = '';
+    void contenedor.offsetWidth;
+    contenedor.className = 'personaje';
+  }
+
+  /** El CEO asiente si acertaste y se molesta si no. */
+  function reaccionarPersonaje(correcta) {
+    var contenedor = elemento('mesa-personaje');
+    contenedor.className = 'personaje';
+    void contenedor.offsetWidth;
+    contenedor.className = 'personaje ' + (correcta ? 'personajeContento' : 'personajeMolesto');
+  }
+
   function pintarCaso() {
     var caso = mesa.casos[mesa.indice];
     if (!caso) return;
@@ -281,6 +337,7 @@
     elemento('mesa-entidad').textContent = caso.entidad;
     elemento('mesa-tipo').textContent = caso.tipo + ' · ' + caso.jurisdiccion;
     elemento('mesa-solicitud').textContent = caso.solicitud;
+    pintarPersonaje(caso.personaje);
 
     var campos = elemento('mesa-campos');
     campos.innerHTML = '';
@@ -329,6 +386,7 @@
       .then(function (veredicto) {
         if (veredicto.correcta) mesa.aciertos += 1;
         pintarIndicadoresMesa();
+        reaccionarPersonaje(veredicto.correcta);
 
         var caja = elemento('mesa-veredicto');
         caja.className = 'veredicto ' + (veredicto.correcta ? 'veredictoCorrecto' : 'veredictoIncorrecto');

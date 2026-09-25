@@ -18,6 +18,7 @@ import {
   RespuestaJugador,
 } from './mesa-cumplimiento/mesa-cumplimiento.service';
 import { Decision } from './mesa-cumplimiento/casos';
+import { FONDO_MESA } from '../archivos/archivos.constantes';
 
 export const CLAVE_MESA_CUMPLIMIENTO = 'mesa-cumplimiento';
 
@@ -46,7 +47,13 @@ export class JuegosService {
       titulo: configuracion.titulo,
       instrucciones: configuracion.instrucciones,
       tiempoLimiteSegundos: configuracion.tiempoLimiteSegundos,
-      casos: this.mesaCumplimiento.armarPartida(configuracion.paresContenido),
+      // El fondo es una convencion de archivo, no un dato configurable: el
+      // cliente lo pide y si no existe dibuja su degradado de respaldo.
+      escena: { fondo: FONDO_MESA },
+      casos: await this.mesaCumplimiento.armarPartida(
+        configuracion.paresContenido,
+        quien.institucionId,
+      ),
     };
   }
 
@@ -62,7 +69,7 @@ export class JuegosService {
     respuestas: RespuestaJugador[],
   ) {
     const configuracion = await this.configuracionJugable(quien, moduloId);
-    const calificacion = this.mesaCumplimiento.calificar(respuestas);
+    const calificacion = await this.mesaCumplimiento.calificar(respuestas);
     const resultado = await this.resultadosService.crear(quien, {
       moduloId,
       puntaje: calificacion.puntaje,

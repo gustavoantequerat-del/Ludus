@@ -1,11 +1,14 @@
 /**
- * Banco de casos del juego "Mesa de Cumplimiento".
+ * Catalogo base de casos de la "Mesa de Cumplimiento".
  *
- * Cada caso es una solicitud de relacion comercial que llega al escritorio de
- * Cumplimiento de un banco boliviano. El contenido sale del curso de Cripto
- * Compliance (modulos 1 a 3): criterio funcional de PSAV de la R.A. UIF
- * 19/2025, ROG-04, Recomendacion 15 y Travel Rule de GAFI, due diligence de
- * PSAV/VASP y analisis de exposicion on-chain.
+ * Estos 13 expedientes salen del curso de Cripto Compliance (modulos 1 a 4):
+ * criterio funcional de PSAV de la R.A. UIF 19/2025, ROG-04, Recomendacion 15
+ * y Travel Rule de GAFI, due diligence de PSAV/VASP y analisis de exposicion
+ * on-chain.
+ *
+ * La migracion los carga en la tabla casos_cumplimiento como catalogo base
+ * (institucion_id en null). Desde ahi el docente los edita, los duplica o
+ * escribe los suyos: este archivo es la semilla, no la fuente en vivo.
  *
  * Regla de diseno: los casos NO marcan visualmente lo sospechoso. El jugador
  * decide leyendo el expediente contra lo que aprendio, igual que en la mesa
@@ -13,26 +16,9 @@
  * rechaza por reflejo: el curso es explicito en que el de-risking
  * indiscriminado tambien es una mala decision.
  */
+import { CampoExpediente, Decision } from './caso-cumplimiento.entidad';
 
-export type Decision = 'aprobar' | 'reforzar' | 'rechazar';
-
-export interface CampoExpediente {
-  etiqueta: string;
-  valor: string;
-}
-
-export interface CasoCumplimiento {
-  id: string;
-  entidad: string;
-  tipo: string;
-  jurisdiccion: string;
-  solicitud: string;
-  campos: CampoExpediente[];
-  decisionCorrecta: Decision;
-  regla: string;
-  explicacion: string;
-  origen: string;
-}
+export type { Decision, CampoExpediente };
 
 export const ETIQUETAS_DECISION: Record<Decision, string> = {
   aprobar: 'Aprobar',
@@ -40,21 +26,56 @@ export const ETIQUETAS_DECISION: Record<Decision, string> = {
   rechazar: 'Rechazar',
 };
 
-export const CASOS: CasoCumplimiento[] = [
+/**
+ * Los seis campos fijos del expediente, con el texto que ve el jugador. El
+ * docente cambia los valores; las etiquetas son del dominio y no se editan.
+ */
+export const ETIQUETAS_EXPEDIENTE = {
+  registroLicencia: 'Registro / licencia',
+  travelRule: 'Travel Rule',
+  beneficiarioFinal: 'Beneficiario final',
+  controlesAml: 'Controles AML',
+  sanciones: 'Sanciones',
+  exposicionOnchain: 'Exposicion on-chain',
+} as const;
+
+export type ClaveCampoExpediente = keyof typeof ETIQUETAS_EXPEDIENTE;
+
+export const CAMPOS_EXPEDIENTE = Object.keys(ETIQUETAS_EXPEDIENTE) as ClaveCampoExpediente[];
+
+export interface CasoBase {
+  entidad: string;
+  tipo: string;
+  jurisdiccion: string;
+  solicitud: string;
+  registroLicencia: string;
+  travelRule: string;
+  beneficiarioFinal: string;
+  controlesAml: string;
+  sanciones: string;
+  exposicionOnchain: string;
+  camposExtra: CampoExpediente[];
+  decisionCorrecta: Decision;
+  regla: string;
+  explicacion: string;
+  origen: string;
+}
+
+export const CASOS_BASE: CasoBase[] = [
   {
-    id: 'andes-digital',
     entidad: 'Andes Digital PSAV S.R.L.',
     tipo: 'PSAV - intercambio fiat/AV y custodia',
     jurisdiccion: 'Bolivia',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente como Sujeto Obligado (R.A. 19/2025)' },
-      { etiqueta: 'Beneficiario final', valor: 'Declarado y verificado: 2 socios bolivianos' },
-      { etiqueta: 'Controles AML', valor: 'Onboarding, screening, monitoreo y KYT documentados' },
+    registroLicencia: 'Vigente como Sujeto Obligado (R.A. 19/2025)',
+    travelRule: 'Implementada con sus contrapartes principales',
+    beneficiarioFinal: 'Declarado y verificado: 2 socios bolivianos',
+    controlesAml: 'Onboarding, screening, monitoreo y KYT documentados',
+    sanciones: '',
+    exposicionOnchain: 'Contrapartes identificadas; 6% hacia servicios DeFi',
+    camposExtra: [
       { etiqueta: 'Modelo operativo', valor: 'CEX + mesa OTC + canal P2P entre usuarios' },
       { etiqueta: 'Proveedores', valor: 'Liquidez tercerizada en dos proveedores extranjeros' },
-      { etiqueta: 'Exposicion on-chain', valor: 'Contrapartes identificadas; 6% hacia servicios DeFi' },
-      { etiqueta: 'Travel Rule', valor: 'Implementada con sus contrapartes principales' },
     ],
     decisionCorrecta: 'reforzar',
     regla: 'Complejidad operativa no es ilicitud: exige comprension y mitigantes',
@@ -63,19 +84,26 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 3 - Tema 5: Due Diligence de PSAV/VASP',
   },
   {
-    id: 'khana-pay',
     entidad: 'Khana Pay S.A.',
     tipo: 'PSAV - intercambio fiat/AV',
     jurisdiccion: 'Bolivia',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente como Sujeto Obligado' },
-      { etiqueta: 'Beneficiario final', valor: 'Estructura simple, UBO identificado y documentado' },
-      { etiqueta: 'Controles AML', valor: 'Oficial de cumplimiento designado; politicas y auditoria anual' },
-      { etiqueta: 'Modelo operativo', valor: 'Compra/venta de stablecoins contra bolivianos, sin P2P ni DeFi' },
+    registroLicencia: 'Vigente como Sujeto Obligado',
+    travelRule: '',
+    beneficiarioFinal: 'Estructura simple, UBO identificado y documentado',
+    controlesAml: 'Oficial de cumplimiento designado; politicas y auditoria anual',
+    sanciones: '',
+    exposicionOnchain: 'Sin conexiones con categorias de riesgo',
+    camposExtra: [
+      {
+        etiqueta: 'Modelo operativo',
+        valor: 'Compra/venta de stablecoins contra bolivianos, sin P2P ni DeFi',
+      },
       { etiqueta: 'Contrapartes', valor: 'Dos exchanges regulados, ambos identificados' },
-      { etiqueta: 'Exposicion on-chain', valor: 'Sin conexiones con categorias de riesgo' },
-      { etiqueta: 'Volumen declarado', valor: 'Consistente con el perfil y la actividad informada' },
+      {
+        etiqueta: 'Volumen declarado',
+        valor: 'Consistente con el perfil y la actividad informada',
+      },
     ],
     decisionCorrecta: 'aprobar',
     regla: 'El enfoque basado en riesgos no excluye por categoria',
@@ -84,19 +112,17 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 5: no de-risking automatico',
   },
   {
-    id: 'ferrum-exchange',
     entidad: 'Ferrum Exchange Ltd.',
     tipo: 'VASP extranjero - intercambio AV/AV',
     jurisdiccion: 'Jurisdiccion offshore',
     solicitud: 'Relacion de corresponsalia para liquidacion',
-    campos: [
-      { etiqueta: 'Registro / licencia', valor: 'Sin licencia ni registro en su jurisdiccion' },
-      { etiqueta: 'Sanciones', valor: 'Entidad y dos de sus socios aparecen en listas de sanciones' },
-      { etiqueta: 'Beneficiario final', valor: 'No revelado; estructura con sociedades interpuestas' },
-      { etiqueta: 'Controles AML', valor: 'No presenta politicas ni oficial responsable' },
-      { etiqueta: 'Exposicion on-chain', valor: '22% del volumen con entidades sancionadas' },
-      { etiqueta: 'Travel Rule', valor: 'No aplica ningun mecanismo' },
-    ],
+    registroLicencia: 'Sin licencia ni registro en su jurisdiccion',
+    travelRule: 'No aplica ningun mecanismo',
+    beneficiarioFinal: 'No revelado; estructura con sociedades interpuestas',
+    controlesAml: 'No presenta politicas ni oficial responsable',
+    sanciones: 'Entidad y dos de sus socios aparecen en listas de sanciones',
+    exposicionOnchain: '22% del volumen con entidades sancionadas',
+    camposExtra: [],
     decisionCorrecta: 'rechazar',
     regla: 'Sanciones financieras dirigidas: el riesgo no es mitigable',
     explicacion:
@@ -104,18 +130,26 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 5: sanciones financieras dirigidas',
   },
   {
-    id: 'cripto-yungas',
     entidad: 'Cripto Yungas',
     tipo: 'Empresa que opera intercambio y custodia para terceros',
     jurisdiccion: 'Bolivia',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Actividad declarada', valor: 'Compra, venta y custodia de activos virtuales por encargo de clientes' },
-      { etiqueta: 'Fines', valor: 'Actividad comercial con fines de lucro; cobra comision por operacion' },
+    registroLicencia: 'No registrada; sostiene que "solo intermedia, no es un banco"',
+    travelRule: '',
+    beneficiarioFinal: 'Un socio unico, identificado',
+    controlesAml: 'Sin politicas formales ni oficial de cumplimiento',
+    sanciones: '',
+    exposicionOnchain: '',
+    camposExtra: [
+      {
+        etiqueta: 'Actividad declarada',
+        valor: 'Compra, venta y custodia de activos virtuales por encargo de clientes',
+      },
+      {
+        etiqueta: 'Fines',
+        valor: 'Actividad comercial con fines de lucro; cobra comision por operacion',
+      },
       { etiqueta: 'Clientes', valor: 'Alrededor de 400 personas naturales y 30 empresas' },
-      { etiqueta: 'Registro UIF', valor: 'No registrada; sostiene que "solo intermedia, no es un banco"' },
-      { etiqueta: 'Controles AML', valor: 'Sin politicas formales ni oficial de cumplimiento' },
-      { etiqueta: 'Beneficiario final', valor: 'Un socio unico, identificado' },
     ],
     decisionCorrecta: 'rechazar',
     regla: 'Criterio funcional: la etiqueta surge de la actividad real',
@@ -124,18 +158,31 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 3: PSAV = actividad comercial para terceros',
   },
   {
-    id: 'textiles-illimani',
     entidad: 'Textiles Illimani S.R.L.',
     tipo: 'Empresa comercial - usuaria de activos virtuales',
     jurisdiccion: 'Bolivia',
     solicitud: 'Mantener cuenta operativa; declara compras de AV',
-    campos: [
-      { etiqueta: 'Actividad principal', valor: 'Confeccion y venta de textiles; 12 anios de operacion' },
+    registroLicencia: 'No tiene registro UIF como PSAV',
+    travelRule: '',
+    beneficiarioFinal: '',
+    controlesAml: '',
+    sanciones: '',
+    exposicionOnchain: '',
+    camposExtra: [
+      {
+        etiqueta: 'Actividad principal',
+        valor: 'Confeccion y venta de textiles; 12 anios de operacion',
+      },
       { etiqueta: 'Uso de AV', valor: 'Compra stablecoins para pagar a un proveedor en el exterior' },
-      { etiqueta: 'Servicios a terceros', valor: 'Ninguno: no intercambia ni custodia por cuenta de otros' },
+      {
+        etiqueta: 'Servicios a terceros',
+        valor: 'Ninguno: no intercambia ni custodia por cuenta de otros',
+      },
       { etiqueta: 'Contraparte', valor: 'Opera a traves de un PSAV local registrado ante la UIF' },
-      { etiqueta: 'Razonabilidad economica', valor: 'Montos coherentes con sus importaciones declaradas' },
-      { etiqueta: 'Registro UIF como PSAV', valor: 'No tiene' },
+      {
+        etiqueta: 'Razonabilidad economica',
+        valor: 'Montos coherentes con sus importaciones declaradas',
+      },
     ],
     decisionCorrecta: 'aprobar',
     regla: 'Usuario de activos virtuales no equivale a PSAV',
@@ -144,19 +191,18 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 3: usuario de AV no es PSAV',
   },
   {
-    id: 'sur-global',
     entidad: 'Sur Global VASP',
     tipo: 'VASP extranjero - intercambio y transferencias',
     jurisdiccion: 'Jurisdiccion con Travel Rule de implementacion parcial',
     solicitud: 'Ser contraparte receptora de transferencias de clientes',
-    campos: [
-      { etiqueta: 'Registro / licencia', valor: 'Licencia vigente y supervisor identificado' },
-      { etiqueta: 'Travel Rule', valor: 'La jurisdiccion la implementa parcialmente; el VASP ya la aplica por politica propia' },
-      { etiqueta: 'Beneficiario final', valor: 'Declarado, con estructura verificable' },
-      { etiqueta: 'Controles AML', valor: 'Programa documentado; auditoria externa reciente' },
-      { etiqueta: 'Sanciones', valor: 'Screening activo; sin coincidencias' },
-      { etiqueta: 'Exposicion on-chain', valor: 'Mayoritariamente exchanges regulados; 3% sin atribucion' },
-    ],
+    registroLicencia: 'Licencia vigente y supervisor identificado',
+    travelRule:
+      'La jurisdiccion la implementa parcialmente; el VASP ya la aplica por politica propia',
+    beneficiarioFinal: 'Declarado, con estructura verificable',
+    controlesAml: 'Programa documentado; auditoria externa reciente',
+    sanciones: 'Screening activo; sin coincidencias',
+    exposicionOnchain: 'Mayoritariamente exchanges regulados; 3% sin atribucion',
+    camposExtra: [],
     decisionCorrecta: 'reforzar',
     regla: 'Sunrise issue: la implementacion desigual no decide por si sola',
     explicacion:
@@ -164,18 +210,31 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 5: Travel Rule y sunrise issue',
   },
   {
-    id: 'nodo-central',
     entidad: 'Nodo Central S.A.',
     tipo: 'PSAV - declara intercambio AV/AV',
     jurisdiccion: 'Bolivia',
     solicitud: 'Ampliacion de limites operativos',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente' },
+    registroLicencia: 'Vigente',
+    travelRule: '',
+    beneficiarioFinal: '',
+    controlesAml: '',
+    sanciones: '',
+    exposicionOnchain: '',
+    camposExtra: [
       { etiqueta: 'Modelo declarado', valor: 'Solo intercambio entre activos virtuales, sin custodia' },
-      { etiqueta: 'Evidencia operativa', valor: 'Mantiene saldos de clientes en wallets propias por semanas' },
-      { etiqueta: 'Servicios no declarados', valor: 'Opera cuentas anidadas (nested) de dos brokers extranjeros' },
+      {
+        etiqueta: 'Evidencia operativa',
+        valor: 'Mantiene saldos de clientes en wallets propias por semanas',
+      },
+      {
+        etiqueta: 'Servicios no declarados',
+        valor: 'Opera cuentas anidadas (nested) de dos brokers extranjeros',
+      },
       { etiqueta: 'Clientes de esos brokers', valor: 'No identificados por Nodo Central' },
-      { etiqueta: 'Respuesta a consultas', valor: 'Presenta documentacion que contradice el modelo declarado' },
+      {
+        etiqueta: 'Respuesta a consultas',
+        valor: 'Presenta documentacion que contradice el modelo declarado',
+      },
     ],
     decisionCorrecta: 'rechazar',
     regla: 'Los controles deben corresponder al modelo operativo real',
@@ -184,16 +243,17 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 3 - Tema 5: nested services y modelo operativo',
   },
   {
-    id: 'altiplano-pay',
     entidad: 'Altiplano Pay',
     tipo: 'PSAV - billetera y pagos',
     jurisdiccion: 'Bolivia',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente' },
-      { etiqueta: 'Controles AML', valor: 'Programa documentado y probado' },
-      { etiqueta: 'Beneficiario final', valor: 'Identificado' },
-      { etiqueta: 'Hallazgo de blockchain analytics', valor: 'Exposicion indirecta a un mixer' },
+    registroLicencia: 'Vigente',
+    travelRule: '',
+    beneficiarioFinal: 'Identificado',
+    controlesAml: 'Programa documentado y probado',
+    sanciones: '',
+    exposicionOnchain: 'Exposicion indirecta a un mixer',
+    camposExtra: [
       { etiqueta: 'Distancia', valor: '5 hops de distancia' },
       { etiqueta: 'Materialidad', valor: '0,2% del volumen total' },
       { etiqueta: 'Temporalidad', valor: 'Operaciones de hace mas de dos anios; sin repeticion' },
@@ -205,15 +265,17 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 4 - Tema 2: hops y analisis de exposicion',
   },
   {
-    id: 'rio-blanco',
     entidad: 'Rio Blanco Digital',
     tipo: 'PSAV - intercambio y transferencias',
     jurisdiccion: 'Bolivia',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente' },
-      { etiqueta: 'Controles AML', valor: 'Politicas presentadas; monitoreo on-chain incipiente' },
-      { etiqueta: 'Hallazgo de blockchain analytics', valor: 'Exposicion a servicios de darknet y direcciones asociadas a ransomware' },
+    registroLicencia: 'Vigente',
+    travelRule: '',
+    beneficiarioFinal: '',
+    controlesAml: 'Politicas presentadas; monitoreo on-chain incipiente',
+    sanciones: '',
+    exposicionOnchain: 'Servicios de darknet y direcciones asociadas a ransomware',
+    camposExtra: [
       { etiqueta: 'Distancia', valor: 'Exposicion directa, 1 hop' },
       { etiqueta: 'Materialidad', valor: '31% del volumen del ultimo trimestre' },
       { etiqueta: 'Temporalidad', valor: 'Actividad recurrente y en curso' },
@@ -226,18 +288,22 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 4 - Tema 3: tipologias y senales de alerta',
   },
   {
-    id: 'opaca-holding',
     entidad: 'Meridiano Holding Group',
     tipo: 'PSAV - custodia institucional',
     jurisdiccion: 'Bolivia con matriz en el exterior',
     solicitud: 'Apertura de cuenta corporativa',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente' },
-      { etiqueta: 'Controles AML', valor: 'Politicas formales presentadas' },
-      { etiqueta: 'Estructura societaria', valor: 'Cuatro niveles de sociedades en tres jurisdicciones' },
-      { etiqueta: 'Beneficiario final', valor: 'No revelado; se niega a informarlo por "politica del grupo"' },
+    registroLicencia: 'Vigente',
+    travelRule: '',
+    beneficiarioFinal: 'No revelado; se niega a informarlo por "politica del grupo"',
+    controlesAml: 'Politicas formales presentadas',
+    sanciones: '',
+    exposicionOnchain: 'Sin hallazgos relevantes',
+    camposExtra: [
+      {
+        etiqueta: 'Estructura societaria',
+        valor: 'Cuatro niveles de sociedades en tres jurisdicciones',
+      },
       { etiqueta: 'Gobierno corporativo', valor: 'No identifica a los responsables de Cumplimiento' },
-      { etiqueta: 'Exposicion on-chain', valor: 'Sin hallazgos relevantes' },
     ],
     decisionCorrecta: 'rechazar',
     regla: 'Sin beneficiario final no hay debida diligencia posible',
@@ -246,16 +312,20 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 3 - Tema 5: capa 1, quien es y quien lo controla',
   },
   {
-    id: 'comercial-andina',
     entidad: 'Comercial Andina S.A.',
     tipo: 'Cliente corporativo con operaciones en AV',
     jurisdiccion: 'Bolivia',
     solicitud: 'Revision de perfil por aumento de operaciones',
-    campos: [
+    registroLicencia: '',
+    travelRule: '',
+    beneficiarioFinal: '',
+    controlesAml: '',
+    sanciones: '',
+    exposicionOnchain: 'Recibe stablecoins desde una wallet no informada',
+    camposExtra: [
       { etiqueta: 'Perfil declarado', valor: 'Importadora; movimiento esperado de USD 80.000 al mes' },
       { etiqueta: 'Comportamiento real', valor: 'Transfiere USD 2.400.000 al mes hacia un PSAV local' },
       { etiqueta: 'Origen de fondos', valor: 'No documentado para el incremento' },
-      { etiqueta: 'Ingresos', valor: 'Recibe stablecoins desde una wallet no informada' },
       { etiqueta: 'Contraparte', valor: 'PSAV registrado ante la UIF, con controles verificados' },
       { etiqueta: 'Actitud', valor: 'Dispuesta a presentar documentacion de respaldo' },
     ],
@@ -266,16 +336,17 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 3 - Tema 4: Source of Funds y razonabilidad economica',
   },
   {
-    id: 'puente-sur',
     entidad: 'Puente Sur PSAV',
     tipo: 'PSAV - transferencias transfronterizas',
     jurisdiccion: 'Bolivia',
     solicitud: 'Habilitacion de transferencias hacia VASP del exterior',
-    campos: [
-      { etiqueta: 'Registro UIF', valor: 'Vigente' },
-      { etiqueta: 'Beneficiario final', valor: 'Identificado y verificado' },
-      { etiqueta: 'Controles AML', valor: 'KYC y monitoreo bancario adecuados' },
-      { etiqueta: 'Travel Rule', valor: 'Sin capacidad de transmitir datos de originador y beneficiario' },
+    registroLicencia: 'Vigente',
+    travelRule: 'Sin capacidad de transmitir datos de originador y beneficiario',
+    beneficiarioFinal: 'Identificado y verificado',
+    controlesAml: 'KYC y monitoreo bancario adecuados',
+    sanciones: '',
+    exposicionOnchain: '',
+    camposExtra: [
       { etiqueta: 'Volumen transfronterizo', valor: 'Alto y creciente hacia tres VASP extranjeros' },
       { etiqueta: 'Contrapartes', valor: 'Dos con licencia verificada; una sin informacion suficiente' },
     ],
@@ -286,18 +357,23 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 3 - Tema 5: de la evidencia al riesgo residual',
   },
   {
-    id: 'banco-union-psav',
     entidad: 'Entidad Financiera Cordillera',
     tipo: 'EIF que inicia actividad como PSAV',
     jurisdiccion: 'Bolivia',
     solicitud: 'Relacion interbancaria por nueva linea de negocio en AV',
-    campos: [
-      { etiqueta: 'Condicion previa', valor: 'Entidad de intermediacion financiera, ya Sujeto Obligado' },
+    registroLicencia: 'Actualizo su registro ante la UIF al iniciar la actividad PSAV',
+    travelRule: '',
+    beneficiarioFinal: '',
+    controlesAml: 'Sistema existente ampliado a operaciones con AV',
+    sanciones: '',
+    exposicionOnchain: 'Contrapartes identificadas, sin categorias de riesgo',
+    camposExtra: [
+      {
+        etiqueta: 'Condicion previa',
+        valor: 'Entidad de intermediacion financiera, ya Sujeto Obligado',
+      },
       { etiqueta: 'Nueva actividad', valor: 'Comienza a ofrecer compra/venta de AV a sus clientes' },
-      { etiqueta: 'Registro UIF', valor: 'Actualizo su registro al iniciar la actividad PSAV' },
-      { etiqueta: 'Controles AML', valor: 'Sistema existente ampliado a operaciones con AV' },
       { etiqueta: 'Reporte', valor: 'Clasifica e informa operaciones con AV mediante ROG-04' },
-      { etiqueta: 'Exposicion on-chain', valor: 'Contrapartes identificadas, sin categorias de riesgo' },
     ],
     decisionCorrecta: 'aprobar',
     regla: 'Las categorias se superponen: ser EIF no exime de la nueva actividad',
@@ -306,7 +382,3 @@ export const CASOS: CasoCumplimiento[] = [
     origen: 'Modulo 2 - Tema 3: EIF que inicia actividad PSAV',
   },
 ];
-
-export function casoPorId(id: string): CasoCumplimiento | undefined {
-  return CASOS.find((caso) => caso.id === id);
-}

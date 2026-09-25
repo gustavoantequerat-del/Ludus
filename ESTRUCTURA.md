@@ -46,6 +46,7 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 ```
 /
 ├── backend/          Backend NestJS (API REST + PostgreSQL)
+│   └── archivos/       Imagenes del juego (fondos y personajes); se sirve en /archivos
 ├── frontend/          Frontend Vue 3 (SPA)
 ├── project/           Prototipo original de Claude Design (referencia, no se ejecuta)
 ├── chats/              Transcripciones de las conversaciones de diseno (referencia)
@@ -79,9 +80,14 @@ backend/src/
 ├── rutas/                            CRUD rutas + su relacion ordenada con cursos existentes
 │   ├── ruta.entidad.ts
 │   └── ruta-curso.entidad.ts        tabla puente ruta<->curso con orden
+├── archivos/                          Servicio que guarda y lista las imagenes del juego
+├── personajes/                         Los CEO que aparecen en escena (CRUD + subida de imagen)
 ├── juegos/                            Catalogo fijo de plantillas + configuracion por modulo
 │   ├── juego.entidad.ts             catalogo (se administra por semilla, no CRUD de usuario)
-│   └── configuracion-juego.entidad.ts
+│   ├── configuracion-juego.entidad.ts
+│   └── mesa-cumplimiento/           el juego jugable: partida, calificacion y CRUD de casos
+│       ├── caso-cumplimiento.entidad.ts
+│       └── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
 ├── inscripciones/                    Asigna/reemplaza la lista de estudiantes de un curso o ruta
 ├── solicitudes/                       Ingreso/salida que pide un estudiante y resuelve un admin
 ├── resultados/                         Resultado de una partida (puntaje, intento, nota)
@@ -117,9 +123,13 @@ frontend/src/
 │   ├── usarNavegacion.ts         Items del menu lateral segun el rol
 │   └── usarNotificaciones.ts     "Toast" simple compartido entre vistas
 ├── enrutador/indice.ts            Rutas de vue-router + guardia de autenticacion/rol
+├── utilidades/
+│   ├── archivos.ts                URL de las imagenes del backend y lectura de un archivo a base64
+│   └── errores.ts                  Saca el mensaje que manda el backend cuando rechaza algo
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
-│   └── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
+│   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
+│   └── juegos/                     Los juegos jugables (MesaCumplimiento: escena + expediente)
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
 
@@ -131,6 +141,10 @@ se referencian como objeto JS, `estilos.claseX`). Los unicos estilos
 (reset), que se importan una sola vez en `main.ts`; no son etiquetas
 `<style>`, son hojas de estilo normales importadas como archivo. No se usa
 Tailwind ni ningun framework de utilidades.
+
+La unica excepcion es el fondo de la escena del juego, que depende de una URL
+que llega del servidor: la vista solo define la variable CSS `--fondo-escena`
+y todas las reglas visuales siguen viviendo en el archivo `.module.css`.
 
 ## 4. Modelo de datos
 
@@ -149,6 +163,10 @@ ruta_curso *───1 curso
 usuario(estudiante) 1───* inscripcion (a un curso O a una ruta, nunca ambos en el mismo registro)
 usuario(estudiante) 1───* solicitud (ingreso/salida a un curso o ruta, con estado)
 usuario(estudiante) 1───* resultado (puntaje de un intento de un modulo)
+
+institucion 1───* personaje (el CEO que aparece en escena; institucion_id null = catalogo base)
+institucion 1───* caso_cumplimiento (expediente del juego; institucion_id null = catalogo base)
+personaje 1───* caso_cumplimiento (opcional: un caso puede no tener personaje)
 ```
 
 Puntos que vale la pena aclarar:
@@ -172,6 +190,11 @@ Puntos que vale la pena aclarar:
 - **resultado** guarda cada intento jugado (puntaje e intento consecutivo).
   La nota solo se calcula (`puntaje / 10`) si el modulo esta marcado como
   `califica`; si no, `nota` queda `null` y cuenta solo como practica.
+- **personaje** y **caso_cumplimiento** son el contenido editable del juego
+  jugable (ver 6.2). Los dos usan la misma regla de alcance:
+  `institucion_id = NULL` es el **catalogo base de Ludus**, visible para todos
+  y editable solo por el superadmin; con un `institucion_id` son de esa
+  institucion, y ahi el docente manda.
 
 ## 5. Roles y pantallas
 
@@ -198,6 +221,8 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 | `ExplorarCursosVista` | `/explorar` | estudiante |
 | `JuegosVista` | `/juegos` | todos (catalogo de solo lectura) |
 | `ConfiguracionJuegoVista` | `/cursos/:cursoId/modulos/:moduloId/configurar` | superadmin, admin_institucion, docente |
+| `CasosCumplimientoVista` (Casos del juego) | `/casos` | superadmin, admin_institucion, docente |
+| `PersonajesVista` | `/personajes` | superadmin, admin_institucion, docente |
 | `JugarVista` | `/cursos/:cursoId/modulos/:moduloId/jugar` | estudiante |
 | `SolicitudesVista` | `/solicitudes` | superadmin, admin_institucion, estudiante |
 | `ResultadosVista` (Resultados/Calificaciones) | `/resultados` | todos |
@@ -267,6 +292,17 @@ POST|DELETE /rutas/:id/cursos[/:cursoId]
 
 GET      /juegos                         catalogo (todos los roles autenticados)
 GET|PUT  /juegos/modulos/:moduloId/configuracion
+GET      /juegos/partida/:moduloId        expedientes de la partida, sin respuestas
+POST     /juegos/partida/verificar        { casoId, decision } -> veredicto del caso
+POST     /juegos/partida/:moduloId/terminar  califica en el servidor y registra el intento
+
+GET|POST /casos-cumplimiento              casos del juego (superadmin/admin/docente)
+POST     /casos-cumplimiento/duplicar-base  copia el catalogo base a la institucion
+PATCH|DELETE /casos-cumplimiento/:id      el catalogo base solo lo edita el superadmin
+
+GET|POST /personajes                      los CEO de la escena
+GET      /personajes/disponibles          imagenes en el servidor aun sin registrar
+PATCH|DELETE /personajes/:id
 
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
 GET|PUT  /rutas/:rutaId/inscripciones
@@ -346,10 +382,67 @@ maqueta). Esta inspirado en *That's Not My Neighbor*: en vez de dejar pasar
 personas, el estudiante atiende la mesa de Cumplimiento de un banco boliviano y
 decide sobre solicitudes de **PSAV/VASP**.
 
-**Contenido.** Los casos salen del curso de Cripto Compliance de NEXUM
-(modulos 1 a 3): criterio funcional de PSAV de la R.A. UIF 19/2025, ROG-04,
+**Contenido.** Los 13 casos base salen del curso de Cripto Compliance de NEXUM
+(modulos 1 a 4): criterio funcional de PSAV de la R.A. UIF 19/2025, ROG-04,
 Recomendacion 15 y Travel Rule de GAFI, due diligence de PSAV/VASP y analisis
 de exposicion on-chain. Cada caso cita el modulo y tema del que proviene.
+Estan en la base de datos, no en el codigo: **el docente los edita** (ver
+6.2.2).
+
+### 6.2.1 La escena
+
+El expediente no llega solo: entra el **CEO de la empresa**, mirando al
+jugador, sobre el fondo del juego, y trae su solicitud en un globo. El CEO
+reacciona al veredicto (asiente si acertaste, niega si no) y en cada
+expediente entra de nuevo con una animacion.
+
+Las imagenes son **archivos, no codigo**. El backend sirve la carpeta
+`RUTA_ARCHIVOS` (por defecto `backend/archivos/`) en `/archivos`, fuera del
+prefijo `/api`:
+
+| Que | Donde | Como se usa |
+|---|---|---|
+| Fondo de la mesa | `archivos/fondos/mesa-cumplimiento.png` | nombre fijo por convencion; si falta, la escena usa un degradado |
+| Fotos de los CEO | `archivos/personajes/*.png` | cada una se registra como un personaje desde la aplicacion |
+
+Recomendado para los CEO: PNG con fondo transparente, vertical, de medio
+cuerpo y mirando al frente; maximo 3 MB. Para el fondo: apaisado, 1600x900 o
+mas, con lo importante arriba y a los costados (el centro-abajo queda tapado
+por el personaje y el globo). Todo esto tambien esta en
+`backend/archivos/README.md`.
+
+Un personaje entra de dos maneras, y las dos terminan en una fila de la tabla
+`personajes`:
+
+1. **Dejando el archivo en la carpeta**: aparece en *Personajes* como "imagen
+   disponible en el servidor" y el docente solo le pone nombre y cargo.
+2. **Subiendolo desde Ludus**: el docente elige el archivo y se guarda con un
+   nombre aleatorio. Estos si se borran del disco al eliminar el personaje;
+   los que se dejaron a mano se conservan.
+
+Un caso sin personaje se juega igual: la escena muestra una silueta neutra.
+
+### 6.2.2 Lo que edita el docente
+
+En *Casos del juego* (`/casos`) el docente escribe el expediente completo:
+
+- **Cabecera**: entidad, tipo, jurisdiccion y solicitud.
+- **CEO que aparece**: cual de los personajes presenta el caso.
+- **Los seis campos del expediente**, que son los que el curso usa para
+  decidir: *Registro / licencia*, *Travel Rule*, *Beneficiario final*,
+  *Controles AML*, *Sanciones* y *Exposicion on-chain*. Un campo vacio no se
+  muestra.
+- **Otros datos**: pares etiqueta/valor libres para lo que no entra en los
+  seis (hops, materialidad, modelo operativo, razonabilidad economica...).
+- **La respuesta**: Aprobar, Aprobar con EDD o Rechazar, mas la regla, la
+  explicacion que se muestra despues y el origen en el curso.
+- **Activo**: un caso inactivo deja de salir en las partidas sin borrarse.
+
+Regla de alcance, la misma que para personajes: mientras la institucion no
+tenga casos propios, la mesa juega con el **catalogo base de Ludus** (que se
+ve pero no se edita). El boton *Duplicar catalogo base* copia los 13 casos a
+la institucion; desde esa copia, la partida se arma **solo** con los casos de
+la institucion y el docente puede cambiarlos todos.
 
 **Tres decisiones, no dos.** El curso es explicito en que la respuesta correcta
 no es binaria, asi que el juego ofrece:
@@ -379,7 +472,8 @@ tales.
 backend (`src/juegos/mesa-cumplimiento/`), nunca en el cliente:
 
 - `GET /juegos/partida/:moduloId` entrega los expedientes **sin** la respuesta
-  correcta; la cantidad sale de `paresContenido` de la configuracion.
+  correcta (con el personaje y el fondo de la escena); la cantidad sale de
+  `paresContenido` de la configuracion.
 - `POST /juegos/partida/verificar` devuelve el veredicto de un caso, para dar
   retroalimentacion inmediata con la regla del curso.
 - `POST /juegos/partida/:moduloId/terminar` recalcula la nota en el servidor a
@@ -390,9 +484,15 @@ El frontend y el paquete SCORM usan esa clave para decidir si renderizan el
 juego real o la maqueta, asi que agregar un segundo juego jugable no exige
 tocar las vistas existentes.
 
-**Dentro del LMS.** El paquete SCORM ejecuta exactamente el mismo juego,
-consumiendo los endpoints publicos equivalentes con el token del paquete. La
-nota que llega al LMS es la calculada por el servidor.
+`src/juegos/mesa-cumplimiento/casos.ts` ya no es el banco en vivo: es la
+**semilla** que la migracion carga como catalogo base, y donde viven las
+etiquetas de los seis campos y de las tres decisiones.
+
+**Dentro del LMS.** El paquete SCORM ejecuta exactamente el mismo juego, con la
+misma escena, consumiendo los endpoints publicos equivalentes con el token del
+paquete. Las imagenes se piden al servidor de Ludus con URL absoluta (derivada
+de `URL_PUBLICA_API`), porque el paquete corre en el dominio del LMS. La nota
+que llega al LMS es la calculada por el servidor.
 
 ## 7. Simplificaciones deliberadas (KISS)
 
@@ -478,6 +578,10 @@ Cuando falla no muestra el error crudo del driver, sino la causa y el remedio:
 No hay nada que "refrescar": el backend abre el pool al arrancar, asi que
 despues de corregir `.env` o de levantar PostgreSQL hay que reiniciar
 `npm run start:dev`.
+
+Las imagenes del juego van en `backend/archivos/` (fondo en `fondos/`, CEO en
+`personajes/`); ver 6.2.1 y `backend/archivos/README.md`. No hace falta
+ninguna para que la aplicacion arranque.
 
 Usuarios de ejemplo que deja la semilla (clave para todos: `ludus123`):
 

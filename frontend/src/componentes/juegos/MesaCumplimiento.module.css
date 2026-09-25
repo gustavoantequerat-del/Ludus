@@ -51,6 +51,222 @@
   transition: width 0.25s ease;
 }
 
+/* --- Escena: fondo, CEO y lo que viene a pedir --- */
+
+/*
+ * El fondo entra por la variable --fondo-escena, que la vista define con la
+ * ruta que manda el servidor. Va en capas: si esa imagen no existe todavia,
+ * abajo queda el degradado y la escena se ve igual de bien.
+ */
+.escena {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  min-height: 290px;
+  padding: 18px 20px 0;
+  border-radius: 20px;
+  border: 1px solid var(--linea);
+  overflow: hidden;
+  background-color: var(--superficie-cabecera);
+  background-image: var(--fondo-escena, none),
+    linear-gradient(160deg, #1d1140 0%, #2c1e4a 45%, #130b26 100%);
+  background-size: cover, cover;
+  background-position: center, center;
+}
+
+/* Oscurece el fondo para que el texto del globo siempre se lea. */
+.escenaVelo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 4, 16, 0.55) 0%, rgba(8, 4, 16, 0.15) 45%, rgba(8, 4, 16, 0.7) 100%);
+}
+
+.personaje {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(210px, 36%);
+  animation: entrar-personaje 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+.personajeImagen {
+  width: 100%;
+  height: 232px;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.55));
+}
+
+.silueta {
+  width: 100%;
+  height: 232px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(180deg, var(--superficie-3), rgba(44, 30, 74, 0.2));
+  display: grid;
+  place-items: center;
+  color: var(--tenue);
+}
+
+.placa {
+  position: absolute;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: var(--chip-sobre-brillante);
+  border: 1px solid var(--linea-5);
+  backdrop-filter: blur(4px);
+  max-width: 100%;
+}
+
+.placaNombre {
+  font: 600 12px var(--fuente-titulos);
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.placaCargo {
+  font: 500 10px var(--fuente-texto);
+  color: var(--tinta-primaria-suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.globo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 26px;
+  padding: 15px 17px;
+  border-radius: 18px;
+  background: var(--chip-sobre-brillante);
+  border: 1px solid var(--linea-5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  animation: aparecer-y-subir 0.35s ease 0.15s both;
+}
+
+/* Punta del globo apuntando al personaje. */
+.globo::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  bottom: 26px;
+  width: 14px;
+  height: 14px;
+  background: var(--chip-sobre-brillante);
+  border-left: 1px solid var(--linea-5);
+  border-bottom: 1px solid var(--linea-5);
+  transform: rotate(45deg);
+}
+
+.globoEntidad {
+  font: 600 17px/1.2 var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.globoTipo {
+  font: 500 12px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.globoSolicitud {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: var(--secundario-suave-2);
+  color: var(--tinta-info);
+  font: 600 11px var(--fuente-texto);
+}
+
+@keyframes entrar-personaje {
+  from {
+    opacity: 0;
+    transform: translate(-26px, 18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes asentir-personaje {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(-9px);
+  }
+  70% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes negar-personaje {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  55% {
+    transform: translateX(8px);
+  }
+  80% {
+    transform: translateX(-3px);
+  }
+}
+
+.personajeContento {
+  animation: asentir-personaje 0.55s ease;
+}
+
+.personajeMolesto {
+  animation: negar-personaje 0.5s ease;
+}
+
+@media (max-width: 620px) {
+  .escena {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+
+  .globo {
+    margin-bottom: 0;
+  }
+
+  .globo::before {
+    display: none;
+  }
+
+  .personaje {
+    width: 150px;
+    align-self: center;
+  }
+
+  .personajeImagen,
+  .silueta {
+    height: 170px;
+  }
+}
+
 .expediente {
   border-radius: 20px;
   background: var(--superficie);
@@ -58,53 +274,11 @@
   overflow: hidden;
 }
 
-.expedienteCabecera {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  padding: 18px;
-  background: var(--superficie-2);
-  border-bottom: 1px solid var(--linea);
-  flex-wrap: wrap;
-}
 
-.sello {
-  width: 42px;
-  height: 42px;
-  flex: none;
-  border-radius: 12px;
-  background: var(--primario-suave);
-  color: var(--terciario);
-  display: grid;
-  place-items: center;
-}
 
-.expedienteTextos {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
 
-.entidad {
-  font: 600 17px/1.2 var(--fuente-titulos);
-}
 
-.tipo {
-  font: 500 12px var(--fuente-texto);
-  color: var(--apagado);
-}
 
-.solicitud {
-  padding: 6px 12px;
-  border-radius: 99px;
-  background: var(--secundario-suave);
-  border: 1px solid var(--secundario-borde);
-  color: var(--tinta-info);
-  font: 600 11px var(--fuente-texto);
-  white-space: nowrap;
-}
 
 .campos {
   display: grid;
@@ -221,6 +395,10 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.botonSiguiente {
+  margin-left: auto;
 }
 
 .repaso {

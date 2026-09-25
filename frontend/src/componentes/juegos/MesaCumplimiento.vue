@@ -12,6 +12,7 @@ import estilos from './MesaCumplimiento.module.css';
 import Icono from '@/componentes/base/Icono.vue';
 import Boton from '@/componentes/base/Boton.vue';
 import { juegosServicio } from '@/servicios/juegos.servicio';
+import { urlArchivo } from '@/utilidades/archivos';
 import type {
   CalificacionPartida,
   CasoCumplimiento,
@@ -64,6 +65,18 @@ const casoActual = computed<CasoCumplimiento | null>(
 );
 const total = computed(() => partida.value?.casos.length ?? 0);
 const progreso = computed(() => (total.value ? (indice.value / total.value) * 100 : 0));
+const estiloEscena = computed(() => ({
+  '--fondo-escena': partida.value?.escena?.fondo
+    ? `url("${urlArchivo(partida.value.escena.fondo)}")`
+    : 'none',
+}));
+
+/** El CEO reacciona al veredicto: asiente si acertaste, se molesta si no. */
+const claseReaccion = computed(() => {
+  if (!veredicto.value) return '';
+  return veredicto.value.correcta ? estilos.personajeContento : estilos.personajeMolesto;
+});
+
 const tiempoEtiqueta = computed(() => {
   const minutos = Math.floor(segundosRestantes.value / 60);
   const segundos = String(segundosRestantes.value % 60).padStart(2, '0');
@@ -190,15 +203,42 @@ onBeforeUnmount(detenerTemporizador);
         </div>
       </div>
 
-      <div v-if="casoActual" :class="estilos.expediente">
-        <div :class="estilos.expedienteCabecera">
-          <span :class="estilos.sello"><Icono nombre="building-2" :tamano="20" /></span>
-          <div :class="estilos.expedienteTextos">
-            <span :class="estilos.entidad">{{ casoActual.entidad }}</span>
-            <span :class="estilos.tipo">{{ casoActual.tipo }} · {{ casoActual.jurisdiccion }}</span>
-          </div>
-          <span :class="estilos.solicitud">{{ casoActual.solicitud }}</span>
+      <!--
+        La escena: el CEO entra mirando al jugador y trae su solicitud. El
+        fondo llega por variable CSS para que las reglas visuales queden en el
+        modulo de estilos y no en el template.
+      -->
+      <div v-if="casoActual" :class="estilos.escena" :style="estiloEscena">
+        <span :class="estilos.escenaVelo" />
+        <div
+          :key="casoActual.id"
+          :class="[estilos.personaje, claseReaccion]"
+        >
+          <img
+            v-if="casoActual.personaje"
+            :class="estilos.personajeImagen"
+            :src="urlArchivo(casoActual.personaje.imagen)"
+            :alt="casoActual.personaje.nombre"
+          />
+          <span v-else :class="estilos.silueta"><Icono nombre="user-round" :tamano="46" /></span>
+          <span v-if="casoActual.personaje" :class="estilos.placa">
+            <span :class="estilos.placaNombre">{{ casoActual.personaje.nombre }}</span>
+            <span v-if="casoActual.personaje.cargo" :class="estilos.placaCargo">
+              {{ casoActual.personaje.cargo }}
+            </span>
+          </span>
         </div>
+
+        <div :class="estilos.globo">
+          <span :class="estilos.globoEntidad">{{ casoActual.entidad }}</span>
+          <span :class="estilos.globoTipo">
+            {{ casoActual.tipo }} · {{ casoActual.jurisdiccion }}
+          </span>
+          <span :class="estilos.globoSolicitud">{{ casoActual.solicitud }}</span>
+        </div>
+      </div>
+
+      <div v-if="casoActual" :class="estilos.expediente">
         <div :class="estilos.campos">
           <div v-for="campo in casoActual.campos" :key="campo.etiqueta" :class="estilos.campo">
             <span :class="estilos.campoEtiqueta">{{ campo.etiqueta }}</span>
@@ -242,7 +282,7 @@ onBeforeUnmount(detenerTemporizador);
         <div :class="estilos.pieVeredicto">
           <span :class="estilos.veredictoOrigen">{{ veredicto.origen }}</span>
           <Boton
-            style="margin-left: auto"
+            :class="estilos.botonSiguiente"
             variante="primario"
             :icono="indice + 1 >= total ? 'flag' : 'arrow-right'"
             :deshabilitado="enviando"

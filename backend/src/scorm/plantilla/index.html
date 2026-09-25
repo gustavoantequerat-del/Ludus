@@ -90,14 +90,25 @@
               <span class="chip chipCian" id="mesa-tiempo"></span>
             </div>
 
-            <div class="expediente">
-              <div class="expedienteCabecera">
-                <div class="textosJuego">
-                  <span class="entidadNombre" id="mesa-entidad"></span>
-                  <span class="entidadTipo" id="mesa-tipo"></span>
-                </div>
-                <span class="chipSolicitud" id="mesa-solicitud"></span>
+            <!-- Escena: el CEO entra con su solicitud sobre el fondo del juego. -->
+            <div class="escena" id="mesa-escena">
+              <span class="escenaVelo"></span>
+              <div class="personaje" id="mesa-personaje">
+                <img class="personajeImagen oculto" id="mesa-personaje-imagen" alt="" />
+                <span class="silueta" id="mesa-silueta"></span>
+                <span class="placa oculto" id="mesa-placa">
+                  <span class="placaNombre" id="mesa-personaje-nombre"></span>
+                  <span class="placaCargo" id="mesa-personaje-cargo"></span>
+                </span>
               </div>
+              <div class="globo">
+                <span class="globoEntidad" id="mesa-entidad"></span>
+                <span class="globoTipo" id="mesa-tipo"></span>
+                <span class="globoSolicitud" id="mesa-solicitud"></span>
+              </div>
+            </div>
+
+            <div class="expediente">
               <div class="campos" id="mesa-campos"></div>
             </div>
 

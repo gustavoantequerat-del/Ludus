@@ -1,0 +1,176 @@
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 15px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: var(--secundario-suave);
+  border: 1px solid var(--secundario-borde);
+  color: var(--tinta-info);
+  font: 500 12.5px/1.55 var(--fuente-texto);
+}
+
+.avisoTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.lista {
+  display: grid;
+  gap: 10px;
+}
+
+.caso {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+
+.casoInactivo {
+  opacity: 0.55;
+}
+
+.retrato {
+  width: 42px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--superficie-3);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--tenue);
+}
+
+.retratoImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.casoTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.entidad {
+  font: 600 13.5px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.detalle {
+  font: 500 11.5px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.regla {
+  font: 400 11px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.casoAcciones {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.vacio {
+  padding: 40px 20px;
+  border-radius: 16px;
+  border: 1px dashed var(--linea-5);
+  text-align: center;
+  color: var(--apagado);
+  font: 500 13px var(--fuente-texto);
+}
+
+/* --- Formulario --- */
+
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 6px;
+  border-top: 1px solid var(--linea-4);
+}
+
+.seccionTitulo {
+  font: 600 11px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dosColumnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.filaExtra {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.personajes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.opcionPersonaje {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 11px;
+  border: 2px solid transparent;
+  background: var(--superficie-2);
+  color: var(--apagado);
+  cursor: pointer;
+  font: 500 10px var(--fuente-texto);
+}
+
+.opcionActiva {
+  border-color: var(--primario);
+  color: var(--tinta);
+}
+
+.opcionImagen {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 7px;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.opcionVacia {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 7px;
+  background: var(--superficie-3);
+  display: grid;
+  place-items: center;
+}
+
+.opcionNombre {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

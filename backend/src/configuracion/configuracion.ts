@@ -1,3 +1,5 @@
+import { join } from 'path';
+
 export interface ConfiguracionApp {
   puerto: number;
   baseDeDatos: {
@@ -16,6 +18,11 @@ export interface ConfiguracionApp {
    * (el LMS), asi que necesita una direccion absoluta y alcanzable desde ahi.
    */
   urlPublicaApi: string;
+  /**
+   * Carpeta en disco con las imagenes del juego (personajes y fondos). Se sirve
+   * tal cual en /archivos, sin el prefijo /api: son estaticos, no endpoints.
+   */
+  rutaArchivos: string;
 }
 
 export default (): ConfiguracionApp => ({
@@ -33,4 +40,5 @@ export default (): ConfiguracionApp => ({
   },
   urlPublicaApi:
     process.env.URL_PUBLICA_API || `http://localhost:${Number(process.env.PUERTO) || 3000}/api`,
+  rutaArchivos: process.env.RUTA_ARCHIVOS || join(process.cwd(), 'archivos'),
 });

@@ -1,17 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import {
-  CASOS,
-  CasoCumplimiento,
-  Decision,
-  ETIQUETAS_DECISION,
-  casoPorId,
-} from './casos';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, IsNull, Repository } from 'typeorm';
+import { CampoExpediente, CasoCumplimiento, Decision } from './caso-cumplimiento.entidad';
+import { CAMPOS_EXPEDIENTE, ETIQUETAS_DECISION, ETIQUETAS_EXPEDIENTE } from './casos';
 
 /** Lo que ve el jugador: el expediente sin la respuesta. */
-export type CasoPublico = Omit<
-  CasoCumplimiento,
-  'decisionCorrecta' | 'regla' | 'explicacion' | 'origen'
->;
+export interface CasoPublico {
+  id: string;
+  entidad: string;
+  tipo: string;
+  jurisdiccion: string;
+  solicitud: string;
+  campos: CampoExpediente[];
+  personaje: { nombre: string; cargo: string; imagen: string } | null;
+}
 
 export interface RespuestaJugador {
   casoId: string;
@@ -42,17 +44,34 @@ const DECISIONES: Decision[] = ['aprobar', 'reforzar', 'rechazar'];
 
 @Injectable()
 export class MesaCumplimientoService {
-  /** Baraja el banco y devuelve los expedientes sin la respuesta correcta. */
-  armarPartida(cantidad: number): CasoPublico[] {
-    const barajado = [...CASOS].sort(() => Math.random() - 0.5);
-    const total = Math.min(Math.max(cantidad, 1), CASOS.length);
+  constructor(
+    @InjectRepository(CasoCumplimiento)
+    private readonly casosRepo: Repository<CasoCumplimiento>,
+  ) {}
+
+  /**
+   * Baraja el banco de la institucion y devuelve los expedientes sin la
+   * respuesta correcta.
+   *
+   * Si la institucion todavia no escribio casos propios se juega con el
+   * catalogo base de Ludus; en cuanto tiene uno, la mesa usa solo los suyos.
+   */
+  async armarPartida(cantidad: number, institucionId: string | null): Promise<CasoPublico[]> {
+    const casos = await this.bancoDe(institucionId);
+    if (casos.length === 0) {
+      throw new BadRequestException('No hay casos cargados para este juego');
+    }
+
+    const barajado = [...casos].sort(() => Math.random() - 0.5);
+    const total = Math.min(Math.max(cantidad, 1), casos.length);
     return barajado.slice(0, total).map((caso) => this.aPublico(caso));
   }
 
   /** Feedback inmediato de un caso, para mostrarlo apenas el jugador decide. */
-  verificar(casoId: string, decision: Decision): VeredictoCaso {
-    const caso = this.casoValido(casoId);
+  async verificar(casoId: string, decision: Decision): Promise<VeredictoCaso> {
     this.decisionValida(decision);
+    const caso = await this.casosRepo.findOne({ where: { id: casoId } });
+    if (!caso) throw new BadRequestException('El caso no existe');
     return this.veredicto(caso, decision);
   }
 
@@ -60,14 +79,20 @@ export class MesaCumplimientoService {
    * Calificacion autoritativa de la partida. Se recalcula en el servidor para
    * que la nota no dependa de lo que informe el cliente.
    */
-  calificar(respuestas: RespuestaJugador[]): Calificacion {
+  async calificar(respuestas: RespuestaJugador[]): Promise<Calificacion> {
     if (respuestas.length === 0) {
       throw new BadRequestException('La partida no tiene respuestas');
     }
 
+    const casos = await this.casosRepo.find({
+      where: { id: In(respuestas.map((respuesta) => respuesta.casoId)) },
+    });
+    const porId = new Map(casos.map((caso) => [caso.id, caso]));
+
     const detalle = respuestas.map((respuesta) => {
-      const caso = this.casoValido(respuesta.casoId);
       this.decisionValida(respuesta.decision);
+      const caso = porId.get(respuesta.casoId);
+      if (!caso) throw new BadRequestException('El caso no existe');
       return this.veredicto(caso, respuesta.decision);
     });
 
@@ -92,6 +117,15 @@ export class MesaCumplimientoService {
     };
   }
 
+  /** Casos propios de la institucion; si no tiene, el catalogo base. */
+  private async bancoDe(institucionId: string | null): Promise<CasoCumplimiento[]> {
+    if (institucionId) {
+      const propios = await this.casosRepo.find({ where: { institucionId, activo: true } });
+      if (propios.length > 0) return propios;
+    }
+    return this.casosRepo.find({ where: { institucionId: IsNull(), activo: true } });
+  }
+
   private veredicto(caso: CasoCumplimiento, decision: Decision): VeredictoCaso {
     return {
       casoId: caso.id,
@@ -103,12 +137,6 @@ export class MesaCumplimientoService {
       explicacion: caso.explicacion,
       origen: caso.origen,
     };
-  }
-
-  private casoValido(casoId: string): CasoCumplimiento {
-    const caso = casoPorId(casoId);
-    if (!caso) throw new BadRequestException('El caso no existe');
-    return caso;
   }
 
   private decisionValida(decision: Decision): void {
@@ -124,8 +152,28 @@ export class MesaCumplimientoService {
       tipo: caso.tipo,
       jurisdiccion: caso.jurisdiccion,
       solicitud: caso.solicitud,
-      campos: caso.campos,
+      campos: this.expediente(caso),
+      personaje: caso.personaje
+        ? {
+            nombre: caso.personaje.nombre,
+            cargo: caso.personaje.cargo,
+            imagen: caso.personaje.imagen,
+          }
+        : null,
     };
+  }
+
+  /**
+   * Los seis campos fijos en su orden, sin los vacios, mas los extra del caso.
+   * Un campo vacio no se muestra: el expediente no debe sugerir que falta algo
+   * cuando el docente simplemente no lo uso.
+   */
+  private expediente(caso: CasoCumplimiento): CampoExpediente[] {
+    const fijos = CAMPOS_EXPEDIENTE.filter((clave) => caso[clave]).map((clave) => ({
+      etiqueta: ETIQUETAS_EXPEDIENTE[clave],
+      valor: caso[clave],
+    }));
+    return [...fijos, ...(caso.camposExtra ?? [])];
   }
 
   get etiquetas() {
