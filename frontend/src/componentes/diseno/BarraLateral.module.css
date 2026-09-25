@@ -11,6 +11,7 @@
   z-index: 10;
   align-self: flex-start;
   max-height: 100vh;
+  height: 100vh;
   overflow: hidden auto;
   transition: width 0.18s ease;
 }
