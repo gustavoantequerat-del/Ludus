@@ -78,6 +78,48 @@ export class ScormService {
    * Paquetes (docente / admin / superadmin)
    * ---------------------------------------------------------------- */
 
+  /**
+   * La direccion que se escribe dentro de cada paquete y si sirve para un LMS
+   * de verdad.
+   *
+   * El paquete se ejecuta en el navegador del estudiante, dentro del sitio del
+   * LMS: "localhost" ahi es la maquina del estudiante, no el servidor, y un
+   * LMS por HTTPS no puede pedir nada por HTTP. Conviene decirlo antes de
+   * exportar, no cuando el estudiante ve una pantalla en blanco.
+   */
+  diagnostico() {
+    const urlApi = this.config.get('urlPublicaApi', { infer: true });
+    return { urlApi, advertencia: this.advertenciaDeUrl(urlApi) };
+  }
+
+  private advertenciaDeUrl(urlApi: string): string | null {
+    if (/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:|\/|$)/i.test(urlApi)) {
+      return (
+        `Los paquetes apuntan a ${urlApi}, que es esta misma computadora. ` +
+        'Desde un LMS real el estudiante no puede alcanzarla: publica Ludus en ' +
+        'una direccion accesible, ponla en URL_PUBLICA_API y vuelve a exportar.'
+      );
+    }
+    // Una IP de red local tampoco sirve: el navegador del estudiante esta en
+    // otra red, y ademas bloquea que un sitio publico pida a una red privada.
+    if (/^https?:\/\/(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(urlApi)) {
+      return (
+        `Los paquetes apuntan a ${urlApi}, que es una direccion de red local. ` +
+        'Solo funciona si el estudiante esta en la misma red, y los navegadores ' +
+        'bloquean que un LMS publico pida a una red privada. Publica Ludus en ' +
+        'una direccion de internet y vuelve a exportar.'
+      );
+    }
+    if (urlApi.startsWith('http://')) {
+      return (
+        `Los paquetes apuntan a ${urlApi}, que es HTTP. Si tu LMS se sirve por ` +
+        'HTTPS, el navegador va a bloquear las peticiones; usa HTTPS en ' +
+        'URL_PUBLICA_API.'
+      );
+    }
+    return null;
+  }
+
   async listar(quien: UsuarioAutenticado): Promise<PaqueteScorm[]> {
     const consulta = this.paquetesRepo
       .createQueryBuilder('paquete')
@@ -347,6 +389,7 @@ ${archivos}
 
   private instruccionesDeUso(nombreCurso: string, tituloModulo: string): string {
     const urlApi = this.config.get('urlPublicaApi', { infer: true });
+    const advertencia = this.advertenciaDeUrl(urlApi);
     return [
       'Paquete SCORM 1.2 generado por Ludus',
       '=====================================',
@@ -365,7 +408,26 @@ ${archivos}
       `Este paquete consulta la API de Ludus en: ${urlApi}`,
       'Esa direccion debe ser alcanzable desde el navegador del estudiante.',
       '',
+      ...(advertencia
+        ? ['ATENCION', '--------', ...this.enLineas(advertencia), '']
+        : []),
     ].join('\n');
+  }
+
+  /** Parte un texto en lineas de ancho razonable para el LEEME.txt. */
+  private enLineas(texto: string, ancho = 72): string[] {
+    const lineas: string[] = [];
+    let actual = '';
+    for (const palabra of texto.split(' ')) {
+      if (actual && (actual + ' ' + palabra).length > ancho) {
+        lineas.push(actual);
+        actual = palabra;
+      } else {
+        actual = actual ? `${actual} ${palabra}` : palabra;
+      }
+    }
+    if (actual) lineas.push(actual);
+    return lineas;
   }
 
   private escaparXml(texto: string): string {

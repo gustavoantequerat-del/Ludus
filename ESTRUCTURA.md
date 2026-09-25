@@ -322,6 +322,7 @@ GET      /panel/resumen                   KPIs segun el rol de quien consulta
 GET      /panel/actividad                 solo superadmin
 
 GET|POST /scorm/paquetes                  paquetes exportados (superadmin/admin/docente)
+GET      /scorm/diagnostico               a que URL apuntan los paquetes y si esa URL sirve
 GET      /scorm/paquetes/:id/descargar    devuelve el ZIP del paquete
 PATCH    /scorm/paquetes/:id              { activo } activa o revoca el paquete
 DELETE   /scorm/paquetes/:id
@@ -370,11 +371,32 @@ LEEME.txt          instrucciones para quien lo sube al LMS
 desactivar (corta el acceso sin borrar resultados), reactivar, volver a
 descargar o eliminar.
 
-**Configuracion necesaria.** El ZIP lleva grabada la direccion de la API en
-`configuracion.js`, tomada de la variable `URL_PUBLICA_API`. Tiene que ser una
-URL alcanzable desde el navegador del estudiante: si el LMS corre en otra
-maquina, `localhost` no sirve. Ese es el ajuste que hay que recordar antes de
-exportar paquetes para produccion.
+### 6.1.1 `URL_PUBLICA_API`: el ajuste que hay que hacer si o si
+
+El ZIP lleva **grabada** la direccion de la API en `configuracion.js`, tomada
+de `URL_PUBLICA_API` **en el momento de exportar**. El paquete corre en el
+navegador del estudiante, dentro del sitio del LMS, asi que esa direccion tiene
+que ser alcanzable desde ahi. Los tres casos que no funcionan:
+
+| Valor | Que pasa |
+|---|---|
+| `http://localhost:3000/api` (por defecto) | Para el estudiante, `localhost` es **su** computadora. Chrome ademas bloquea que un sitio publico pida al espacio `loopback`. |
+| `http://192.168.x.x:3000/api` | Solo sirve dentro de esa red, y los navegadores bloquean que un sitio publico pida a una red privada. |
+| `http://mi-dominio.com/api` con un LMS en HTTPS | Contenido mixto: el navegador bloquea HTTP desde una pagina HTTPS. |
+
+Lo que sirve: **Ludus publicado en una direccion de internet, por HTTPS**, con
+esa URL en `URL_PUBLICA_API`, y **volver a exportar** los paquetes (los ya
+exportados conservan la direccion vieja).
+
+Para no descubrirlo cuando el estudiante ve la pantalla en blanco, esto avisa
+en tres lugares:
+
+- La pantalla **Paquetes SCORM** muestra siempre a que direccion apuntan los
+  paquetes, y la marca en amarillo con el motivo cuando no va a funcionar
+  (`GET /scorm/diagnostico`).
+- El **LEEME.txt** del ZIP incluye la misma advertencia.
+- Si aun asi se sube, el paquete **no dice "Failed to fetch"**: nombra la
+  direccion y explica que hay que publicar Ludus y reexportar.
 
 **Por que el cmi.comments.** El usuario del LMS no tiene por que ser el mismo
 que la cuenta de Ludus, asi que el paquete deja constancia de con que cuenta se

@@ -1,9 +1,19 @@
 import { cliente } from './cliente';
 import type { PaqueteScorm } from '@/tipos';
 
+export interface DiagnosticoScorm {
+  /** Direccion que se escribe dentro de cada paquete exportado. */
+  urlApi: string;
+  /** Por que esa direccion no va a funcionar en un LMS real, si aplica. */
+  advertencia: string | null;
+}
+
 export const scormServicio = {
   listar() {
     return cliente.get<PaqueteScorm[]>('/scorm/paquetes').then((r) => r.data);
+  },
+  diagnostico() {
+    return cliente.get<DiagnosticoScorm>('/scorm/diagnostico').then((r) => r.data);
   },
   crear(moduloId: string) {
     return cliente.post<PaqueteScorm>('/scorm/paquetes', { moduloId }).then((r) => r.data);

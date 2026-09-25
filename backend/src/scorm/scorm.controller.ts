@@ -38,6 +38,14 @@ export class ScormController {
     return this.scormService.listar(quien);
   }
 
+  /** A que direccion van a apuntar los paquetes, y si esa direccion sirve. */
+  @Get('diagnostico')
+  @UseGuards(JwtGuardia, RolesGuardia)
+  @Roles(...PUEDE_EXPORTAR)
+  diagnostico() {
+    return this.scormService.diagnostico();
+  }
+
   @Post('paquetes')
   @UseGuards(JwtGuardia, RolesGuardia)
   @Roles(...PUEDE_EXPORTAR)

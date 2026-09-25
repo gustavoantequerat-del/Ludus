@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import estilos from './PaquetesScormVista.module.css';
 import Encabezado from '@/componentes/base/Encabezado.vue';
 import Tabla from '@/componentes/base/Tabla.vue';
 import Insignia from '@/componentes/base/Insignia.vue';
 import BotonIcono from '@/componentes/base/BotonIcono.vue';
 import Icono from '@/componentes/base/Icono.vue';
 import Modal from '@/componentes/base/Modal.vue';
-import { scormServicio } from '@/servicios/scorm.servicio';
+import { scormServicio, type DiagnosticoScorm } from '@/servicios/scorm.servicio';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import { formatoFecha } from '@/utilidades/texto';
 import type { PaqueteScorm } from '@/tipos';
@@ -17,6 +18,7 @@ const paquetes = ref<PaqueteScorm[]>([]);
 const busqueda = ref('');
 const cargando = ref(true);
 const paqueteAEliminar = ref<PaqueteScorm | null>(null);
+const diagnostico = ref<DiagnosticoScorm | null>(null);
 
 const columnas = [
   { etiqueta: 'Modulo', flex: 1.8 },
@@ -33,7 +35,10 @@ const filtrados = computed(() =>
 
 async function cargar() {
   cargando.value = true;
-  paquetes.value = await scormServicio.listar();
+  [paquetes.value, diagnostico.value] = await Promise.all([
+    scormServicio.listar(),
+    scormServicio.diagnostico(),
+  ]);
   cargando.value = false;
 }
 
@@ -64,6 +69,27 @@ onMounted(cargar);
     titulo="Paquetes SCORM"
     subtitulo="Modulos exportados para usarse dentro de un LMS externo. Desactivar un paquete corta el acceso sin borrar los resultados."
   />
+
+  <!--
+    La direccion se escribe dentro del ZIP al exportar, asi que conviene verla
+    antes: un paquete que apunta a localhost se sube al LMS y recien falla
+    cuando lo abre un estudiante.
+  -->
+  <div
+    v-if="diagnostico"
+    :class="[estilos.direccion, diagnostico.advertencia ? estilos.direccionAlerta : '']"
+  >
+    <span :class="[estilos.icono, diagnostico.advertencia ? estilos.iconoAlerta : '']">
+      <Icono :nombre="diagnostico.advertencia ? 'triangle-alert' : 'globe'" :tamano="17" />
+    </span>
+    <div :class="estilos.textos">
+      <span :class="estilos.etiqueta">Los paquetes consultan a Ludus en</span>
+      <span :class="estilos.url">{{ diagnostico.urlApi }}</span>
+      <p v-if="diagnostico.advertencia" :class="estilos.advertencia">
+        {{ diagnostico.advertencia }}
+      </p>
+    </div>
+  </div>
 
   <Tabla
     v-if="!cargando"

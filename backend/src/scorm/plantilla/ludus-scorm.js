@@ -160,6 +160,51 @@
     return cuerpo.message || respaldo;
   }
 
+  /*
+   * Un fetch que ni siquiera llega al servidor no dice nada util ("Failed to
+   * fetch"). Casi siempre es lo mismo: el paquete quedo apuntando a una
+   * direccion que el navegador del estudiante no puede alcanzar desde el LMS.
+   * Vale mas nombrar la causa que repetir el error del navegador.
+   */
+  function mensajeDeRed() {
+    var url = String(CONFIG.urlApi || '');
+    var esLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)/i.test(url);
+    var esRedPrivada = /^https?:\/\/(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(url);
+    var mezcla = url.indexOf('http://') === 0 && location.protocol === 'https:';
+
+    if (esRedPrivada) {
+      return (
+        'Este paquete apunta a ' +
+        url +
+        ', una direccion de red local que no es alcanzable desde aqui. ' +
+        'Ludus tiene que estar publicado en una direccion de internet, ' +
+        'indicada en URL_PUBLICA_API, y el paquete exportarse de nuevo.'
+      );
+    }
+    if (esLocal) {
+      return (
+        'Este paquete apunta a ' +
+        url +
+        ', que es la computadora del docente y no se puede abrir desde el LMS. ' +
+        'Hay que publicar Ludus en una direccion accesible, ponerla en ' +
+        'URL_PUBLICA_API y volver a exportar el paquete.'
+      );
+    }
+    if (mezcla) {
+      return (
+        'El LMS se sirve por HTTPS y este paquete apunta a ' +
+        url +
+        ', que es HTTP. El navegador bloquea esa mezcla: Ludus tiene que ' +
+        'estar publicado por HTTPS y el paquete exportarse de nuevo.'
+      );
+    }
+    return (
+      'No se pudo conectar con Ludus en ' +
+      url +
+      '. Verifica que el servidor este publicado y accesible desde aqui.'
+    );
+  }
+
   function pedir(ruta, opciones) {
     opciones = opciones || {};
     var cabeceras = { 'Content-Type': 'application/json' };
@@ -169,6 +214,9 @@
       method: opciones.metodo || 'GET',
       headers: cabeceras,
       body: opciones.cuerpo ? JSON.stringify(opciones.cuerpo) : undefined,
+    }).catch(function () {
+      // fetch solo rechaza asi cuando la peticion no llego a salir.
+      throw new Error(mensajeDeRed());
     }).then(function (respuesta) {
       return respuesta
         .json()
