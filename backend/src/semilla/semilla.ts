@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { config as cargarEnv } from 'dotenv';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { DataSource } from 'typeorm';
 import { opcionesDeConexion } from '../configuracion/conexion-bd';
 import { Institucion } from '../instituciones/institucion.entidad';

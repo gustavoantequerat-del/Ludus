@@ -95,6 +95,45 @@ personajes desde la aplicacion funciona. Conviene poner `RUTA_ARCHIVOS` fuera
 de la carpeta del repositorio (por ejemplo `/home/usuario/ludus-archivos`) para
 que un `git pull` no la toque.
 
+### 2.1.1 Si tu cPanel no tiene `npm`/`node` en la terminal
+
+Pasa en algunos hostings compartidos: la interfaz de *Setup Node.js App*
+existe, pero el jailshell no expone `node`/`npm` (o "Ensure dependencies"
+falla). La salida es construir `node_modules` y `dist/` en tu computadora y
+subirlos tal cual:
+
+```bash
+cd backend
+npm install
+npm run build
+```
+
+Sube `node_modules/`, `dist/`, `package.json` y `archivos/` (todo menos
+`.env`) a la carpeta de la aplicacion. **Esto funciona sin arriesgarse a
+incompatibilidades de plataforma**: el proyecto no tiene ningun modulo nativo
+compilado (nada de C++, nada que dependa del sistema operativo donde se
+instalo) — se puede verificar con `find node_modules -name "*.node"`, que da
+vacio. Si en algun momento se agrega una dependencia que si lo tenga, dejaria
+de ser seguro subir `node_modules` armado en otra maquina.
+
+Las migraciones y la semilla tambien necesitan `node`: si no lo tenes en el
+servidor, correlas **desde tu propia computadora**, apuntando a la misma
+`DATABASE_URL` de Neon (es una base en internet, no hace falta estar en el
+servidor para llegar a ella):
+
+```bash
+cd backend
+echo "DATABASE_URL=postgresql://...  (la misma que pusiste en cPanel)" > .env
+echo "DB_SSL=true" >> .env
+npm run bd:verificar
+npm run migracion:ejecutar
+npm run semilla   # opcional
+```
+
+Lo unico que tiene que correr en el servidor es la app ya compilada
+(`dist/main.js`), y de eso se encarga Passenger a traves de la interfaz de
+cPanel, sin que vos necesites `npm` ahi.
+
 ### 2.2 Frontend
 
 1. En tu maquina: `cd frontend && npm install && npm run build`.
