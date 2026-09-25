@@ -7,10 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { Personaje } from './personaje.entidad';
-import { ArchivosService } from '../archivos/archivos.service';
-import { CARPETA_PERSONAJES } from '../archivos/archivos.constantes';
-import { Rol } from '../comun/enums/rol.enum';
-import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
+import { ArchivosService } from '../../../archivos/archivos.service';
+import { CARPETA_PERSONAJES } from '../../../archivos/archivos.constantes';
+import { Rol } from '../../../comun/enums/rol.enum';
+import { UsuarioAutenticado } from '../../../comun/tipos/usuario-autenticado';
 import { CrearPersonajeDto } from './dto/crear-personaje.dto';
 import { ActualizarPersonajeDto } from './dto/actualizar-personaje.dto';
 

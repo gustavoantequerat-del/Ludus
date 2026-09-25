@@ -20,7 +20,12 @@ import { ActualizarCasoDto } from './dto/actualizar-caso.dto';
 
 const PUEDE_EDITAR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 
-@Controller('casos-cumplimiento')
+/*
+ * Bajo la ruta del juego: estos casos son el contenido de la Mesa de
+ * Cumplimiento, no un recurso suelto del sistema. Otro juego jugable tendra
+ * su propio editor y sus propias tablas.
+ */
+@Controller('juegos/mesa-cumplimiento/casos')
 @UseGuards(JwtGuardia, RolesGuardia)
 @Roles(...PUEDE_EDITAR)
 export class CasosController {

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Juego } from './juego.entidad';
 import { ConfiguracionJuego } from './configuracion-juego.entidad';
 import { ModuloCurso } from '../cursos/modulo-curso.entidad';
-import { Personaje } from '../personajes/personaje.entidad';
+import { Personaje } from './mesa-cumplimiento/personajes/personaje.entidad';
 import { ResultadosModule } from '../resultados/resultados.module';
 import { JuegosService } from './juegos.service';
 import { JuegosController } from './juegos.controller';

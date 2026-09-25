@@ -7,8 +7,7 @@
  * un archivo desde la computadora.
  */
 import { computed, onMounted, ref } from 'vue';
-import estilos from './PersonajesVista.module.css';
-import Encabezado from '@/componentes/base/Encabezado.vue';
+import estilos from './EditorPersonajes.module.css';
 import Boton from '@/componentes/base/Boton.vue';
 import Icono from '@/componentes/base/Icono.vue';
 import Modal from '@/componentes/base/Modal.vue';
@@ -26,6 +25,12 @@ const { notificar } = usarNotificaciones();
 const personajes = ref<Personaje[]>([]);
 const disponibles = ref<string[]>([]);
 const cargando = ref(true);
+
+/**
+ * Imagenes que no cargaron: el archivo pudo moverse o borrarse de la carpeta
+ * despues de registrar el personaje. Mejor decirlo que dejar el icono roto.
+ */
+const rotas = ref(new Set<string>());
 
 const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
 const edicion = ref<Personaje | null>(null);
@@ -114,12 +119,13 @@ onMounted(cargar);
 </script>
 
 <template>
-  <Encabezado
-    titulo="Personajes"
-    subtitulo="Quien aparece en escena a presentar el expediente. Se asignan a cada caso desde Casos del juego."
-  >
+  <div :class="estilos.barra">
+    <p :class="estilos.barraTexto">
+      Quien aparece en escena a presentar el expediente. Se asignan a cada caso desde la
+      pestana Casos.
+    </p>
     <Boton variante="primario" icono="plus" @click="abrirCrear">Nuevo personaje</Boton>
-  </Encabezado>
+  </div>
 
   <div v-if="!cargando && personajes.length === 0" :class="estilos.vacio">
     Todavia no hay personajes. Crea uno con una imagen del servidor o subiendo una foto.
@@ -128,7 +134,17 @@ onMounted(cargar);
   <div v-else-if="!cargando" :class="estilos.grilla">
     <article v-for="personaje in personajes" :key="personaje.id" :class="estilos.tarjeta">
       <div :class="estilos.retrato">
-        <img :class="estilos.imagen" :src="urlArchivo(personaje.imagen)" :alt="personaje.nombre" />
+        <img
+          v-if="!rotas.has(personaje.id)"
+          :class="estilos.imagen"
+          :src="urlArchivo(personaje.imagen)"
+          :alt="personaje.nombre"
+          @error="rotas.add(personaje.id)"
+        />
+        <span v-else :class="estilos.sinImagen">
+          <Icono nombre="image-off" :tamano="20" />
+          Falta el archivo
+        </span>
         <span v-if="personaje.institucionId === null" :class="estilos.marcaBase">CATALOGO BASE</span>
       </div>
       <div :class="estilos.datos">

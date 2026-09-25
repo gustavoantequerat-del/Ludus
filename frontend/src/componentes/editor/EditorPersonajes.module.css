@@ -1,3 +1,19 @@
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.barraTexto {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+  font: 400 12.5px/1.55 var(--fuente-texto);
+  color: var(--apagado);
+}
+
 .grilla {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -27,6 +43,17 @@
   height: 100%;
   object-fit: cover;
   object-position: top center;
+}
+
+.sinImagen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--tenue);
+  font: 500 10.5px var(--fuente-texto);
+  text-align: center;
+  padding: 0 10px;
 }
 
 .marcaBase {

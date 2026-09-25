@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Institucion } from '../instituciones/institucion.entidad';
+import { Institucion } from '../../../instituciones/institucion.entidad';
 
 /**
  * Persona que aparece en escena frente al jugador (el "CEO" que viene a

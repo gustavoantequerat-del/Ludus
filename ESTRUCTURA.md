@@ -81,13 +81,13 @@ backend/src/
 │   ├── ruta.entidad.ts
 │   └── ruta-curso.entidad.ts        tabla puente ruta<->curso con orden
 ├── archivos/                          Servicio que guarda y lista las imagenes del juego
-├── personajes/                         Los CEO que aparecen en escena (CRUD + subida de imagen)
 ├── juegos/                            Catalogo fijo de plantillas + configuracion por modulo
 │   ├── juego.entidad.ts             catalogo (se administra por semilla, no CRUD de usuario)
 │   ├── configuracion-juego.entidad.ts
-│   └── mesa-cumplimiento/           el juego jugable: partida, calificacion y CRUD de casos
+│   └── mesa-cumplimiento/           el juego jugable, con todo su contenido adentro
 │       ├── caso-cumplimiento.entidad.ts
-│       └── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
+│       ├── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
+│       └── personajes/               los CEO que aparecen en escena (CRUD + subida de imagen)
 ├── inscripciones/                    Asigna/reemplaza la lista de estudiantes de un curso o ruta
 ├── solicitudes/                       Ingreso/salida que pide un estudiante y resuelve un admin
 ├── resultados/                         Resultado de una partida (puntaje, intento, nota)
@@ -129,6 +129,7 @@ frontend/src/
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
 │   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
+│   ├── editor/                     Pestanas del editor de cada juego (EditorCasos, EditorPersonajes)
 │   └── juegos/                     Los juegos jugables (MesaCumplimiento: escena + expediente)
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
@@ -221,8 +222,8 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 | `ExplorarCursosVista` | `/explorar` | estudiante |
 | `JuegosVista` | `/juegos` | todos (catalogo de solo lectura) |
 | `ConfiguracionJuegoVista` | `/cursos/:cursoId/modulos/:moduloId/configurar` | superadmin, admin_institucion, docente |
-| `CasosCumplimientoVista` (Casos del juego) | `/casos` | superadmin, admin_institucion, docente |
-| `PersonajesVista` | `/personajes` | superadmin, admin_institucion, docente |
+| `EditorVista` (Editor) | `/editor` | superadmin, admin_institucion, docente |
+| `EditorJuegoVista` | `/editor/:clave` | superadmin, admin_institucion, docente |
 | `JugarVista` | `/cursos/:cursoId/modulos/:moduloId/jugar` | estudiante |
 | `SolicitudesVista` | `/solicitudes` | superadmin, admin_institucion, estudiante |
 | `ResultadosVista` (Resultados/Calificaciones) | `/resultados` | todos |
@@ -295,14 +296,19 @@ GET|PUT  /juegos/modulos/:moduloId/configuracion
 GET      /juegos/partida/:moduloId        expedientes de la partida, sin respuestas
 POST     /juegos/partida/verificar        { casoId, decision } -> veredicto del caso
 POST     /juegos/partida/:moduloId/terminar  califica en el servidor y registra el intento
+```
 
-GET|POST /casos-cumplimiento              casos del juego (superadmin/admin/docente)
-POST     /casos-cumplimiento/duplicar-base  copia el catalogo base a la institucion
-PATCH|DELETE /casos-cumplimiento/:id      el catalogo base solo lo edita el superadmin
+Contenido de un juego jugable: cuelga de su clave, porque es de ese juego y
+no un recurso suelto del sistema.
 
-GET|POST /personajes                      los CEO de la escena
-GET      /personajes/disponibles          imagenes en el servidor aun sin registrar
-PATCH|DELETE /personajes/:id
+```
+GET|POST /juegos/mesa-cumplimiento/casos               casos (superadmin/admin/docente)
+POST     /juegos/mesa-cumplimiento/casos/duplicar-base copia el catalogo base a la institucion
+PATCH|DELETE /juegos/mesa-cumplimiento/casos/:id       el catalogo base solo lo edita el superadmin
+
+GET|POST /juegos/mesa-cumplimiento/personajes             los CEO de la escena
+GET      /juegos/mesa-cumplimiento/personajes/disponibles imagenes en el servidor aun sin registrar
+PATCH|DELETE /juegos/mesa-cumplimiento/personajes/:id
 
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
 GET|PUT  /rutas/:rutaId/inscripciones
@@ -424,7 +430,14 @@ Un caso sin personaje se juega igual: la escena muestra una silueta neutra.
 
 ### 6.2.2 Lo que edita el docente
 
-En *Casos del juego* (`/casos`) el docente escribe el expediente completo:
+Todo el contenido de los juegos se edita desde el **Editor** (`/editor`), que
+lista el catalogo y marca cuales tienen contenido editable. Cada juego abre su
+**propio editor** (`/editor/:clave`), porque cada uno edita cosas distintas: un
+memorama editaria pares, no expedientes. El menu lateral tiene una sola entrada
+("Editor"), no una por cada tipo de contenido.
+
+El editor de la Mesa de Cumplimiento tiene dos pestanas, **Casos** y
+**Personajes**. En Casos el docente escribe el expediente completo:
 
 - **Cabecera**: entidad, tipo, jurisdiccion y solicitud.
 - **CEO que aparece**: cual de los personajes presenta el caso.
@@ -443,6 +456,10 @@ tenga casos propios, la mesa juega con el **catalogo base de Ludus** (que se
 ve pero no se edita). El boton *Duplicar catalogo base* copia los 13 casos a
 la institucion; desde esa copia, la partida se arma **solo** con los casos de
 la institucion y el docente puede cambiarlos todos.
+
+La lista muestra justamente eso: lo que van a jugar los estudiantes. Una vez
+duplicado el catalogo, el base deja de listarse para no duplicar cada caso en
+pantalla; el superadmin, que es quien mantiene ese catalogo, si lo ve.
 
 **Tres decisiones, no dos.** El curso es explicito en que la respuesta correcta
 no es binaria, asi que el juego ofrece:

@@ -35,6 +35,8 @@ const TABLAS_ESPERADAS = [
   'solicitudes',
   'resultados',
   'paquetes_scorm',
+  'personajes',
+  'casos_cumplimiento',
 ];
 
 function titulo(texto: string) {

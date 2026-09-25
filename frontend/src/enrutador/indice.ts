@@ -96,16 +96,17 @@ const rutas: RouteRecordRaw[] = [
     props: true,
   },
   {
-    path: '/casos',
-    name: 'casos',
-    component: () => import('@/vistas/CasosCumplimientoVista.vue'),
+    path: '/editor',
+    name: 'editor',
+    component: () => import('@/vistas/EditorVista.vue'),
     meta: { roles: STAFF },
   },
   {
-    path: '/personajes',
-    name: 'personajes',
-    component: () => import('@/vistas/PersonajesVista.vue'),
+    path: '/editor/:clave',
+    name: 'editor-juego',
+    component: () => import('@/vistas/EditorJuegoVista.vue'),
     meta: { roles: STAFF },
+    props: true,
   },
   {
     path: '/scorm',

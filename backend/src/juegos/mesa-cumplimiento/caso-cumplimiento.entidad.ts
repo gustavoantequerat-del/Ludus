@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Institucion } from '../../instituciones/institucion.entidad';
-import { Personaje } from '../../personajes/personaje.entidad';
+import { Personaje } from './personajes/personaje.entidad';
 
 export type Decision = 'aprobar' | 'reforzar' | 'rechazar';
 

@@ -5,7 +5,7 @@ import configuracion, { ConfiguracionApp } from './configuracion/configuracion';
 import { construirOpcionesTypeOrm } from './configuracion/opciones-typeorm';
 import { ArchivosModule } from './archivos/archivos.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
-import { PersonajesModule } from './personajes/personajes.module';
+import { PersonajesModule } from './juegos/mesa-cumplimiento/personajes/personajes.module';
 import { InstitucionesModule } from './instituciones/instituciones.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { CursosModule } from './cursos/cursos.module';

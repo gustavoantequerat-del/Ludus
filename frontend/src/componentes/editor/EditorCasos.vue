@@ -10,8 +10,7 @@
  * la partida se arma solo con ellos.
  */
 import { computed, onMounted, ref } from 'vue';
-import estilos from './CasosCumplimientoVista.module.css';
-import Encabezado from '@/componentes/base/Encabezado.vue';
+import estilos from './EditorCasos.module.css';
 import Boton from '@/componentes/base/Boton.vue';
 import Icono from '@/componentes/base/Icono.vue';
 import Insignia from '@/componentes/base/Insignia.vue';
@@ -70,14 +69,26 @@ const casos = ref<CasoEditable[]>([]);
 const personajes = ref<Personaje[]>([]);
 const cargando = ref(true);
 
+/** Casos cuya foto no cargo: el archivo ya no esta en la carpeta. */
+const rotas = ref(new Set<string>());
+
 const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
 const edicion = ref<CasoEditable | null>(null);
 const form = ref<DatosCaso>(formularioVacio());
 
 const esSuperadmin = computed(() => almacen.usuario?.rol === 'superadmin');
-const usaCatalogoBase = computed(
-  () => !esSuperadmin.value && casos.value.every((caso) => caso.institucionId === null),
-);
+const propios = computed(() => casos.value.filter((caso) => caso.institucionId !== null));
+const usaCatalogoBase = computed(() => !esSuperadmin.value && propios.value.length === 0);
+
+/**
+ * La lista muestra lo que van a jugar los estudiantes: los casos de la
+ * institucion, o el catalogo base mientras no haya propios. Al superadmin,
+ * que es quien mantiene ese catalogo, se le muestra todo.
+ */
+const visibles = computed(() => {
+  if (esSuperadmin.value || usaCatalogoBase.value) return casos.value;
+  return propios.value;
+});
 
 function formularioVacio(): DatosCaso {
   return {
@@ -218,12 +229,12 @@ onMounted(cargar);
 </script>
 
 <template>
-  <Encabezado
-    titulo="Casos del juego"
-    subtitulo="Expedientes de la Mesa de Cumplimiento: que dice cada campo, quien lo presenta y cual era la decision correcta."
-  >
+  <div :class="estilos.barra">
+    <p :class="estilos.barraTexto">
+      Cada expediente: que dice cada campo, quien lo presenta y cual era la decision correcta.
+    </p>
     <Boton variante="primario" icono="plus" @click="abrirCrear">Nuevo caso</Boton>
-  </Encabezado>
+  </div>
 
   <div v-if="!cargando && usaCatalogoBase" :class="estilos.aviso">
     <Icono nombre="info" :tamano="17" />
@@ -236,22 +247,23 @@ onMounted(cargar);
     </div>
   </div>
 
-  <div v-if="!cargando && casos.length === 0" :class="estilos.vacio">
+  <div v-if="!cargando && visibles.length === 0" :class="estilos.vacio">
     Todavia no hay casos cargados.
   </div>
 
   <div v-else-if="!cargando" :class="estilos.lista">
     <article
-      v-for="caso in casos"
+      v-for="caso in visibles"
       :key="caso.id"
       :class="[estilos.caso, caso.activo ? '' : estilos.casoInactivo]"
     >
       <span :class="estilos.retrato">
         <img
-          v-if="caso.personaje"
+          v-if="caso.personaje && !rotas.has(caso.id)"
           :class="estilos.retratoImagen"
           :src="urlArchivo(caso.personaje.imagen)"
           :alt="caso.personaje.nombre"
+          @error="rotas.add(caso.id)"
         />
         <Icono v-else nombre="user-round" :tamano="18" />
       </span>

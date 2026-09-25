@@ -9,6 +9,15 @@ const props = defineProps<{ colapsada: boolean }>();
 const { items } = usarNavegacion();
 const ruta = useRoute();
 const enrutador = useRouter();
+
+/**
+ * El item queda activo tambien en las rutas hijas de su seccion, que se
+ * nombran con el prefijo del item ('editor' -> 'editor-juego').
+ */
+function esActivo(nombreItem: string) {
+  const actual = String(ruta.name ?? '');
+  return actual === nombreItem || actual.startsWith(nombreItem + '-');
+}
 </script>
 
 <template>
@@ -16,7 +25,7 @@ const enrutador = useRouter();
     <button
       v-for="item in items"
       :key="item.ruta"
-      :class="[estilos.item, ruta.name === item.ruta ? estilos.itemActivo : '']"
+      :class="[estilos.item, esActivo(item.ruta) ? estilos.itemActivo : '']"
       :title="item.etiqueta"
       @click="enrutador.push({ name: item.ruta })"
     >

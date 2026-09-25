@@ -1,0 +1,79 @@
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 14px;
+}
+
+.juego {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+
+.juegoMaqueta {
+  opacity: 0.66;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.icono {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: var(--primario-suave);
+  color: var(--terciario);
+}
+
+.iconoMaqueta {
+  background: var(--celda);
+  color: var(--tenue);
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nombre {
+  font: 600 14.5px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.categoria {
+  font: 500 11px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.descripcion {
+  margin: 0;
+  flex: 1;
+  font: 400 12.5px/1.55 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.nota {
+  font: 500 11.5px var(--fuente-texto);
+  color: var(--tenue);
+}

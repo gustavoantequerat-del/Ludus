@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { CasoCumplimiento } from './caso-cumplimiento.entidad';
-import { Personaje } from '../../personajes/personaje.entidad';
+import { Personaje } from './personajes/personaje.entidad';
 import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { CrearCasoDto } from './dto/crear-caso.dto';

@@ -23,21 +23,21 @@ export interface DatosCaso {
 
 export const casosServicio = {
   listar() {
-    return cliente.get<CasoEditable[]>('/casos-cumplimiento').then((r) => r.data);
+    return cliente.get<CasoEditable[]>('/juegos/mesa-cumplimiento/casos').then((r) => r.data);
   },
   crear(datos: DatosCaso) {
-    return cliente.post<CasoEditable>('/casos-cumplimiento', datos).then((r) => r.data);
+    return cliente.post<CasoEditable>('/juegos/mesa-cumplimiento/casos', datos).then((r) => r.data);
   },
   actualizar(id: string, datos: Partial<DatosCaso>) {
-    return cliente.patch<CasoEditable>(`/casos-cumplimiento/${id}`, datos).then((r) => r.data);
+    return cliente.patch<CasoEditable>(`/juegos/mesa-cumplimiento/casos/${id}`, datos).then((r) => r.data);
   },
   eliminar(id: string) {
-    return cliente.delete(`/casos-cumplimiento/${id}`).then(() => undefined);
+    return cliente.delete(`/juegos/mesa-cumplimiento/casos/${id}`).then(() => undefined);
   },
   /** Copia el catalogo base de Ludus a la institucion para poder editarlo. */
   duplicarBase() {
     return cliente
-      .post<CasoEditable[]>('/casos-cumplimiento/duplicar-base')
+      .post<CasoEditable[]>('/juegos/mesa-cumplimiento/casos/duplicar-base')
       .then((r) => r.data);
   },
 };

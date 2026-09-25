@@ -54,6 +54,8 @@ const partida = ref<PartidaCumplimiento | null>(null);
 const indice = ref(0);
 const respuestas = ref<{ casoId: string; decision: DecisionCumplimiento }[]>([]);
 const veredicto = ref<VeredictoCaso | null>(null);
+/** Si falta el archivo de la foto, la escena cae a la silueta en vez de romperse. */
+const imagenRota = ref(false);
 const aciertos = ref(0);
 const enviando = ref(false);
 const resultado = ref<CalificacionPartida | null>(null);
@@ -101,6 +103,7 @@ async function decidir(decision: DecisionCumplimiento) {
 
 function siguiente() {
   veredicto.value = null;
+  imagenRota.value = false;
   if (indice.value + 1 >= total.value) {
     terminar();
     return;
@@ -215,10 +218,11 @@ onBeforeUnmount(detenerTemporizador);
           :class="[estilos.personaje, claseReaccion]"
         >
           <img
-            v-if="casoActual.personaje"
+            v-if="casoActual.personaje && !imagenRota"
             :class="estilos.personajeImagen"
             :src="urlArchivo(casoActual.personaje.imagen)"
             :alt="casoActual.personaje.nombre"
+            @error="imagenRota = true"
           />
           <span v-else :class="estilos.silueta"><Icono nombre="user-round" :tamano="46" /></span>
           <span v-if="casoActual.personaje" :class="estilos.placa">

@@ -1,3 +1,19 @@
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.barraTexto {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+  font: 400 12.5px/1.55 var(--fuente-texto);
+  color: var(--apagado);
+}
+
 .aviso {
   display: flex;
   align-items: flex-start;

@@ -8,19 +8,20 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { JwtGuardia } from '../comun/guardias/jwt.guardia';
-import { RolesGuardia } from '../comun/guardias/roles.guardia';
-import { Roles } from '../comun/decoradores/roles.decorador';
-import { UsuarioActual } from '../comun/decoradores/usuario-actual.decorador';
-import { Rol } from '../comun/enums/rol.enum';
-import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
+import { JwtGuardia } from '../../../comun/guardias/jwt.guardia';
+import { RolesGuardia } from '../../../comun/guardias/roles.guardia';
+import { Roles } from '../../../comun/decoradores/roles.decorador';
+import { UsuarioActual } from '../../../comun/decoradores/usuario-actual.decorador';
+import { Rol } from '../../../comun/enums/rol.enum';
+import { UsuarioAutenticado } from '../../../comun/tipos/usuario-autenticado';
 import { PersonajesService } from './personajes.service';
 import { CrearPersonajeDto } from './dto/crear-personaje.dto';
 import { ActualizarPersonajeDto } from './dto/actualizar-personaje.dto';
 
 const PUEDE_EDITAR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 
-@Controller('personajes')
+/* Los personajes son la escena de la Mesa de Cumplimiento, no un recurso suelto. */
+@Controller('juegos/mesa-cumplimiento/personajes')
 @UseGuards(JwtGuardia, RolesGuardia)
 @Roles(...PUEDE_EDITAR)
 export class PersonajesController {
