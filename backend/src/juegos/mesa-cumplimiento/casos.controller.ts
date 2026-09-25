@@ -17,6 +17,7 @@ import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { CasosService } from './casos.service';
 import { CrearCasoDto } from './dto/crear-caso.dto';
 import { ActualizarCasoDto } from './dto/actualizar-caso.dto';
+import { DuplicarBaseDto } from './dto/duplicar-base.dto';
 
 const PUEDE_EDITAR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 
@@ -42,8 +43,11 @@ export class CasosController {
   }
 
   @Post('duplicar-base')
-  duplicarBase(@UsuarioActual() quien: UsuarioAutenticado) {
-    return this.casosService.duplicarBase(quien);
+  duplicarBase(
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: DuplicarBaseDto,
+  ) {
+    return this.casosService.duplicarBase(quien, datos.ids);
   }
 
   @Patch(':id')

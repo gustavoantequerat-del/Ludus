@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { CasoCumplimiento } from './caso-cumplimiento.entidad';
 import { Personaje } from './personajes/personaje.entidad';
 import { Rol } from '../../comun/enums/rol.enum';
@@ -76,16 +76,31 @@ export class CasosService {
   }
 
   /**
-   * Copia el catalogo base a la institucion del docente para que pueda
-   * editarlo. A partir de la primera copia, la mesa juega con los casos de la
+   * Copia casos del catalogo base a la institucion del docente para que pueda
+   * editarlos. Sin `ids` copia todo el catalogo, que es el atajo para arrancar;
+   * con `ids` trae solo esos, asi el docente suma casos base a los que ya
+   * escribio sin arrastrar el resto.
+   *
+   * A partir de la primera copia, la mesa juega con los casos de la
    * institucion y deja de usar el catalogo base.
    */
-  async duplicarBase(quien: UsuarioAutenticado): Promise<CasoCumplimiento[]> {
+  async duplicarBase(
+    quien: UsuarioAutenticado,
+    ids?: string[],
+  ): Promise<CasoCumplimiento[]> {
     if (!quien.institucionId) {
       throw new BadRequestException('Tu usuario no pertenece a una institucion');
     }
 
-    const base = await this.casosRepo.find({ where: { institucionId: IsNull() } });
+    const base = await this.casosRepo.find({
+      where: ids?.length
+        ? { institucionId: IsNull(), id: In(ids) }
+        : { institucionId: IsNull() },
+    });
+    if (ids?.length && base.length === 0) {
+      throw new BadRequestException('Esos casos no estan en el catalogo base');
+    }
+
     const existentes = await this.casosRepo.find({
       where: { institucionId: quien.institucionId },
       select: { entidad: true },

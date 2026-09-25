@@ -34,10 +34,13 @@ export const casosServicio = {
   eliminar(id: string) {
     return cliente.delete(`/juegos/mesa-cumplimiento/casos/${id}`).then(() => undefined);
   },
-  /** Copia el catalogo base de Ludus a la institucion para poder editarlo. */
-  duplicarBase() {
+  /**
+   * Copia casos del catalogo base a la institucion para poder editarlos.
+   * Sin ids copia todo el catalogo; con ids trae solo esos.
+   */
+  duplicarBase(ids?: string[]) {
     return cliente
-      .post<CasoEditable[]>('/juegos/mesa-cumplimiento/casos/duplicar-base')
+      .post<CasoEditable[]>('/juegos/mesa-cumplimiento/casos/duplicar-base', ids ? { ids } : {})
       .then((r) => r.data);
   },
 };

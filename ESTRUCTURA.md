@@ -303,7 +303,7 @@ no un recurso suelto del sistema.
 
 ```
 GET|POST /juegos/mesa-cumplimiento/casos               casos (superadmin/admin/docente)
-POST     /juegos/mesa-cumplimiento/casos/duplicar-base copia el catalogo base a la institucion
+POST     /juegos/mesa-cumplimiento/casos/duplicar-base copia el catalogo base; { ids } copia solo esos
 PATCH|DELETE /juegos/mesa-cumplimiento/casos/:id       el catalogo base solo lo edita el superadmin
 
 GET|POST /juegos/mesa-cumplimiento/personajes             los CEO de la escena
@@ -473,15 +473,33 @@ El editor de la Mesa de Cumplimiento tiene dos pestanas, **Casos** y
   explicacion que se muestra despues y el origen en el curso.
 - **Activo**: un caso inactivo deja de salir en las partidas sin borrarse.
 
+### 6.2.3 Catalogo base y casos propios
+
 Regla de alcance, la misma que para personajes: mientras la institucion no
 tenga casos propios, la mesa juega con el **catalogo base de Ludus** (que se
-ve pero no se edita). El boton *Duplicar catalogo base* copia los 13 casos a
-la institucion; desde esa copia, la partida se arma **solo** con los casos de
-la institucion y el docente puede cambiarlos todos.
+ve pero no se edita, porque es comun a todas las instituciones). En cuanto
+tiene uno propio, la partida se arma **solo** con los de la institucion.
 
-La lista muestra justamente eso: lo que van a jugar los estudiantes. Una vez
-duplicado el catalogo, el base deja de listarse para no duplicar cada caso en
-pantalla; el superadmin, que es quien mantiene ese catalogo, si lo ve.
+El docente nunca edita el catalogo base: lo **copia**. Hay dos caminos, y los
+dos llegan a la misma tabla con el `institucion_id` de su institucion:
+
+| Accion | Cuando | Que hace |
+|---|---|---|
+| *Duplicar catalogo base completo* | mientras no tenga casos propios | copia los 13 de una vez, para arrancar con contenido y editarlo |
+| *Agregar del catalogo base (N)* | una vez que ya tiene los suyos | abre el catalogo, se tildan los que se quieran y copia solo esos |
+
+Asi se puede tener una mesa hecha a medida y aun asi traer un caso base
+puntual cuando hace falta. El contador N es cuantos casos base todavia no
+estan copiados: se comparan por nombre de entidad, asi que un caso ya copiado
+no se vuelve a ofrecer. Si despues se le cambia el nombre a la copia, el caso
+base vuelve a aparecer como disponible.
+
+`POST /juegos/mesa-cumplimiento/casos/duplicar-base` cubre los dos caminos:
+sin cuerpo copia todo el catalogo, con `{ ids: [...] }` copia solo esos.
+
+La lista muestra lo que van a jugar los estudiantes. Una vez que hay casos
+propios, los base dejan de listarse para no mostrar cada caso dos veces; el
+superadmin, que es quien mantiene ese catalogo, si los ve.
 
 **Tres decisiones, no dos.** El curso es explicito en que la respuesta correcta
 no es binaria, asi que el juego ofrece:

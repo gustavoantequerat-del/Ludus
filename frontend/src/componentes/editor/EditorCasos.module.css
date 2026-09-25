@@ -190,3 +190,53 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- Traer casos del catalogo base --- */
+
+.opcionBase {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 13px;
+  border-radius: 13px;
+  border: 1px solid var(--linea);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  cursor: pointer;
+  text-align: left;
+}
+
+.opcionBase:hover {
+  border-color: var(--primario-borde-3);
+}
+
+.opcionBaseActiva {
+  border-color: var(--primario);
+  background: var(--primario-suave-3);
+}
+
+.tilde {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 6px;
+  border: 1px solid var(--linea-5);
+  background: var(--superficie);
+  display: grid;
+  place-items: center;
+  color: var(--tinta);
+}
+
+.opcionBaseActiva .tilde {
+  background: var(--primario);
+  border-color: var(--primario);
+}
+
+.opcionTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}

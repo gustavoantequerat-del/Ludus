@@ -72,7 +72,9 @@ const cargando = ref(true);
 /** Casos cuya foto no cargo: el archivo ya no esta en la carpeta. */
 const rotas = ref(new Set<string>());
 
-const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
+const modalAbierto = ref<'formulario' | 'eliminar' | 'base' | null>(null);
+/** Casos del catalogo base tildados para traer a la institucion. */
+const seleccionados = ref(new Set<string>());
 const edicion = ref<CasoEditable | null>(null);
 const form = ref<DatosCaso>(formularioVacio());
 
@@ -88,6 +90,17 @@ const usaCatalogoBase = computed(() => !esSuperadmin.value && propios.value.leng
 const visibles = computed(() => {
   if (esSuperadmin.value || usaCatalogoBase.value) return casos.value;
   return propios.value;
+});
+
+/**
+ * Casos del catalogo base que el docente todavia no tiene. Se comparan por
+ * entidad, igual que el backend, para no ofrecer un caso que ya copio.
+ */
+const disponiblesEnBase = computed(() => {
+  const mias = new Set(propios.value.map((caso) => caso.entidad));
+  return casos.value.filter(
+    (caso) => caso.institucionId === null && !mias.has(caso.entidad),
+  );
 });
 
 function formularioVacio(): DatosCaso {
@@ -197,11 +210,39 @@ async function duplicarBase() {
   await cargar();
 }
 
+function abrirAgregarBase() {
+  seleccionados.value = new Set();
+  modalAbierto.value = 'base';
+}
+
+function alternarSeleccion(id: string) {
+  // Set nuevo en cada cambio: Vue no reacciona a mutar el mismo.
+  const copia = new Set(seleccionados.value);
+  if (copia.has(id)) copia.delete(id);
+  else copia.add(id);
+  seleccionados.value = copia;
+}
+
+async function agregarSeleccionados() {
+  const copias = await casosServicio.duplicarBase([...seleccionados.value]);
+  notificar(
+    copias.length === 1
+      ? `«${copias[0].entidad}» agregado a tus casos`
+      : `${copias.length} casos agregados a tus casos`,
+  );
+}
+
 async function confirmar() {
   try {
     if (modalAbierto.value === 'eliminar' && edicion.value) {
       await casosServicio.eliminar(edicion.value.id);
       notificar('Caso eliminado');
+    } else if (modalAbierto.value === 'base') {
+      if (seleccionados.value.size === 0) {
+        notificar('Elige al menos un caso');
+        return;
+      }
+      await agregarSeleccionados();
     } else if (modalAbierto.value === 'formulario') {
       // Los campos extra sin etiqueta no aportan nada al expediente.
       const datos = {
@@ -233,6 +274,13 @@ onMounted(cargar);
     <p :class="estilos.barraTexto">
       Cada expediente: que dice cada campo, quien lo presenta y cual era la decision correcta.
     </p>
+    <Boton
+      v-if="!esSuperadmin && !usaCatalogoBase && disponiblesEnBase.length > 0"
+      icono="library"
+      @click="abrirAgregarBase"
+    >
+      Agregar del catalogo base ({{ disponiblesEnBase.length }})
+    </Boton>
     <Boton variante="primario" icono="plus" @click="abrirCrear">Nuevo caso</Boton>
   </div>
 
@@ -241,9 +289,10 @@ onMounted(cargar);
     <div :class="estilos.avisoTextos">
       <span>
         Tu institucion juega con el catalogo base de Ludus. Duplicalo para poder editarlo: desde
-        que tengas casos propios, la mesa se arma solo con los tuyos.
+        que tengas casos propios, la mesa se arma solo con los tuyos. Despues vas a poder traer
+        casos base de a uno cuando los necesites.
       </span>
-      <Boton icono="copy" @click="duplicarBase">Duplicar catalogo base</Boton>
+      <Boton icono="copy" @click="duplicarBase">Duplicar catalogo base completo</Boton>
     </div>
   </div>
 
@@ -426,4 +475,41 @@ onMounted(cargar);
     @cerrar="cerrarModal"
     @confirmar="confirmar"
   />
+
+  <!--
+    Traer casos base de a uno: se copian a la institucion, asi el docente los
+    puede editar sin tocar el catalogo compartido.
+  -->
+  <Modal
+    v-if="modalAbierto === 'base'"
+    titulo="Agregar del catalogo base"
+    descripcion="Se copian a tu institucion; desde ahi los editas como cualquier caso tuyo."
+    icono="library"
+    ancho
+    :etiqueta-confirmar="
+      seleccionados.size === 1 ? 'Agregar 1 caso' : `Agregar ${seleccionados.size} casos`
+    "
+    @cerrar="cerrarModal"
+    @confirmar="confirmar"
+  >
+    <button
+      v-for="caso in disponiblesEnBase"
+      :key="caso.id"
+      type="button"
+      :class="[estilos.opcionBase, seleccionados.has(caso.id) ? estilos.opcionBaseActiva : '']"
+      @click="alternarSeleccion(caso.id)"
+    >
+      <span :class="estilos.tilde">
+        <Icono v-if="seleccionados.has(caso.id)" nombre="check" :tamano="13" />
+      </span>
+      <span :class="estilos.opcionTextos">
+        <span :class="estilos.entidad">{{ caso.entidad }}</span>
+        <span :class="estilos.detalle">{{ caso.tipo }} · {{ caso.jurisdiccion }}</span>
+        <span :class="estilos.regla">{{ caso.regla }}</span>
+      </span>
+      <Insignia :tono="tonoDecision(caso.decisionCorrecta)">
+        {{ etiquetaDecision(caso.decisionCorrecta) }}
+      </Insignia>
+    </button>
+  </Modal>
 </template>
