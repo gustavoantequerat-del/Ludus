@@ -13,16 +13,11 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 import datosOrigen from '../configuracion/datos-origen';
+import { leerConexionBd } from '../configuracion/conexion-bd';
 
 const RUTA_ENV = join(__dirname, '../../.env');
 
-const opciones = datosOrigen.options as {
-  host?: string;
-  port?: number;
-  username?: string;
-  password?: string;
-  database?: string;
-};
+const conexion = leerConexionBd();
 
 const TABLAS_ESPERADAS = [
   'instituciones',
@@ -62,12 +57,17 @@ function comoArreglar(pasos: string[]) {
 
 function mostrarConfiguracion() {
   titulo('Configuracion que se esta usando');
-  console.log(`  host:    ${opciones.host}`);
-  console.log(`  puerto:  ${opciones.port}`);
-  console.log(`  base:    ${opciones.database}`);
-  console.log(`  usuario: ${opciones.username}`);
-  console.log(`  clave:   ${opciones.password ? '(definida)' : '(vacia)'}`);
+  console.log(`  host:    ${conexion.host}`);
+  console.log(`  puerto:  ${conexion.puerto}`);
+  console.log(`  base:    ${conexion.nombre}`);
+  console.log(`  usuario: ${conexion.usuario}`);
+  console.log(`  clave:   ${conexion.clave ? '(definida)' : '(vacia)'}`);
+  console.log(`  ssl:     ${conexion.ssl ? 'si' : 'no'}`);
 
+  if (conexion.url) {
+    console.log('  origen:  DATABASE_URL');
+    return;
+  }
   if (existsSync(RUTA_ENV)) {
     console.log('  origen:  backend/.env');
     return;
@@ -86,7 +86,7 @@ function explicarFallo(fallo: Error & { code?: string }) {
   const codigo = fallo.code ?? '';
 
   if (codigo === 'ECONNREFUSED') {
-    error(`No hay nadie escuchando en ${opciones.host}:${opciones.port}.`);
+    error(`No hay nadie escuchando en ${conexion.host}:${conexion.puerto}.`);
     comoArreglar([
       'Verifica que PostgreSQL este corriendo:',
       '  Linux:   sudo service postgresql start',
@@ -98,13 +98,13 @@ function explicarFallo(fallo: Error & { code?: string }) {
   }
 
   if (codigo === 'ENOTFOUND' || codigo === 'EAI_AGAIN') {
-    error(`No se pudo resolver el host "${opciones.host}".`);
+    error(`No se pudo resolver el host "${conexion.host}".`);
     comoArreglar(['Revisa DB_HOST en backend/.env']);
     return;
   }
 
   if (codigo === 'ETIMEDOUT') {
-    error(`Tiempo de espera agotado contra ${opciones.host}:${opciones.port}.`);
+    error(`Tiempo de espera agotado contra ${conexion.host}:${conexion.puerto}.`);
     comoArreglar([
       'Suele ser un firewall o una base remota inalcanzable.',
       'Verifica que el puerto este abierto desde esta maquina.',
@@ -113,19 +113,19 @@ function explicarFallo(fallo: Error & { code?: string }) {
   }
 
   if (codigo === '28P01' || codigo === '28000') {
-    error(`El usuario "${opciones.username}" no pudo autenticarse.`);
+    error(`El usuario "${conexion.usuario}" no pudo autenticarse.`);
     comoArreglar([
       'Revisa DB_USUARIO y DB_CLAVE en backend/.env, o crea el usuario:',
-      `  sudo -u postgres psql -c "CREATE USER ${opciones.username} WITH PASSWORD '${opciones.password}';"`,
+      `  sudo -u postgres psql -c "CREATE USER ${conexion.usuario} WITH PASSWORD '${conexion.clave}';"`,
     ]);
     return;
   }
 
   if (codigo === '3D000') {
-    error(`El servidor responde, pero la base "${opciones.database}" no existe.`);
+    error(`El servidor responde, pero la base "${conexion.nombre}" no existe.`);
     comoArreglar([
       'Creala con:',
-      `  sudo -u postgres psql -c "CREATE DATABASE ${opciones.database} OWNER ${opciones.username};"`,
+      `  sudo -u postgres psql -c "CREATE DATABASE ${conexion.nombre} OWNER ${conexion.usuario};"`,
       'y despues ejecuta: npm run migracion:ejecutar && npm run semilla',
     ]);
     return;

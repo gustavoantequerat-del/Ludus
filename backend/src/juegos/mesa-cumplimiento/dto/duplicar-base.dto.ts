@@ -9,6 +9,6 @@ export class DuplicarBaseDto {
   @IsOptional()
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   ids?: string[];
 }

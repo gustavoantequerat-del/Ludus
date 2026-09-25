@@ -1,14 +1,9 @@
 import { join } from 'path';
+import { ConexionBd, leerConexionBd } from './conexion-bd';
 
 export interface ConfiguracionApp {
   puerto: number;
-  baseDeDatos: {
-    host: string;
-    puerto: number;
-    usuario: string;
-    clave: string;
-    nombre: string;
-  };
+  baseDeDatos: ConexionBd;
   jwt: {
     secreto: string;
     expiracion: string;
@@ -26,19 +21,14 @@ export interface ConfiguracionApp {
 }
 
 export default (): ConfiguracionApp => ({
-  puerto: Number(process.env.PUERTO) || 3000,
-  baseDeDatos: {
-    host: process.env.DB_HOST || 'localhost',
-    puerto: Number(process.env.DB_PUERTO) || 5432,
-    usuario: process.env.DB_USUARIO || 'sistema_juegos',
-    clave: process.env.DB_CLAVE || 'sistema_juegos',
-    nombre: process.env.DB_NOMBRE || 'sistema_juegos',
-  },
+  puerto: Number(process.env.PUERTO || process.env.PORT) || 3000,
+  baseDeDatos: leerConexionBd(),
   jwt: {
     secreto: process.env.JWT_SECRETO || 'cambia-este-valor-en-produccion',
     expiracion: process.env.JWT_EXPIRACION || '8h',
   },
   urlPublicaApi:
-    process.env.URL_PUBLICA_API || `http://localhost:${Number(process.env.PUERTO) || 3000}/api`,
+    process.env.URL_PUBLICA_API ||
+    `http://localhost:${Number(process.env.PUERTO || process.env.PORT) || 3000}/api`,
   rutaArchivos: process.env.RUTA_ARCHIVOS || join(process.cwd(), 'archivos'),
 });

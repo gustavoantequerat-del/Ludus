@@ -224,7 +224,19 @@ function alternarSeleccion(id: string) {
 }
 
 async function agregarSeleccionados() {
-  const copias = await casosServicio.duplicarBase([...seleccionados.value]);
+  const elegidos = [...seleccionados.value];
+  const copias = await casosServicio.duplicarBase(elegidos);
+
+  // Un backend viejo ignora la lista y copia el catalogo entero. Mejor
+  // decirlo que dejar al docente con casos que no pidio y sin saber por que.
+  if (copias.length > elegidos.length) {
+    notificar(
+      `Elegiste ${elegidos.length} pero el servidor copio ${copias.length}: ` +
+        'esta corriendo una version vieja, reinicialo',
+    );
+    return;
+  }
+
   notificar(
     copias.length === 1
       ? `«${copias[0].entidad}» agregado a tus casos`

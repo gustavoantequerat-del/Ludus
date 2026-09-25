@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { config as cargarEnv } from 'dotenv';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
+import { opcionesDeConexion } from '../configuracion/conexion-bd';
 import { Institucion } from '../instituciones/institucion.entidad';
 import { Usuario } from '../usuarios/usuario.entidad';
 import { Curso } from '../cursos/curso.entidad';
@@ -19,11 +20,7 @@ cargarEnv();
 
 const origen = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PUERTO) || 5432,
-  username: process.env.DB_USUARIO || 'sistema_juegos',
-  password: process.env.DB_CLAVE || 'sistema_juegos',
-  database: process.env.DB_NOMBRE || 'sistema_juegos',
+  ...opcionesDeConexion(),
   entities: [__dirname + '/../**/*.entidad{.ts,.js}'],
 });
 

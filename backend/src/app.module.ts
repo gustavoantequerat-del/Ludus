@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import configuracion, { ConfiguracionApp } from './configuracion/configuracion';
+import configuracion from './configuracion/configuracion';
 import { construirOpcionesTypeOrm } from './configuracion/opciones-typeorm';
 import { ArchivosModule } from './archivos/archivos.module';
 import { AutenticacionModule } from './autenticacion/autenticacion.module';
@@ -20,11 +20,7 @@ import { ScormModule } from './scorm/scorm.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuracion] }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService<ConfiguracionApp, true>) =>
-        construirOpcionesTypeOrm(config),
-    }),
+    TypeOrmModule.forRoot(construirOpcionesTypeOrm()),
     ArchivosModule,
     AutenticacionModule,
     PersonajesModule,

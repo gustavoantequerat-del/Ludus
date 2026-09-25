@@ -50,7 +50,8 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 ├── frontend/          Frontend Vue 3 (SPA)
 ├── project/           Prototipo original de Claude Design (referencia, no se ejecuta)
 ├── chats/              Transcripciones de las conversaciones de diseno (referencia)
-└── ESTRUCTURA.md       Este documento
+├── ESTRUCTURA.md       Este documento
+└── DESPLIEGUE.md        Como subirlo a cPanel, o a Neon + Vercel
 ```
 
 ### 3.1 Backend (`backend/src`)
@@ -586,6 +587,10 @@ prototipo tampoco resolvia, o que no aporta al alcance pedido:
   la pantalla de configuracion de juego lee y escribe ese mismo campo.
 
 ## 8. Como correr el proyecto en local
+
+Para subirlo a un servidor, ver **DESPLIEGUE.md**: cubre cPanel y la
+combinacion Neon (base) + Vercel (backend y frontend), con las variables de
+entorno de cada caso.
 
 ### 8.1 Requisitos
 
