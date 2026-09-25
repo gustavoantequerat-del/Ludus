@@ -12,7 +12,8 @@
     "migracion:generar": "typeorm-ts-node-commonjs migration:generate -d src/configuracion/datos-origen.ts",
     "migracion:ejecutar": "typeorm-ts-node-commonjs migration:run -d src/configuracion/datos-origen.ts",
     "migracion:revertir": "typeorm-ts-node-commonjs migration:revert -d src/configuracion/datos-origen.ts",
-    "semilla": "ts-node -r tsconfig-paths/register src/semilla/semilla.ts"
+    "semilla": "ts-node -r tsconfig-paths/register src/semilla/semilla.ts",
+    "bd:verificar": "ts-node -r tsconfig-paths/register src/herramientas/verificar-bd.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.6",

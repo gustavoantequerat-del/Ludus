@@ -90,7 +90,8 @@ backend/src/
 │   ├── paquete-scorm.entidad.ts        registro del paquete (token publico, activo/revocado)
 │   └── plantilla/                        archivos que se empaquetan en el ZIP (ver 6.1)
 ├── migraciones/                       Migraciones de TypeORM (SQL versionado)
-└── semilla/semilla.ts                 Script que carga datos de ejemplo
+├── semilla/semilla.ts                 Script que carga datos de ejemplo
+└── herramientas/verificar-bd.ts       Diagnostico de la conexion a PostgreSQL (ver 8.3.1)
 ```
 
 Cada modulo de dominio sigue siempre el mismo patron:
@@ -449,10 +450,34 @@ sudo -u postgres psql -c "CREATE DATABASE sistema_juegos OWNER sistema_juegos;"
 cd backend
 cp .env.example .env        # ajusta las credenciales si no usaste las de arriba
 npm install
+npm run bd:verificar          # comprueba que la base responda antes de seguir
 npm run migracion:ejecutar   # crea las tablas
 npm run semilla               # carga instituciones, usuarios y datos de ejemplo
 npm run start:dev             # http://localhost:3000/api
 ```
+
+### 8.3.1 Diagnostico de la base (`npm run bd:verificar`)
+
+`backend/src/herramientas/verificar-bd.ts` usa el mismo `DataSource` que las
+migraciones y la aplicacion, asi que verifica exactamente la configuracion con
+la que arranca el backend. Imprime la configuracion en uso (y si viene de
+`.env` o de los valores por defecto), intenta conectar y, si lo logra, revisa
+el estado del esquema: tablas faltantes, migraciones aplicadas y si la semilla
+ya cargo usuarios.
+
+Cuando falla no muestra el error crudo del driver, sino la causa y el remedio:
+
+| Sintoma | Que significa |
+|---|---|
+| `ECONNREFUSED` | PostgreSQL no esta corriendo o escucha en otro puerto |
+| `ENOTFOUND` / `EAI_AGAIN` | `DB_HOST` mal escrito |
+| `ETIMEDOUT` | firewall o base remota inalcanzable |
+| `28P01` / `28000` | usuario o clave incorrectos (sugiere el `CREATE USER`) |
+| `3D000` | la base no existe (sugiere el `CREATE DATABASE`) |
+
+No hay nada que "refrescar": el backend abre el pool al arrancar, asi que
+despues de corregir `.env` o de levantar PostgreSQL hay que reiniciar
+`npm run start:dev`.
 
 Usuarios de ejemplo que deja la semilla (clave para todos: `ludus123`):
 
