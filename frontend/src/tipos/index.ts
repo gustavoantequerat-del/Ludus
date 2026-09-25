@@ -68,8 +68,60 @@ export interface Ruta {
   totalEstudiantes: number;
 }
 
+export type DecisionCumplimiento = 'aprobar' | 'reforzar' | 'rechazar';
+
+export interface CampoExpediente {
+  etiqueta: string;
+  valor: string;
+}
+
+export interface CasoCumplimiento {
+  id: string;
+  entidad: string;
+  tipo: string;
+  jurisdiccion: string;
+  solicitud: string;
+  campos: CampoExpediente[];
+}
+
+export interface PartidaCumplimiento {
+  juego: { clave: string; nombre: string };
+  titulo: string;
+  instrucciones: string;
+  tiempoLimiteSegundos: number;
+  casos: CasoCumplimiento[];
+}
+
+export interface VeredictoCaso {
+  casoId: string;
+  entidad: string;
+  decisionTomada: DecisionCumplimiento;
+  decisionCorrecta: DecisionCumplimiento;
+  correcta: boolean;
+  regla: string;
+  explicacion: string;
+  origen: string;
+}
+
+export interface CalificacionPartida {
+  calificacion: {
+    puntaje: number;
+    aciertos: number;
+    total: number;
+    erroresPorExceso: number;
+    erroresPorOmision: number;
+    detalle: VeredictoCaso[];
+  };
+  intento: number;
+  puntaje: number;
+  nota: string | null;
+  puntajeMaximo: number;
+}
+
 export interface Juego {
   id: string;
+  clave: string;
+  jugable: boolean;
   nombre: string;
   categoria: string;
   icono: string;
@@ -127,6 +179,17 @@ export interface Resultado {
   intento: number;
   puntaje: number;
   nota: string | null;
+  creadoEn: string;
+}
+
+export interface PaqueteScorm {
+  id: string;
+  token: string;
+  moduloId: string;
+  modulo?: ModuloCurso & { curso?: Curso };
+  creadoPorId: string | null;
+  creadoPor?: Usuario | null;
+  activo: boolean;
   creadoEn: string;
 }
 

@@ -13,6 +13,7 @@ import { InscripcionesModule } from './inscripciones/inscripciones.module';
 import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { ResultadosModule } from './resultados/resultados.module';
 import { PanelModule } from './panel/panel.module';
+import { ScormModule } from './scorm/scorm.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PanelModule } from './panel/panel.module';
     SolicitudesModule,
     ResultadosModule,
     PanelModule,
+    ScormModule,
   ],
 })
 export class AppModule {}

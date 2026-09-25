@@ -96,6 +96,12 @@ const rutas: RouteRecordRaw[] = [
     props: true,
   },
   {
+    path: '/scorm',
+    name: 'scorm',
+    component: () => import('@/vistas/PaquetesScormVista.vue'),
+    meta: { roles: STAFF },
+  },
+  {
     path: '/solicitudes',
     name: 'solicitudes',
     component: () => import('@/vistas/SolicitudesVista.vue'),

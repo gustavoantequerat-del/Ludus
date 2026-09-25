@@ -15,6 +15,7 @@ const NAV_POR_ROL: Record<string, ItemNavegacion[]> = {
     { ruta: 'cursos', etiqueta: 'Cursos', icono: 'book-open' },
     { ruta: 'rutas', etiqueta: 'Rutas', icono: 'route' },
     { ruta: 'juegos', etiqueta: 'Juegos', icono: 'gamepad-2' },
+    { ruta: 'scorm', etiqueta: 'Paquetes SCORM', icono: 'package' },
     { ruta: 'actividad', etiqueta: 'Actividad', icono: 'activity' },
     { ruta: 'ajustes', etiqueta: 'Mi perfil', icono: 'user-round-cog' },
   ],
@@ -26,6 +27,7 @@ const NAV_POR_ROL: Record<string, ItemNavegacion[]> = {
     { ruta: 'rutas', etiqueta: 'Rutas', icono: 'route' },
     { ruta: 'solicitudes', etiqueta: 'Solicitudes', icono: 'inbox' },
     { ruta: 'juegos', etiqueta: 'Juegos', icono: 'gamepad-2' },
+    { ruta: 'scorm', etiqueta: 'Paquetes SCORM', icono: 'package' },
     { ruta: 'ajustes', etiqueta: 'Mi perfil', icono: 'user-round-cog' },
   ],
   docente: [
@@ -33,6 +35,7 @@ const NAV_POR_ROL: Record<string, ItemNavegacion[]> = {
     { ruta: 'cursos', etiqueta: 'Mis cursos', icono: 'book-open' },
     { ruta: 'rutas', etiqueta: 'Mis rutas', icono: 'route' },
     { ruta: 'juegos', etiqueta: 'Juegos', icono: 'gamepad-2' },
+    { ruta: 'scorm', etiqueta: 'Paquetes SCORM', icono: 'package' },
     { ruta: 'estudiantes', etiqueta: 'Estudiantes', icono: 'graduation-cap' },
     { ruta: 'resultados', etiqueta: 'Resultados', icono: 'bar-chart-3' },
   ],

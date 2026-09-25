@@ -31,6 +31,7 @@ const CLAVE_DEMO = 'ludus123';
 
 const CATALOGO_JUEGOS = [
   {
+    clave: 'viborita-numerica',
     nombre: 'Viborita Numerica',
     categoria: 'Arcade',
     icono: 'worm',
@@ -40,6 +41,7 @@ const CATALOGO_JUEGOS = [
     parametros: ['Velocidad', 'Pares', 'Vidas'],
   },
   {
+    clave: 'torre-de-bloques',
     nombre: 'Torre de Bloques',
     categoria: 'Logica',
     icono: 'blocks',
@@ -49,6 +51,7 @@ const CATALOGO_JUEGOS = [
     parametros: ['Caida', 'Niveles', 'Piezas'],
   },
   {
+    clave: 'memorama',
     nombre: 'Memorama',
     categoria: 'Memoria',
     icono: 'layout-grid',
@@ -57,6 +60,7 @@ const CATALOGO_JUEGOS = [
     parametros: ['Pares', 'Tiempo', 'Pistas'],
   },
   {
+    clave: 'burbujas',
     nombre: 'Burbujas',
     categoria: 'Velocidad',
     icono: 'circle-dot',
@@ -66,6 +70,7 @@ const CATALOGO_JUEGOS = [
     parametros: ['Flujo', 'Objetivo', 'Vidas'],
   },
   {
+    clave: 'ordena-la-secuencia',
     nombre: 'Ordena la Secuencia',
     categoria: 'Logica',
     icono: 'arrow-down-up',
@@ -74,12 +79,24 @@ const CATALOGO_JUEGOS = [
     parametros: ['Elementos', 'Tiempo', 'Intentos'],
   },
   {
+    clave: 'laberinto',
     nombre: 'Laberinto',
     categoria: 'Arcade',
     icono: 'map',
     eslogan: 'Avanza por el camino que resuelve la pista.',
     descripcion: 'Recorre el laberinto tomando en cada bifurcacion el camino que responde a la pista.',
     parametros: ['Tamano', 'Pistas', 'Vidas'],
+  },
+  {
+    clave: 'mesa-cumplimiento',
+    nombre: 'Mesa de Cumplimiento',
+    categoria: 'Decision',
+    icono: 'shield-check',
+    eslogan: 'Aprueba o rechaza fintechs segun su expediente.',
+    descripcion:
+      'Llegan solicitudes de PSAV y VASP a tu escritorio. Revisa el expediente y decide: aprobar, aprobar con debida diligencia reforzada o rechazar. Aprobar de mas y rechazar por reflejo cuentan como error.',
+    parametros: ['Casos', 'Tiempo', 'Intentos'],
+    jugable: true,
   },
 ];
 
@@ -108,10 +125,10 @@ async function sembrar() {
 
   const claveHash = await bcrypt.hash(CLAVE_DEMO, 10);
 
-  // Juegos: catalogo fijo
-  const juegos = await juegosRepo.save(
-    CATALOGO_JUEGOS.map((datos) => juegosRepo.create(datos)),
-  );
+  // Juegos: catalogo fijo. Se hace upsert por clave porque una migracion
+  // puede haber insertado ya alguna plantilla nueva.
+  await juegosRepo.upsert(CATALOGO_JUEGOS, ['clave']);
+  const juegos = await juegosRepo.find();
   const juegoPorNombre = (nombre: string) => juegos.find((j) => j.nombre === nombre)!;
 
   // Instituciones
@@ -219,6 +236,39 @@ async function sembrar() {
     }),
   );
 
+  // Curso de Cripto Compliance: usa el juego con mecanica real
+  const [criptoCompliance] = await cursosRepo.save([
+    cursosRepo.create({
+      nombre: 'Cripto Compliance',
+      descripcion:
+        'Riesgo de activos virtuales aplicado a la banca: PSAV/VASP, marco UIF, Travel Rule y decision basada en riesgo.',
+      institucionId: nexum.id,
+      docenteId: javier.id,
+    }),
+  ]);
+  const modulosCompliance = await crearModulos(criptoCompliance.id, [
+    {
+      titulo: 'Due Diligence de PSAV y VASP',
+      descripcion:
+        'Revisa expedientes de fintechs y decide aprobar, reforzar controles o rechazar.',
+      califica: true,
+    },
+  ]);
+  await configuracionesRepo.save(
+    configuracionesRepo.create({
+      moduloId: modulosCompliance[0].id,
+      juegoId: juegoPorNombre('Mesa de Cumplimiento').id,
+      titulo: 'Mesa de Cumplimiento',
+      instrucciones:
+        'Cada solicitud trae su expediente. Decide con la evidencia: el registro es punto de partida, no conclusion, y rechazar sin sustento tambien es un error.',
+      velocidad: 'media',
+      tiempoLimiteSegundos: 420,
+      paresContenido: 8,
+      intentosPermitidos: 3,
+      puntajeMaximo: 100,
+    }),
+  );
+
   // Rutas
   const [matematicasIniciales, refuerzoEscolar] = await rutasRepo.save([
     rutasRepo.create({ nombre: 'Matematicas Iniciales', descripcion: 'Recorrido completo de aritmetica para primaria.', institucionId: nexum.id }),
@@ -242,6 +292,8 @@ async function sembrar() {
   await inscripcionesRepo.save([
     inscripcionesRepo.create({ estudianteId: sergio.id, cursoId: matematicas.id }),
     inscripcionesRepo.create({ estudianteId: sergio.id, cursoId: operaciones.id }),
+    inscripcionesRepo.create({ estudianteId: sergio.id, cursoId: criptoCompliance.id }),
+    inscripcionesRepo.create({ estudianteId: gustavo.id, cursoId: criptoCompliance.id }),
     inscripcionesRepo.create({ estudianteId: gustavo.id, cursoId: matematicas.id }),
     inscripcionesRepo.create({ estudianteId: gustavo.id, cursoId: fracciones.id }),
     inscripcionesRepo.create({ estudianteId: daniel.id, cursoId: lectura.id }),

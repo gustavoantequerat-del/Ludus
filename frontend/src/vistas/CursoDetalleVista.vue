@@ -11,6 +11,7 @@ import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoInterruptor from '@/componentes/base/CampoInterruptor.vue';
 import ListaSeleccionable from '@/componentes/base/ListaSeleccionable.vue';
 import { cursosServicio, type DatosModulo, type DatosCurso } from '@/servicios/cursos.servicio';
+import { scormServicio } from '@/servicios/scorm.servicio';
 import { inscripcionesServicio } from '@/servicios/inscripciones.servicio';
 import { usuariosServicio } from '@/servicios/usuarios.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
@@ -29,7 +30,9 @@ const curso = ref<Curso | null>(null);
 const inscritos = ref<Inscripcion[]>([]);
 const cargando = ref(true);
 
-const modalAbierto = ref<'curso' | 'modulo' | 'eliminarModulo' | 'asignar' | null>(null);
+const modalAbierto = ref<'curso' | 'modulo' | 'eliminarModulo' | 'asignar' | 'scorm' | null>(null);
+const moduloScorm = ref<ModuloCurso | null>(null);
+const exportandoScorm = ref(false);
 const moduloEdicion = ref<ModuloCurso | null>(null);
 const formCurso = ref<DatosCurso>({ nombre: '', descripcion: '' });
 const formModulo = ref<DatosModulo>({ titulo: '', descripcion: '', califica: true });
@@ -69,9 +72,28 @@ async function abrirAsignar() {
   seleccionAsignar.value = inscritos.value.map((i) => i.estudianteId);
   modalAbierto.value = 'asignar';
 }
+function abrirScorm(modulo: ModuloCurso) {
+  moduloScorm.value = modulo;
+  modalAbierto.value = 'scorm';
+}
+
+async function exportarScorm() {
+  if (!moduloScorm.value) return;
+  exportandoScorm.value = true;
+  try {
+    const paquete = await scormServicio.crear(moduloScorm.value.id);
+    await scormServicio.descargar(paquete.id, `ludus-${moduloScorm.value.titulo}.zip`);
+    notificar('Paquete SCORM generado');
+    cerrarModal();
+  } finally {
+    exportandoScorm.value = false;
+  }
+}
+
 function cerrarModal() {
   modalAbierto.value = null;
   moduloEdicion.value = null;
+  moduloScorm.value = null;
 }
 
 async function confirmar() {
@@ -166,6 +188,12 @@ onMounted(cargar);
                 relleno
                 @click="irAConfigurar(modulo)"
               />
+              <BotonIcono
+                v-if="modulo.configuracionJuego"
+                icono="package"
+                titulo="Exportar como paquete SCORM"
+                @click="abrirScorm(modulo)"
+              />
               <BotonIcono icono="pencil" titulo="Editar modulo" @click="abrirEditarModulo(modulo)" />
               <BotonIcono icono="trash-2" titulo="Eliminar" peligro @click="abrirEliminarModulo(modulo)" />
             </template>
@@ -225,6 +253,29 @@ onMounted(cargar);
     @cerrar="cerrarModal"
     @confirmar="confirmar"
   />
+
+  <Modal
+    v-if="modalAbierto === 'scorm'"
+    titulo="Exportar como paquete SCORM"
+    :descripcion="`Genera un ZIP con «${moduloScorm?.titulo}» para subirlo a un LMS externo.`"
+    icono="package"
+    :etiqueta-confirmar="exportandoScorm ? 'Generando...' : 'Generar y descargar'"
+    @cerrar="cerrarModal"
+    @confirmar="exportarScorm"
+  >
+    <p :class="estilos.textoAyuda">
+      El paquete es SCORM 1.2: subelo tal cual como actividad en Moodle, Canvas, Blackboard u
+      otro LMS compatible.
+    </p>
+    <p :class="estilos.textoAyuda">
+      Al abrirlo, el estudiante inicia sesion con su cuenta de Ludus. Solo entran los
+      estudiantes inscritos en este curso, y cada intento queda registrado en Ludus ademas de
+      reportarse al LMS.
+    </p>
+    <p :class="estilos.textoAyuda">
+      Puedes revocar el acceso cuando quieras desde la pantalla "Paquetes SCORM".
+    </p>
+  </Modal>
 
   <Modal
     v-if="modalAbierto === 'asignar'"

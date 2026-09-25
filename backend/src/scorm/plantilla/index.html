@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ludus</title>
+    <link rel="stylesheet" href="estilos.css" />
+  </head>
+  <body>
+    <div class="marco">
+      <header class="cabecera">
+        <div class="marca">
+          <span class="logo">L</span>
+          <span class="marcaTextos">
+            <strong class="marcaNombre">Ludus</strong>
+            <span class="marcaSub" id="marca-sub">Sistema de Juegos Educativos</span>
+          </span>
+        </div>
+        <span class="estadoLms" id="estado-lms">Sin conexion al LMS</span>
+      </header>
+
+      <main class="contenido">
+        <!-- Cargando -->
+        <section class="pantalla" id="pantalla-cargando">
+          <p class="textoApagado">Cargando modulo...</p>
+        </section>
+
+        <!-- Error -->
+        <section class="pantalla oculto" id="pantalla-error">
+          <div class="tarjeta">
+            <h1 class="titulo">No se pudo abrir el modulo</h1>
+            <p class="aviso avisoError" id="error-mensaje"></p>
+          </div>
+        </section>
+
+        <!-- Inicio de sesion del estudiante -->
+        <section class="pantalla oculto" id="pantalla-login">
+          <form class="tarjeta" id="formulario-login" autocomplete="on">
+            <h1 class="titulo" id="login-titulo">Inicia sesion</h1>
+            <p class="subtitulo" id="login-subtitulo">
+              Entra con tu cuenta de Ludus para registrar tu avance.
+            </p>
+
+            <p class="aviso avisoError oculto" id="login-error"></p>
+
+            <label class="campo">
+              <span class="etiqueta">Correo</span>
+              <input
+                class="entrada"
+                type="email"
+                id="campo-correo"
+                name="correo"
+                placeholder="correo@institucion.mx"
+                autocomplete="username"
+                required
+              />
+            </label>
+
+            <label class="campo">
+              <span class="etiqueta">Contrasena</span>
+              <input
+                class="entrada"
+                type="password"
+                id="campo-clave"
+                name="clave"
+                placeholder="Tu contrasena"
+                autocomplete="current-password"
+                required
+              />
+            </label>
+
+            <button class="boton botonPrimario" type="submit" id="boton-ingresar">Ingresar</button>
+          </form>
+        </section>
+
+        <!-- Mesa de Cumplimiento: juego con mecanica real -->
+        <section class="pantalla oculto" id="pantalla-mesa">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="mesa-titulo"></h1>
+                <p class="subtitulo" id="mesa-instrucciones"></p>
+              </div>
+              <span class="chipEstudiante" id="mesa-estudiante"></span>
+            </div>
+
+            <div class="chips">
+              <span class="chip" id="mesa-progreso"></span>
+              <span class="chip" id="mesa-aciertos"></span>
+              <span class="chip chipCian" id="mesa-tiempo"></span>
+            </div>
+
+            <div class="expediente">
+              <div class="expedienteCabecera">
+                <div class="textosJuego">
+                  <span class="entidadNombre" id="mesa-entidad"></span>
+                  <span class="entidadTipo" id="mesa-tipo"></span>
+                </div>
+                <span class="chipSolicitud" id="mesa-solicitud"></span>
+              </div>
+              <div class="campos" id="mesa-campos"></div>
+            </div>
+
+            <div class="decisiones" id="mesa-decisiones"></div>
+
+            <div class="veredicto oculto" id="mesa-veredicto">
+              <div class="veredictoCabecera" id="mesa-veredicto-titulo"></div>
+              <div class="veredictoRegla" id="mesa-veredicto-regla"></div>
+              <p class="veredictoExplicacion" id="mesa-veredicto-explicacion"></p>
+              <div class="filaInferior">
+                <span class="veredictoOrigen" id="mesa-veredicto-origen"></span>
+                <button class="boton botonPrimario" type="button" id="mesa-siguiente"></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Repaso de la partida -->
+        <section class="pantalla oculto" id="pantalla-repaso">
+          <div class="tarjeta tarjetaAncha">
+            <h1 class="titulo">Partida terminada</h1>
+            <div class="chips">
+              <span class="chip" id="repaso-puntaje"></span>
+              <span class="chip" id="repaso-aciertos"></span>
+              <span class="chip" id="repaso-exceso"></span>
+              <span class="chip" id="repaso-omision"></span>
+            </div>
+            <p class="aviso avisoExito" id="repaso-nota"></p>
+            <div id="repaso-detalle"></div>
+            <p class="textoApagado" id="repaso-lms"></p>
+          </div>
+        </section>
+
+        <!-- Juego -->
+        <section class="pantalla oculto" id="pantalla-juego">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="juego-titulo"></h1>
+                <p class="subtitulo" id="juego-instrucciones"></p>
+              </div>
+              <span class="chipEstudiante" id="chip-estudiante"></span>
+            </div>
+
+            <div class="chips">
+              <span class="chip" id="chip-juego"></span>
+              <span class="chip chipCian" id="chip-tiempo"></span>
+              <span class="chip" id="chip-intentos"></span>
+            </div>
+
+            <div class="tablero" id="tablero"></div>
+
+            <div class="filaInferior">
+              <div class="metrica">
+                <span class="metricaEtiqueta">Objetivo</span>
+                <span class="metricaValor" id="juego-objetivo"></span>
+              </div>
+              <button class="boton botonPrimario" type="button" id="boton-terminar">
+                Terminar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Resultado -->
+        <section class="pantalla oculto" id="pantalla-resultado">
+          <div class="tarjeta">
+            <h1 class="titulo">Modulo completado</h1>
+            <div class="puntajeFila">
+              <span class="puntajeGrande" id="resultado-puntaje">0</span>
+              <span class="textoApagado" id="resultado-maximo"></span>
+            </div>
+            <div class="barra"><div class="barraRelleno" id="resultado-barra"></div></div>
+            <p class="aviso avisoExito" id="resultado-nota"></p>
+            <p class="textoApagado" id="resultado-detalle"></p>
+            <p class="textoApagado" id="resultado-lms"></p>
+            <button class="boton botonSecundario" type="button" id="boton-reintentar">
+              Reintentar
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="configuracion.js"></script>
+    <script src="ludus-scorm.js"></script>
+  </body>
+</html>

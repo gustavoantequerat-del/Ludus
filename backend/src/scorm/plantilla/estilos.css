@@ -1,0 +1,517 @@
+/*
+ * Paquete SCORM de Ludus. Se ejecuta dentro de un iframe de un LMS externo,
+ * asi que no depende de fuentes ni recursos remotos: solo este archivo.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #0e0819;
+  --superficie: #160d2d;
+  --superficie-2: #1e1435;
+  --superficie-3: #2c1e4a;
+  --tinta: #f3edfb;
+  --apagado: #9c8fb8;
+  --tenue: #7e7196;
+  --primario: #a855f7;
+  --secundario: #00e5ff;
+  --terciario: #c084fc;
+  --exito: #5ef2c4;
+  --error: #ff8a8a;
+  --linea: rgba(255, 255, 255, 0.09);
+  --linea-2: rgba(255, 255, 255, 0.16);
+  --celda: rgba(255, 255, 255, 0.04);
+  --exito-suave: rgba(94, 242, 196, 0.12);
+  --error-suave: rgba(255, 138, 138, 0.14);
+  --fuente: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  -webkit-font-smoothing: antialiased;
+}
+
+.marco {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--superficie);
+  border-bottom: 1px solid var(--linea);
+  flex-wrap: wrap;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(140deg, var(--primario), var(--secundario));
+  display: grid;
+  place-items: center;
+  font: 700 16px var(--fuente);
+  color: #160d2d;
+}
+
+.marcaTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.marcaNombre {
+  font: 600 14px var(--fuente);
+  letter-spacing: -0.2px;
+}
+
+.marcaSub {
+  font: 500 10.5px var(--fuente);
+  color: var(--apagado);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.estadoLms {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  color: var(--apagado);
+  font: 600 10.5px var(--fuente);
+}
+
+.estadoLms.conectado {
+  color: var(--exito);
+  border-color: rgba(94, 242, 196, 0.35);
+}
+
+.contenido {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 18px 32px;
+}
+
+.pantalla {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/*
+ * Utilitaria para ocultar: lleva !important a proposito porque debe ganarle a
+ * cualquier regla de componente que defina su propio display, sin depender del
+ * orden en que se agreguen estilos mas abajo.
+ */
+.oculto {
+  display: none !important;
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 390px;
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tarjetaAncha {
+  max-width: 720px;
+}
+
+.titulo {
+  margin: 0;
+  font: 600 20px/1.2 var(--fuente);
+  letter-spacing: -0.4px;
+}
+
+.subtitulo {
+  margin: 0;
+  font: 400 12.5px/1.5 var(--fuente);
+  color: var(--apagado);
+}
+
+.textoApagado {
+  margin: 0;
+  font: 400 12px/1.5 var(--fuente);
+  color: var(--apagado);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.etiqueta {
+  font: 600 10.5px var(--fuente);
+  color: var(--apagado);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.entrada {
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--linea-2);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font: 500 12.5px var(--fuente);
+  outline: none;
+  width: 100%;
+}
+
+.entrada:focus {
+  border-color: var(--primario);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: 600 12.5px var(--fuente);
+}
+
+.botonPrimario {
+  background: var(--primario);
+  color: #fff;
+}
+
+.botonSecundario {
+  background: transparent;
+  border-color: var(--linea-2);
+  color: var(--tinta);
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.aviso {
+  margin: 0;
+  padding: 10px 13px;
+  border-radius: 12px;
+  font: 600 11.5px/1.45 var(--fuente);
+}
+
+.avisoError {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.avisoExito {
+  background: var(--exito-suave);
+  color: var(--exito);
+}
+
+.filaSuperior {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.textosJuego {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.chipEstudiante {
+  padding: 6px 13px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  color: var(--terciario);
+  font: 600 11.5px var(--fuente);
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 13px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  color: var(--terciario);
+  font: 600 11.5px var(--fuente);
+}
+
+.chipCian {
+  color: var(--secundario);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  aspect-ratio: 8 / 5;
+  padding: 11px;
+  border-radius: 16px;
+  background: #130b26;
+  border: 1px solid var(--linea);
+}
+
+.celda {
+  border-radius: 6px;
+  background: var(--celda);
+}
+
+.celdaActiva {
+  background: var(--primario);
+}
+
+.celdaObjetivo {
+  background: rgba(0, 229, 255, 0.22);
+}
+
+.filaInferior {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricaEtiqueta {
+  font: 500 10.5px var(--fuente);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricaValor {
+  font: 600 14px var(--fuente);
+}
+
+.filaInferior .boton {
+  margin-left: auto;
+}
+
+/* --- Mesa de Cumplimiento --- */
+
+.expediente {
+  border-radius: 16px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.expedienteCabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--linea);
+  flex-wrap: wrap;
+}
+
+.entidadNombre {
+  display: block;
+  font: 600 15px var(--fuente);
+}
+
+.entidadTipo {
+  display: block;
+  font: 500 11.5px var(--fuente);
+  color: var(--apagado);
+}
+
+.chipSolicitud {
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--secundario);
+  font: 600 10.5px var(--fuente);
+  white-space: nowrap;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.campoEtiqueta {
+  font: 600 9.5px var(--fuente);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.campoValor {
+  font: 500 12px/1.45 var(--fuente);
+}
+
+.decisiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 9px;
+}
+
+.botonDecision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--linea-2);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  cursor: pointer;
+  text-align: left;
+  font: 600 12.5px var(--fuente);
+}
+
+.botonDecision:hover {
+  border-color: var(--primario);
+}
+
+.botonDecisionAyuda {
+  font: 400 10.5px/1.4 var(--fuente);
+  color: var(--apagado);
+}
+
+.veredicto {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--linea);
+  background: var(--superficie-2);
+}
+
+.veredictoCorrecto {
+  border-color: rgba(94, 242, 196, 0.35);
+  background: var(--exito-suave);
+}
+
+.veredictoIncorrecto {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.veredictoCabecera {
+  font: 600 14px var(--fuente);
+}
+
+.veredictoRegla {
+  font: 600 12.5px/1.45 var(--fuente);
+}
+
+.veredictoExplicacion {
+  margin: 0;
+  font: 400 12px/1.6 var(--fuente);
+  color: var(--apagado);
+}
+
+.veredictoOrigen {
+  font: 500 10.5px var(--fuente);
+  color: var(--tenue);
+}
+
+.filaRepaso {
+  display: flex;
+  gap: 10px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.filaRepasoTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filaRepasoEntidad {
+  font: 600 12.5px var(--fuente);
+}
+
+.filaRepasoDetalle {
+  font: 400 11px var(--fuente);
+  color: var(--apagado);
+}
+
+.marcaOk {
+  color: var(--exito);
+  font: 700 13px var(--fuente);
+}
+
+.marcaMal {
+  color: var(--error);
+  font: 700 13px var(--fuente);
+}
+
+.puntajeFila {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.puntajeGrande {
+  font: 600 40px/1 var(--fuente);
+  letter-spacing: -1.5px;
+}
+
+.barra {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  overflow: hidden;
+}
+
+.barraRelleno {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--primario), var(--secundario));
+}

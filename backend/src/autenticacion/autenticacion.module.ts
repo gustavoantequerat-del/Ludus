@@ -23,5 +23,6 @@ import { ConfiguracionApp } from '../configuracion/configuracion';
   ],
   providers: [AutenticacionService, JwtEstrategia],
   controllers: [AutenticacionController],
+  exports: [AutenticacionService],
 })
 export class AutenticacionModule {}

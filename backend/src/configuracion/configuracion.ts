@@ -11,6 +11,11 @@ export interface ConfiguracionApp {
     secreto: string;
     expiracion: string;
   };
+  /**
+   * URL publica de esta API. El paquete SCORM se ejecuta dentro de otro sitio
+   * (el LMS), asi que necesita una direccion absoluta y alcanzable desde ahi.
+   */
+  urlPublicaApi: string;
 }
 
 export default (): ConfiguracionApp => ({
@@ -26,4 +31,6 @@ export default (): ConfiguracionApp => ({
     secreto: process.env.JWT_SECRETO || 'cambia-este-valor-en-produccion',
     expiracion: process.env.JWT_EXPIRACION || '8h',
   },
+  urlPublicaApi:
+    process.env.URL_PUBLICA_API || `http://localhost:${Number(process.env.PUERTO) || 3000}/api`,
 });

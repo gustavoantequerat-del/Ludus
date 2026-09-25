@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Juego } from './juego.entidad';
@@ -7,6 +12,14 @@ import { ModuloCurso } from '../cursos/modulo-curso.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { ConfigurarJuegoDto } from './dto/configurar-juego.dto';
+import { ResultadosService } from '../resultados/resultados.service';
+import {
+  MesaCumplimientoService,
+  RespuestaJugador,
+} from './mesa-cumplimiento/mesa-cumplimiento.service';
+import { Decision } from './mesa-cumplimiento/casos';
+
+export const CLAVE_MESA_CUMPLIMIENTO = 'mesa-cumplimiento';
 
 @Injectable()
 export class JuegosService {
@@ -17,7 +30,67 @@ export class JuegosService {
     private readonly configuracionesRepo: Repository<ConfiguracionJuego>,
     @InjectRepository(ModuloCurso)
     private readonly modulosRepo: Repository<ModuloCurso>,
+    private readonly mesaCumplimiento: MesaCumplimientoService,
+    private readonly resultadosService: ResultadosService,
   ) {}
+
+  /* ---------------------------------------------------------------- *
+   * Partidas de juegos con mecanica real
+   * ---------------------------------------------------------------- */
+
+  /** Expedientes de la partida, sin las respuestas correctas. */
+  async armarPartida(quien: UsuarioAutenticado, moduloId: string) {
+    const configuracion = await this.configuracionJugable(quien, moduloId);
+    return {
+      juego: { clave: configuracion.juego.clave, nombre: configuracion.juego.nombre },
+      titulo: configuracion.titulo,
+      instrucciones: configuracion.instrucciones,
+      tiempoLimiteSegundos: configuracion.tiempoLimiteSegundos,
+      casos: this.mesaCumplimiento.armarPartida(configuracion.paresContenido),
+    };
+  }
+
+  /** Feedback inmediato tras decidir un caso. */
+  verificarCaso(casoId: string, decision: Decision) {
+    return this.mesaCumplimiento.verificar(casoId, decision);
+  }
+
+  /** Califica en el servidor y registra el intento del estudiante. */
+  async terminarPartida(
+    quien: UsuarioAutenticado,
+    moduloId: string,
+    respuestas: RespuestaJugador[],
+  ) {
+    const configuracion = await this.configuracionJugable(quien, moduloId);
+    const calificacion = this.mesaCumplimiento.calificar(respuestas);
+    const resultado = await this.resultadosService.crear(quien, {
+      moduloId,
+      puntaje: calificacion.puntaje,
+    });
+
+    return {
+      calificacion,
+      intento: resultado.intento,
+      puntaje: resultado.puntaje,
+      nota: resultado.nota,
+      puntajeMaximo: configuracion.puntajeMaximo,
+    };
+  }
+
+  private async configuracionJugable(
+    quien: UsuarioAutenticado,
+    moduloId: string,
+  ): Promise<ConfiguracionJuego> {
+    await this.moduloConAcceso(quien, moduloId, false);
+    const configuracion = await this.configuracionesRepo.findOne({ where: { moduloId } });
+    if (!configuracion) {
+      throw new BadRequestException('El modulo no tiene un juego configurado');
+    }
+    if (configuracion.juego.clave !== CLAVE_MESA_CUMPLIMIENTO) {
+      throw new BadRequestException('Este juego todavia no tiene mecanica jugable');
+    }
+    return configuracion;
+  }
 
   listarCatalogo(): Promise<Juego[]> {
     return this.juegosRepo.find({ order: { nombre: 'ASC' } });

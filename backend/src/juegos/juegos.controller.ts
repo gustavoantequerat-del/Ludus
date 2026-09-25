@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { JwtGuardia } from '../comun/guardias/jwt.guardia';
 import { RolesGuardia } from '../comun/guardias/roles.guardia';
 import { Roles } from '../comun/decoradores/roles.decorador';
@@ -7,6 +7,7 @@ import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { JuegosService } from './juegos.service';
 import { ConfigurarJuegoDto } from './dto/configurar-juego.dto';
+import { TerminarPartidaDto, VerificarCasoDto } from './dto/partida.dto';
 
 const TODOS_LOS_ROLES = [
   Rol.SUPERADMIN,
@@ -24,6 +25,31 @@ export class JuegosController {
   @Get()
   listarCatalogo() {
     return this.juegosService.listarCatalogo();
+  }
+
+  /* --- Partida de un juego con mecanica real --- */
+
+  @Get('partida/:moduloId')
+  armarPartida(
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Param('moduloId') moduloId: string,
+  ) {
+    return this.juegosService.armarPartida(quien, moduloId);
+  }
+
+  @Post('partida/verificar')
+  verificarCaso(@Body() datos: VerificarCasoDto) {
+    return this.juegosService.verificarCaso(datos.casoId, datos.decision);
+  }
+
+  @Post('partida/:moduloId/terminar')
+  @Roles(Rol.ESTUDIANTE)
+  terminarPartida(
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Param('moduloId') moduloId: string,
+    @Body() datos: TerminarPartidaDto,
+  ) {
+    return this.juegosService.terminarPartida(quien, moduloId, datos.respuestas);
   }
 
   @Get('modulos/:moduloId/configuracion')

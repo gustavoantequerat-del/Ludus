@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 /**
  * Catalogo fijo de plantillas de juego programadas por el equipo de
@@ -8,6 +8,15 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class Juego {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  /**
+   * Identificador estable de la plantilla. El frontend y el paquete SCORM lo
+   * usan para saber que juego renderizar; "maqueta" son los que todavia no
+   * tienen mecanica programada.
+   */
+  @Index({ unique: true })
+  @Column({ length: 60 })
+  clave: string;
 
   @Column({ length: 80 })
   nombre: string;
@@ -26,4 +35,8 @@ export class Juego {
 
   @Column({ type: 'jsonb', default: () => "'[]'" })
   parametros: string[];
+
+  /** false mientras el juego siga siendo solo maqueta visual. */
+  @Column({ type: 'boolean', default: false })
+  jugable: boolean;
 }

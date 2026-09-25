@@ -1,0 +1,324 @@
+.mesa {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+}
+
+.indicadorEtiqueta {
+  font: 500 10px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.indicadorValor {
+  font: 600 16px var(--fuente-titulos);
+}
+
+.indicadorValorAlerta {
+  color: var(--error);
+}
+
+.progreso {
+  flex: 1;
+  min-width: 140px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+  overflow: hidden;
+}
+
+.progresoRelleno {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primario), var(--secundario));
+  transition: width 0.25s ease;
+}
+
+.expediente {
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.expedienteCabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 18px;
+  background: var(--superficie-2);
+  border-bottom: 1px solid var(--linea);
+  flex-wrap: wrap;
+}
+
+.sello {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--primario-suave);
+  color: var(--terciario);
+  display: grid;
+  place-items: center;
+}
+
+.expedienteTextos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.entidad {
+  font: 600 17px/1.2 var(--fuente-titulos);
+}
+
+.tipo {
+  font: 500 12px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.solicitud {
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: var(--secundario-suave);
+  border: 1px solid var(--secundario-borde);
+  color: var(--tinta-info);
+  font: 600 11px var(--fuente-texto);
+  white-space: nowrap;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--linea-4);
+}
+
+.campoEtiqueta {
+  font: 600 10px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.campoValor {
+  font: 500 12.5px/1.45 var(--fuente-texto);
+  color: var(--tinta);
+}
+
+.decisiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.botonDecision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--linea-2);
+  background: var(--superficie);
+  color: var(--tinta);
+  cursor: pointer;
+  text-align: left;
+}
+
+.botonDecision:hover:not(:disabled) {
+  border-color: var(--primario-borde);
+  background: var(--superficie-2);
+}
+
+.botonDecision:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botonDecisionTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 13px var(--fuente-texto);
+}
+
+.botonDecisionAyuda {
+  font: 400 11px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.veredicto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--linea);
+  background: var(--superficie-2);
+  animation: aparecer-y-subir 0.22s ease;
+}
+
+.veredictoCorrecto {
+  border-color: var(--exito-borde);
+  background: var(--exito-suave);
+}
+
+.veredictoIncorrecto {
+  border-color: var(--primario-borde);
+  background: var(--primario-suave-3);
+}
+
+.veredictoCabecera {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 600 14px var(--fuente-titulos);
+}
+
+.veredictoRegla {
+  font: 600 12.5px/1.45 var(--fuente-texto);
+  color: var(--tinta);
+}
+
+.veredictoExplicacion {
+  font: 400 12.5px/1.6 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.veredictoOrigen {
+  font: 500 11px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.pieVeredicto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.repaso {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.resumenTarjeta {
+  padding: 15px;
+  border-radius: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.resumenValor {
+  font: 600 26px/1 var(--fuente-titulos);
+  letter-spacing: -1px;
+}
+
+.resumenEtiqueta {
+  font: 500 10.5px var(--fuente-texto);
+  color: var(--apagado);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.listaRepaso {
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.filaRepaso {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--linea-4);
+}
+
+.filaRepaso:first-child {
+  border-top: none;
+}
+
+.marcaRepaso {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.marcaOk {
+  background: var(--exito-suave);
+  color: var(--exito);
+}
+
+.marcaMal {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.repasoTextos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.repasoEntidad {
+  font: 600 13px var(--fuente-texto);
+}
+
+.repasoDecisiones {
+  font: 400 11.5px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.repasoRegla {
+  font: 500 11.5px/1.5 var(--fuente-texto);
+  color: var(--suave);
+}
+
+.acciones {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}

@@ -8,10 +8,24 @@ import Icono from '@/componentes/base/Icono.vue';
 import { cursosServicio } from '@/servicios/cursos.servicio';
 import { juegosServicio } from '@/servicios/juegos.servicio';
 import { resultadosServicio } from '@/servicios/resultados.servicio';
-import type { ConfiguracionJuego, Curso, ModuloCurso } from '@/tipos';
+import MesaCumplimiento from '@/componentes/juegos/MesaCumplimiento.vue';
+import { usarNotificaciones } from '@/composables/usarNotificaciones';
+import type { CalificacionPartida, ConfiguracionJuego, Curso, ModuloCurso } from '@/tipos';
 
 const props = defineProps<{ cursoId: string; moduloId: string }>();
 const enrutador = useRouter();
+const { notificar } = usarNotificaciones();
+
+/** Los juegos con mecanica programada se renderizan por su clave. */
+const esJugable = computed(() => configuracion.value?.juego.jugable === true);
+const partidaTerminada = ref(false);
+
+function alTerminarPartida(datos: CalificacionPartida) {
+  partidaTerminada.value = true;
+  notificar(
+    datos.nota ? `Calificacion registrada: ${datos.nota}` : `Puntaje registrado: ${datos.puntaje}`,
+  );
+}
 
 const curso = ref<Curso | null>(null);
 const modulo = ref<ModuloCurso | null>(null);
@@ -79,7 +93,23 @@ onMounted(cargar);
     @volver="enrutador.push({ name: 'curso-detalle', params: { id: props.cursoId } })"
   />
 
-  <div :class="estilos.cuadricula">
+  <!-- Juego con mecanica real -->
+  <template v-if="esJugable">
+    <MesaCumplimiento :modulo-id="props.moduloId" @terminada="alTerminarPartida" />
+    <div v-if="partidaTerminada" style="display: flex; gap: 9px; flex-wrap: wrap">
+      <Boton
+        variante="primario"
+        icono="arrow-right"
+        @click="enrutador.push({ name: 'curso-detalle', params: { id: props.cursoId } })"
+      >
+        Volver al curso
+      </Boton>
+      <Boton variante="secundario" icono="rotate-ccw" @click="enrutador.go(0)">Jugar de nuevo</Boton>
+    </div>
+  </template>
+
+  <!-- Plantillas que todavia son maqueta visual -->
+  <div v-else :class="estilos.cuadricula">
     <div :class="estilos.panelJuego">
       <div :class="estilos.chips">
         <span :class="estilos.chip">

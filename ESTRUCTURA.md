@@ -18,14 +18,13 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 - **Autenticacion real** con JWT y pantalla de login. El prototipo no tenia
   login (usaba un selector de rol como atajo de demo); aqui el rol siempre
   viene del usuario autenticado, no hay forma de "cambiar de rol" en la UI.
-- **Los juegos siguen siendo una maqueta visual.** El prototipo dejo la
-  mecanica de juego real fuera a proposito ("Pendientes que no hice a
-  proposito: juegos realmente jugables"). Esta implementacion respeta eso:
-  hay un catalogo real de plantillas de juego, se configuran con parametros
-  reales guardados en base de datos, y la pantalla "Jugar" simula una
-  partida (tablero decorativo + puntaje aleatorio) que si genera un
-  resultado real y, si corresponde, una calificacion real. Programar la
-  mecanica de cada uno de los 6 juegos queda para una fase futura.
+- **Un juego jugable, el resto maqueta.** El prototipo dejo la mecanica de
+  juego fuera a proposito ("Pendientes que no hice a proposito: juegos
+  realmente jugables"). Hoy **Mesa de Cumplimiento** ya tiene mecanica real y
+  contenido tomado del curso de Cripto Compliance (ver 6.2); las otras cinco
+  plantillas siguen siendo maqueta visual: se configuran con parametros reales
+  y registran un intento, pero la partida es simulada. El catalogo marca cuales
+  son jugables con la bandera `jugable`.
 - **Monorepo sin Docker.** `backend/` y `frontend/` viven en el mismo
   repositorio; se asume que ya existe un PostgreSQL accesible (local o
   remoto) y solo se documentan las variables de conexion.
@@ -87,6 +86,9 @@ backend/src/
 ├── solicitudes/                       Ingreso/salida que pide un estudiante y resuelve un admin
 ├── resultados/                         Resultado de una partida (puntaje, intento, nota)
 ├── panel/                              Endpoints de dashboard: /panel/resumen y /panel/actividad
+├── scorm/                               Exportacion de un modulo como paquete SCORM 1.2
+│   ├── paquete-scorm.entidad.ts        registro del paquete (token publico, activo/revocado)
+│   └── plantilla/                        archivos que se empaquetan en el ZIP (ver 6.1)
 ├── migraciones/                       Migraciones de TypeORM (SQL versionado)
 └── semilla/semilla.ts                 Script que carga datos de ejemplo
 ```
@@ -199,6 +201,7 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 | `SolicitudesVista` | `/solicitudes` | superadmin, admin_institucion, estudiante |
 | `ResultadosVista` (Resultados/Calificaciones) | `/resultados` | todos |
 | `ActividadVista` | `/actividad` | superadmin |
+| `PaquetesScormVista` | `/scorm` | superadmin, admin_institucion, docente |
 | `AjustesVista` (Mi perfil) | `/ajustes` | todos |
 
 El menu lateral (`composables/usarNavegacion.ts`) arma los items visibles
@@ -274,15 +277,130 @@ GET|POST /resultados                      crear: solo estudiante (al terminar un
 
 GET      /panel/resumen                   KPIs segun el rol de quien consulta
 GET      /panel/actividad                 solo superadmin
+
+GET|POST /scorm/paquetes                  paquetes exportados (superadmin/admin/docente)
+GET      /scorm/paquetes/:id/descargar    devuelve el ZIP del paquete
+PATCH    /scorm/paquetes/:id              { activo } activa o revoca el paquete
+DELETE   /scorm/paquetes/:id
+
+GET      /scorm/publico/:token            datos del modulo para la pantalla de login (sin sesion)
+POST     /scorm/publico/:token/ingresar   login del estudiante desde el LMS
+POST     /scorm/publico/:token/resultado  guarda el intento (requiere el token del login)
 ```
+
+## 6.1 Exportacion a SCORM (usar un modulo dentro de otro LMS)
+
+Un docente (o admin/superadmin) puede empaquetar un modulo como actividad
+**SCORM 1.2** y subirla a un LMS externo (Moodle, Canvas, Blackboard...). El
+estudiante juega desde ese LMS, pero su avance se sigue registrando en Ludus.
+
+**Como se genera.** En el detalle del curso, cada modulo que ya tiene un juego
+configurado muestra la accion "Exportar como paquete SCORM". Eso crea un
+registro en `paquetes_scorm` y descarga un ZIP con:
+
+```
+index.html         pantalla de login + juego + resultado
+estilos.css        identidad visual de Ludus, sin recursos externos
+ludus-scorm.js     API del LMS + llamadas a Ludus
+configuracion.js   generado por Ludus: URL de la API y token del paquete
+imsmanifest.xml    manifiesto SCORM 1.2 (un unico SCO)
+LEEME.txt          instrucciones para quien lo sube al LMS
+```
+
+**Como se ejecuta.** Al abrirlo en el LMS, el paquete:
+
+1. Busca la API del LMS (`window.API`, subiendo por `parent`/`opener`) y llama
+   `LMSInitialize`. Si no hay LMS, sigue funcionando y lo dice en pantalla.
+2. Pide al estudiante su correo y contrasena **de Ludus**. El paquete no lleva
+   credenciales: el token solo identifica que modulo abrir.
+3. Valida en el backend que sea un estudiante, que el paquete siga activo y que
+   este **inscrito en el curso** del modulo. Si no, no lo deja entrar.
+4. Carga el juego con los parametros que configuro el docente.
+5. Al terminar guarda el intento en Ludus (aparece en Resultados y en las
+   calificaciones, igual que si hubiera jugado dentro de la app) y lo reporta
+   al LMS: `cmi.core.score.raw`, `score.min`/`max`, `cmi.core.session_time`,
+   `cmi.core.lesson_status` (`passed`/`failed` si el modulo califica, con
+   umbral 60; `completed` si es practica) y `cmi.comments` con el nombre y
+   correo de la cuenta de Ludus que jugo.
+
+**Revocar.** La pantalla "Paquetes SCORM" lista lo exportado y permite
+desactivar (corta el acceso sin borrar resultados), reactivar, volver a
+descargar o eliminar.
+
+**Configuracion necesaria.** El ZIP lleva grabada la direccion de la API en
+`configuracion.js`, tomada de la variable `URL_PUBLICA_API`. Tiene que ser una
+URL alcanzable desde el navegador del estudiante: si el LMS corre en otra
+maquina, `localhost` no sirve. Ese es el ajuste que hay que recordar antes de
+exportar paquetes para produccion.
+
+**Por que el cmi.comments.** El usuario del LMS no tiene por que ser el mismo
+que la cuenta de Ludus, asi que el paquete deja constancia de con que cuenta se
+jugo realmente. El seguimiento fino (intentos, notas, historico) vive en Ludus;
+el LMS recibe la nota del intento.
+
+## 6.2 Juego jugable: Mesa de Cumplimiento
+
+Es el primer juego del catalogo con mecanica real (los demas siguen siendo
+maqueta). Esta inspirado en *That's Not My Neighbor*: en vez de dejar pasar
+personas, el estudiante atiende la mesa de Cumplimiento de un banco boliviano y
+decide sobre solicitudes de **PSAV/VASP**.
+
+**Contenido.** Los casos salen del curso de Cripto Compliance de NEXUM
+(modulos 1 a 3): criterio funcional de PSAV de la R.A. UIF 19/2025, ROG-04,
+Recomendacion 15 y Travel Rule de GAFI, due diligence de PSAV/VASP y analisis
+de exposicion on-chain. Cada caso cita el modulo y tema del que proviene.
+
+**Tres decisiones, no dos.** El curso es explicito en que la respuesta correcta
+no es binaria, asi que el juego ofrece:
+
+- **Aprobar** — relacion con controles estandar.
+- **Aprobar con EDD** — limites, condiciones y monitoreo reforzado.
+- **Rechazar** — el riesgo no es mitigable.
+
+**Lo que evalua.** El banco de casos tiene trampas en las dos direcciones, que
+es justamente lo que el curso quiere corregir:
+
+- *Registro no es riesgo bajo*: un PSAV registrado con P2P, proveedores
+  extranjeros y exposicion DeFi necesita EDD, no aprobacion automatica.
+- *No de-risking indiscriminado*: un PSAV registrado, con UBO claro y modelo
+  simple debe aprobarse; rechazarlo cuenta como error.
+- *Criterio funcional*: quien intercambia y custodia para terceros con fines de
+  lucro es PSAV aunque diga que no; quien solo usa activos virtuales para su
+  operacion no lo es.
+- *Materialidad*: exposicion indirecta a un mixer a 5 hops, 0,2% y de hace dos
+  anios no es material; exposicion directa a darknet, 31% y vigente si lo es.
+
+Por eso el resumen final separa **rechazos sin sustento** (de-risking) de
+**riesgos que dejaste pasar**: son fallas distintas y el curso las trata como
+tales.
+
+**Como esta implementado.** El banco de casos y la calificacion viven en el
+backend (`src/juegos/mesa-cumplimiento/`), nunca en el cliente:
+
+- `GET /juegos/partida/:moduloId` entrega los expedientes **sin** la respuesta
+  correcta; la cantidad sale de `paresContenido` de la configuracion.
+- `POST /juegos/partida/verificar` devuelve el veredicto de un caso, para dar
+  retroalimentacion inmediata con la regla del curso.
+- `POST /juegos/partida/:moduloId/terminar` recalcula la nota en el servidor a
+  partir de las respuestas y registra el intento como cualquier otro resultado.
+
+El catalogo de juegos tiene ahora `clave` (identificador estable) y `jugable`.
+El frontend y el paquete SCORM usan esa clave para decidir si renderizan el
+juego real o la maqueta, asi que agregar un segundo juego jugable no exige
+tocar las vistas existentes.
+
+**Dentro del LMS.** El paquete SCORM ejecuta exactamente el mismo juego,
+consumiendo los endpoints publicos equivalentes con el token del paquete. La
+nota que llega al LMS es la calculada por el servidor.
 
 ## 7. Simplificaciones deliberadas (KISS)
 
 Estas decisiones se tomaron para no sobre-construir funcionalidad que el
 prototipo tampoco resolvia, o que no aporta al alcance pedido:
 
-- **Sin mecanica de juego real.** Ver seccion 1. `JugarVista` simula el
-  puntaje; el backend si persiste un `resultado` real con ese puntaje.
+- **Solo un juego tiene mecanica real.** Ver 6.2. Para las otras cinco
+  plantillas `JugarVista` simula el puntaje; el backend si persiste un
+  `resultado` real con ese puntaje.
 - **"Actividad" es una vista derivada, no una bitacora de auditoria.**
   `PanelService.actividadReciente()` arma la lista combinando las tablas
   existentes (ultimos cursos, solicitudes, resultados, usuarios) en vez de
