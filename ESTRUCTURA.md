@@ -28,6 +28,10 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 - **Monorepo sin Docker.** `backend/` y `frontend/` viven en el mismo
   repositorio; se asume que ya existe un PostgreSQL accesible (local o
   remoto) y solo se documentan las variables de conexion.
+- **Backend en PHP (Laravel)** para poder alojarlo en un hosting compartido
+  con cPanel, que corre PHP sin nada extra. El backend empezo en NestJS; la
+  seccion 10 cuenta como se paso a Laravel sin perder nada (misma API, misma
+  base, mismas sesiones).
 
 ## 2. Idioma y convenciones de codigo
 
@@ -45,8 +49,8 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 
 ```
 /
-├── backend/          Backend NestJS (API REST + PostgreSQL)
-│   └── archivos/       Imagenes del juego (fondos y personajes); se sirve en /archivos
+├── backend/          Backend Laravel 12 (API REST + PostgreSQL), PHP 8.2+
+│   └── public/archivos/  Imagenes del juego (fondos y personajes); se sirve en /archivos
 ├── frontend/          Frontend Vue 3 (SPA)
 ├── project/           Prototipo original de Claude Design (referencia, no se ejecuta)
 ├── chats/              Transcripciones de las conversaciones de diseno (referencia)
@@ -54,58 +58,80 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 └── DESPLIEGUE.md        Como subirlo a cPanel, o a Neon + Vercel
 ```
 
-### 3.1 Backend (`backend/src`)
+### 3.1 Backend (`backend/`)
 
-Organizado por dominio (carpeta = "modulo" de Nest = area del negocio), sin
-capas transversales artificiales:
+Es un proyecto Laravel, pero organizado **por dominio**, igual que antes: una
+carpeta por area del negocio dentro de `app/Modulos/`, cada una con su
+controlador (rutas HTTP y validacion de entrada) y su servicio (reglas de
+negocio y acceso a datos). Los nombres de carpetas, clases y metodos estan en
+espanol; lo unico en ingles es lo que Laravel exige por convencion
+(`app/`, `config/`, `routes/`, `database/migrations/`, `public/`).
 
 ```
-backend/src/
-├── main.ts                     Arranque de Nest, prefijo /api, CORS, ValidationPipe global
-├── app.module.ts                Modulo raiz: registra TypeORM y todos los modulos de dominio
-├── configuracion/
-│   ├── configuracion.ts         Lee variables de entorno (.env)
-│   ├── conexion-bd.ts            Decide DATABASE_URL vs variables sueltas segun DB_ORIGEN (ver 8.2.1)
-│   ├── opciones-typeorm.ts      Arma las opciones de conexion para NestJS
-│   └── datos-origen.ts          DataSource de TypeORM para CLI (migraciones)
-├── comun/                        Piezas transversales reutilizadas por todos los modulos
-│   ├── enums/rol.enum.ts         Rol: superadmin | admin_institucion | docente | estudiante
-│   ├── decoradores/              @Roles(...), @UsuarioActual()
-│   ├── guardias/                 JwtGuardia (valida token), RolesGuardia (valida @Roles)
-│   └── tipos/usuario-autenticado.ts
-├── autenticacion/                 POST /autenticacion/ingresar, GET /autenticacion/perfil
-├── instituciones/                  CRUD instituciones (solo superadmin)
-├── usuarios/                       CRUD usuarios, alcance segun quien consulta
-├── cursos/                          CRUD cursos + submodulos (modulos de un curso)
-│   ├── curso.entidad.ts
-│   └── modulo-curso.entidad.ts     "modulo" del curso (no confundir con modulo de Nest)
-├── rutas/                            CRUD rutas + su relacion ordenada con cursos existentes
-│   ├── ruta.entidad.ts
-│   └── ruta-curso.entidad.ts        tabla puente ruta<->curso con orden
-├── archivos/                          Servicio que guarda y lista las imagenes del juego
-├── juegos/                            Catalogo fijo de plantillas + configuracion por modulo
-│   ├── juego.entidad.ts             catalogo (se administra por semilla, no CRUD de usuario)
-│   ├── configuracion-juego.entidad.ts
-│   └── mesa-cumplimiento/           el juego jugable, con todo su contenido adentro
-│       ├── caso-cumplimiento.entidad.ts
-│       ├── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
-│       └── personajes/               los CEO que aparecen en escena (CRUD + subida de imagen)
-├── inscripciones/                    Asigna/reemplaza la lista de estudiantes de un curso o ruta
-├── solicitudes/                       Ingreso/salida que pide un estudiante y resuelve un admin
-├── resultados/                         Resultado de una partida (puntaje, intento, nota)
-├── panel/                              Endpoints de dashboard: /panel/resumen y /panel/actividad
-├── scorm/                               Exportacion de un modulo como paquete SCORM 1.2
-│   ├── paquete-scorm.entidad.ts        registro del paquete (token publico, activo/revocado)
-│   └── plantilla/                        archivos que se empaquetan en el ZIP (ver 6.1)
-├── migraciones/                       Migraciones de TypeORM (SQL versionado)
-├── semilla/semilla.ts                 Script que carga datos de ejemplo
-└── herramientas/verificar-bd.ts       Diagnostico de la conexion a PostgreSQL (ver 8.3.1)
+backend/
+├── app/
+│   ├── Modulos/                     Un modulo por area del negocio
+│   │   ├── Autenticacion/            ingresar, perfil, cambiar clave
+│   │   ├── Instituciones/            CRUD instituciones (solo superadmin)
+│   │   ├── Usuarios/                 CRUD usuarios, alcance segun quien consulta
+│   │   ├── Cursos/                   CRUD cursos + sus modulos (orden, mover)
+│   │   ├── Rutas/                    CRUD rutas + su relacion ordenada con cursos existentes
+│   │   ├── Inscripciones/            Asigna/reemplaza la lista de estudiantes de un curso o ruta
+│   │   ├── Solicitudes/              Ingreso/salida que pide un estudiante y resuelve un admin
+│   │   ├── Resultados/               Resultado de una partida (puntaje, intento, nota)
+│   │   ├── Panel/                    /panel/resumen y /panel/actividad
+│   │   ├── Archivos/                 Guarda, lista y sirve las imagenes del juego
+│   │   ├── Juegos/                   Catalogo + configuracion por modulo + partida
+│   │   │   └── MesaCumplimiento/      el juego jugable, con todo su contenido adentro
+│   │   │       ├── MesaCumplimientoServicio.php   armar partida, veredicto, calificacion
+│   │   │       ├── CasosControlador/Servicio      casos (catalogo base y propios)
+│   │   │       └── Personajes/                    los CEO de la escena (CRUD + subida de imagen)
+│   │   └── Scorm/                    Exportacion de un modulo como paquete SCORM 1.2
+│   │       └── plantilla/             archivos que se empaquetan en el ZIP (ver 6.1)
+│   ├── Modelos/                      Un modelo Eloquent por tabla (Usuario, Curso, ModuloCurso...)
+│   │   └── ModeloBase.php             UUID, fechas creado_en/actualizado_en y JSON en camelCase
+│   ├── Soporte/                      Piezas transversales
+│   │   ├── ConexionBd.php             Decide DATABASE_URL vs variables sueltas segun DB_ORIGEN (ver 8.2.1)
+│   │   ├── ConectorPostgres.php       Timeout de conexion y endpoint de Neon para libpq viejas
+│   │   ├── Jwt.php                    Firma y verifica los tokens (HS256)
+│   │   ├── Claves.php                 bcrypt (compatible con las claves que ya estan en la base)
+│   │   ├── Validacion.php             Valida el cuerpo y rechaza campos que el endpoint no espera
+│   │   ├── Rol.php                    superadmin | admin_institucion | docente | estudiante
+│   │   └── UsuarioAutenticado.php     Quien hace la peticion (sale del token)
+│   ├── Http/
+│   │   ├── Controlador.php            Base de los controladores: quien(), validar(), sinContenido()
+│   │   └── Middleware/                AutenticarJwt ('jwt'), ExigirRol ('rol:...'), AjustarRespuesta
+│   ├── Excepciones/ErrorHttp.php      Errores con codigo HTTP, respondidos como { message, statusCode }
+│   └── Consola/                       Comandos de artisan: semilla, bd:verificar, servir
+├── bootstrap/app.php                 Rutas bajo /api, middlewares y formato JSON de todos los errores
+├── config/
+│   ├── ludus.php                     JWT, URL_PUBLICA_API, RUTA_ARCHIVOS
+│   ├── database.php                  Solo PostgreSQL; la conexion la arma ConexionBd
+│   └── cors.php                      Cualquier origen (frontend en otro dominio, paquetes SCORM)
+├── database/
+│   ├── migrations/                   El esquema en SQL, identico al que creaba TypeORM
+│   └── datos/casos_base.php          Los 13 casos base que carga la migracion
+├── lang/es/validation.php            Mensajes de validacion en espanol
+├── routes/
+│   ├── api.php                       Todas las rutas de la API, con su rol requerido
+│   └── web.php                       Solo /archivos (cuando RUTA_ARCHIVOS esta fuera de public/)
+├── public/
+│   ├── index.php                     Punto de entrada: el dominio de la API apunta aqui
+│   └── archivos/                     Fondos y personajes del juego
+└── .htaccess                         Si el dominio apunta a backend/ y no a public/, redirige a public/
 ```
 
-Cada modulo de dominio sigue siempre el mismo patron:
-`*.entidad.ts` (tabla), `dto/*.dto.ts` (validacion de entrada con
-class-validator), `*.service.ts` (reglas de negocio y acceso a datos),
-`*.controller.ts` (rutas HTTP) y `*.module.ts` (cablea todo con Nest).
+Cada modulo sigue siempre el mismo patron: `XControlador.php` recibe la
+peticion, valida el cuerpo con reglas de Laravel y llama al servicio;
+`XServicio.php` tiene las reglas de negocio y consulta la base con los
+modelos de `app/Modelos/`. Las rutas y los roles que exige cada una estan
+todos juntos en `routes/api.php`.
+
+**Nombres en la base y en la API.** Las columnas estan en snake_case
+(`institucion_id`, `creado_en`) y el JSON de la API en camelCase
+(`institucionId`, `creadoEn`), como siempre fue. La traduccion se hace en un
+solo lugar, `ModeloBase::toArray()`; dentro del PHP se usa el nombre de la
+columna.
 
 ### 3.2 Frontend (`frontend/src`)
 
@@ -201,7 +227,7 @@ Puntos que vale la pena aclarar:
 
 ## 5. Roles y pantallas
 
-Hay exactamente 4 roles (`comun/enums/rol.enum.ts` en el backend):
+Hay exactamente 4 roles (`app/Soporte/Rol.php` en el backend):
 
 | Rol | Alcance |
 |---|---|
@@ -248,7 +274,7 @@ por el item del menu lateral en los roles que lo tienen:
   el frontend reemplaza la sesion guardada; por eso la barra superior se
   actualiza al instante. El correo se valida como unico.
 - **Cambiar contrasena** (`PATCH /autenticacion/clave`): exige la contrasena
-  actual y la verifica con `bcrypt.compare` **antes** de guardar la nueva.
+  actual y la verifica con bcrypt (`password_verify`) **antes** de guardar la nueva.
   Rechaza tambien que la nueva sea igual a la actual, y el frontend valida
   ademas el minimo de 6 caracteres y que la confirmacion coincida. Ningun rol
   puede cambiar la contrasena de otro usuario por esta via.
@@ -268,8 +294,21 @@ Dos detalles de implementacion que conviene conocer antes de tocar esto:
 ## 6. API (resumen)
 
 Todo bajo el prefijo `/api`. Autenticacion con `Authorization: Bearer
-<token>` (JWT). Cuerpo de las peticiones validado con DTOs
-(class-validator); las respuestas son JSON directo de las entidades.
+<token>` (JWT). El cuerpo de cada peticion se valida en el controlador
+(`app/Soporte/Validacion.php`): reglas por campo y rechazo de cualquier campo
+que el endpoint no espera. Las respuestas son JSON de los registros, en
+camelCase.
+
+Formato de los errores (lo lee `frontend/src/utilidades/errores.ts`):
+
+```
+{ "message": "Curso no encontrado", "error": "Not Found", "statusCode": 404 }
+{ "message": ["El campo nombre es obligatorio."], "error": "Bad Request", "statusCode": 400 }
+```
+
+Un `POST` que sale bien responde `201`; un `DELETE`, `200` sin cuerpo; el
+cambio de clave, `204`. Un token ausente, invalido o vencido es `401`
+("Unauthorized") y el frontend cierra la sesion; un rol sin permiso es `403`.
 
 ```
 POST   /autenticacion/ingresar          { correo, clave } -> { tokenAcceso, usuario }
@@ -331,7 +370,10 @@ DELETE   /scorm/paquetes/:id
 
 GET      /scorm/publico/:token            datos del modulo para la pantalla de login (sin sesion)
 POST     /scorm/publico/:token/ingresar   login del estudiante desde el LMS
-POST     /scorm/publico/:token/resultado  guarda el intento (requiere el token del login)
+GET      /scorm/publico/:token/partida    expedientes de la Mesa de Cumplimiento (requiere el token del login)
+POST     /scorm/publico/:token/verificar  veredicto de un caso
+POST     /scorm/publico/:token/partida    califica la partida en el servidor y registra el intento
+POST     /scorm/publico/:token/resultado  guarda el intento de un juego maqueta
 ```
 
 ## 6.1 Exportacion a SCORM (usar un modulo dentro de otro LMS)
@@ -426,9 +468,10 @@ jugador, sobre el fondo del juego, y trae su solicitud en un globo. El CEO
 reacciona al veredicto (asiente si acertaste, niega si no) y en cada
 expediente entra de nuevo con una animacion.
 
-Las imagenes son **archivos, no codigo**. El backend sirve la carpeta
-`RUTA_ARCHIVOS` (por defecto `backend/archivos/`) en `/archivos`, fuera del
-prefijo `/api`:
+Las imagenes son **archivos, no codigo**. Viven en `RUTA_ARCHIVOS` (por
+defecto `backend/public/archivos/`) y se sirven en `/archivos`, fuera del
+prefijo `/api`. Al estar dentro de `public/`, Apache las entrega directo, sin
+pasar por PHP:
 
 | Que | Donde | Como se usa |
 |---|---|---|
@@ -439,7 +482,7 @@ Recomendado para los CEO: PNG con fondo transparente, vertical, de medio
 cuerpo y mirando al frente; maximo 3 MB. Para el fondo: apaisado, 1600x900 o
 mas, con lo importante arriba y a los costados (el centro-abajo queda tapado
 por el personaje y el globo). Todo esto tambien esta en
-`backend/archivos/README.md`.
+`backend/public/archivos/README.md`.
 
 Un personaje entra de dos maneras, y las dos terminan en una fila de la tabla
 `personajes`:
@@ -528,7 +571,7 @@ Por eso el resumen final separa **rechazos sin sustento** (de-risking) de
 tales.
 
 **Como esta implementado.** El banco de casos y la calificacion viven en el
-backend (`src/juegos/mesa-cumplimiento/`), nunca en el cliente:
+backend (`app/Modulos/Juegos/MesaCumplimiento/`), nunca en el cliente:
 
 - `GET /juegos/partida/:moduloId` entrega los expedientes **sin** la respuesta
   correcta (con el personaje y el fondo de la escena); la cantidad sale de
@@ -543,9 +586,9 @@ El frontend y el paquete SCORM usan esa clave para decidir si renderizan el
 juego real o la maqueta, asi que agregar un segundo juego jugable no exige
 tocar las vistas existentes.
 
-`src/juegos/mesa-cumplimiento/casos.ts` ya no es el banco en vivo: es la
-**semilla** que la migracion carga como catalogo base, y donde viven las
-etiquetas de los seis campos y de las tres decisiones.
+`database/datos/casos_base.php` no es el banco en vivo: es la **semilla** que
+la migracion carga como catalogo base. Las etiquetas de los seis campos y de
+las tres decisiones viven en `MesaCumplimientoServicio.php`.
 
 **Dentro del LMS.** El paquete SCORM ejecuta exactamente el mismo juego, con la
 misma escena, consumiendo los endpoints publicos equivalentes con el token del
@@ -562,7 +605,7 @@ prototipo tampoco resolvia, o que no aporta al alcance pedido:
   plantillas `JugarVista` simula el puntaje; el backend si persiste un
   `resultado` real con ese puntaje.
 - **"Actividad" es una vista derivada, no una bitacora de auditoria.**
-  `PanelService.actividadReciente()` arma la lista combinando las tablas
+  `PanelServicio::actividadReciente()` arma la lista combinando las tablas
   existentes (ultimos cursos, solicitudes, resultados, usuarios) en vez de
   mantener una tabla de eventos aparte. Solo la usa el superadmin, igual que
   en el prototipo.
@@ -589,13 +632,15 @@ prototipo tampoco resolvia, o que no aporta al alcance pedido:
 
 ## 8. Como correr el proyecto en local
 
-Para subirlo a un servidor, ver **DESPLIEGUE.md**: cubre cPanel y la
-combinacion Neon (base) + Vercel (backend y frontend), con las variables de
+Para subirlo a un servidor, ver **DESPLIEGUE.md**: cubre cPanel (backend y
+frontend), Neon para la base y Vercel para el frontend, con las variables de
 entorno de cada caso.
 
 ### 8.1 Requisitos
 
-- Node.js 20+
+- **Backend**: PHP 8.2 o superior con las extensiones `pdo_pgsql`, `zip`,
+  `mbstring` y `openssl`, y [Composer](https://getcomposer.org).
+- **Frontend**: Node.js 20+ (solo para el frontend; el backend no usa Node).
 - PostgreSQL accesible (local o remoto). Este proyecto **no crea la base de
   datos**; hay que crearla antes.
 
@@ -619,51 +664,61 @@ DB_ORIGEN=neon    # usa DATABASE_URL ; ignora las variables sueltas
 #                 # vacio: si hay DATABASE_URL la usa, si no cae a local
 ```
 
-Toda la logica vive en `configuracion/conexion-bd.ts`, y de ahi la toman los
-cuatro puntos de entrada que abren una conexion (la app, `bd:verificar`,
-`migracion:ejecutar` y `semilla`), asi que los cuatro coinciden siempre en
-cual base estan usando. Un `DB_ORIGEN` invalido, o `DB_ORIGEN=neon` sin
-`DATABASE_URL`, hace que el proceso no arranque con un mensaje que dice
-exactamente que falta, en vez de arrancar contra la base equivocada.
+Toda la logica vive en `app/Soporte/ConexionBd.php`, y de ahi la toma todo lo
+que abre una conexion (la API, `bd:verificar`, `migrate` y `semilla`), asi que
+siempre coinciden en cual base estan usando. Un `DB_ORIGEN` invalido, o
+`DB_ORIGEN=neon` sin `DATABASE_URL`, hace que nada arranque, con un mensaje
+que dice exactamente que falta, en vez de conectarse a la base equivocada.
+
+Con Neon, el `sslmode` de la URL activa TLS solo. Si la libpq del servidor es
+vieja (pasa en cPanel) y Neon responde "Endpoint ID is not specified",
+`ConectorPostgres` reintenta pasando el endpoint, que es la salida que
+documenta Neon; no hay que tocar nada.
 
 ### 8.3 Backend
 
 ```bash
 cd backend
-cp .env.example .env        # ajusta las credenciales si no usaste las de arriba
-npm install
-npm run bd:verificar          # comprueba que la base responda antes de seguir
-npm run migracion:ejecutar   # crea las tablas
-npm run semilla               # carga instituciones, usuarios y datos de ejemplo
-npm run start:dev             # http://localhost:3000/api
+cp .env.example .env         # ajusta las credenciales si no usaste las de arriba
+composer install
+php artisan bd:verificar      # comprueba que la base responda antes de seguir
+php artisan migrate --force   # crea las tablas y carga los 13 casos base
+php artisan semilla           # carga instituciones, usuarios y datos de ejemplo
+php artisan servir            # http://localhost:3000/api
 ```
 
-### 8.3.1 Diagnostico de la base (`npm run bd:verificar`)
+`php artisan servir` levanta la API en el puerto de `PUERTO` (3000), que es
+donde el frontend la espera en desarrollo. Los cambios en el codigo o en el
+`.env` se toman en la siguiente peticion, sin reiniciar.
 
-`backend/src/herramientas/verificar-bd.ts` usa el mismo `DataSource` que las
-migraciones y la aplicacion, asi que verifica exactamente la configuracion con
-la que arranca el backend. Imprime la configuracion en uso (y si viene de
-`.env` o de los valores por defecto), intenta conectar y, si lo logra, revisa
-el estado del esquema: tablas faltantes, migraciones aplicadas y si la semilla
-ya cargo usuarios.
+**Las migraciones no pisan una base existente.** Cada una revisa primero si
+sus tablas ya estan (por ejemplo, porque las creo el backend anterior en
+NestJS) y en ese caso no hace nada. Laravel lleva su registro en la tabla
+`migraciones_laravel`, aparte de la `migrations` que usaba TypeORM.
+
+### 8.3.1 Diagnostico de la base (`php artisan bd:verificar`)
+
+`app/Consola/VerificarBd.php` usa la misma configuracion que la API, asi que
+verifica exactamente la conexion con la que va a trabajar el backend. Imprime
+cual base se eligio y por que (`DB_ORIGEN`, o que hay `DATABASE_URL`), revisa
+que PHP tenga las extensiones necesarias, intenta conectar y, si lo logra,
+revisa el estado del esquema: tablas faltantes, migraciones aplicadas y si la
+semilla ya cargo usuarios.
 
 Cuando falla no muestra el error crudo del driver, sino la causa y el remedio:
 
 | Sintoma | Que significa |
 |---|---|
-| `ECONNREFUSED` | PostgreSQL no esta corriendo o escucha en otro puerto |
-| `ENOTFOUND` / `EAI_AGAIN` | `DB_HOST` mal escrito |
-| `ETIMEDOUT` | firewall o base remota inalcanzable |
-| `28P01` / `28000` | usuario o clave incorrectos (sugiere el `CREATE USER`) |
-| `3D000` | la base no existe (sugiere el `CREATE DATABASE`) |
+| `Connection refused` | PostgreSQL no esta corriendo o escucha en otro puerto |
+| `could not translate host name` | host mal escrito |
+| `timeout expired` | firewall, o un hosting que bloquea las conexiones salientes al 5432 |
+| `password authentication failed` | usuario o clave incorrectos (sugiere el `CREATE USER`) |
+| `database "..." does not exist` | la base no existe (sugiere el `CREATE DATABASE`) |
+| `could not find driver` | falta la extension `pdo_pgsql` de PHP |
 
-No hay nada que "refrescar": el backend abre el pool al arrancar, asi que
-despues de corregir `.env` o de levantar PostgreSQL hay que reiniciar
-`npm run start:dev`.
-
-Las imagenes del juego van en `backend/archivos/` (fondo en `fondos/`, CEO en
-`personajes/`); ver 6.2.1 y `backend/archivos/README.md`. No hace falta
-ninguna para que la aplicacion arranque.
+Las imagenes del juego van en `backend/public/archivos/` (fondo en `fondos/`,
+CEO en `personajes/`); ver 6.2.1 y `backend/public/archivos/README.md`. No hace
+falta ninguna para que la aplicacion arranque.
 
 Usuarios de ejemplo que deja la semilla (clave para todos: `ludus123`):
 
@@ -682,9 +737,9 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
-En desarrollo, Vite hace proxy de `/api` hacia `http://localhost:3000`
-(ver `frontend/vite.config.ts`), asi que no hace falta configurar
-`VITE_URL_API` salvo que el backend corra en otro host/puerto.
+En desarrollo, Vite hace proxy de `/api` y `/archivos` hacia
+`http://localhost:3000` (ver `frontend/vite.config.ts`), asi que no hace falta
+configurar `VITE_URL_API` salvo que el backend corra en otro host/puerto.
 
 ## 9. Ficha de diseno (heredada del prototipo)
 
@@ -696,3 +751,48 @@ En desarrollo, Vite hace proxy de `/api` hacia `http://localhost:3000`
   en `<html>`, alternable desde la barra superior y persistido en
   `localStorage`). Todos los tokens estan en
   `frontend/src/estilos/variables.css`.
+
+## 10. De NestJS a Laravel: que cambio y que no
+
+El backend se escribio primero en NestJS. Se reescribio en Laravel porque el
+hosting de produccion es un cPanel compartido, que corre PHP de fabrica pero
+no una aplicacion Node. La reescritura se hizo **sin perdida**: el frontend y
+los paquetes SCORM ya exportados siguen funcionando sin tocar nada.
+
+**Lo que se mantiene igual:**
+
+- **La API**: las mismas 70 rutas, con los mismos metodos, roles, codigos de
+  respuesta, mensajes de error y forma del JSON. Se verifico comparando las
+  respuestas de los dos backends contra la misma base: 630 consultas GET de
+  los cuatro roles y un flujo de 122 escrituras (crear, editar, inscribir,
+  jugar, exportar SCORM, borrar).
+- **La base de datos**: mismo esquema, mismas tablas y columnas. Una base
+  creada por el backend anterior (la de Neon, por ejemplo) se usa tal cual; las
+  migraciones de Laravel la detectan y no la tocan.
+- **Las contrasenas**: los hashes bcrypt que genero Node se validan en PHP sin
+  cambios, y los nuevos se guardan con el mismo formato (`$2b$`, costo 10).
+  Nadie tiene que resetear su clave.
+- **Las sesiones**: el JWT se firma igual (HS256, mismo `JWT_SECRETO`, misma
+  carga, mismo `JWT_EXPIRACION`), asi que un token emitido por el backend
+  anterior sigue valiendo.
+- **Las variables de entorno**: las mismas (`DATABASE_URL`, `DB_ORIGEN`,
+  `DB_HOST`..., `JWT_SECRETO`, `URL_PUBLICA_API`, `RUTA_ARCHIVOS`).
+- **El paquete SCORM**: mismo lanzador, mismo manifiesto y mismo LEEME; el ZIP
+  que genera Laravel es identico al de antes salvo el token.
+
+**Lo que cambio (a mejor):**
+
+- `GET /solicitudes` ahora trae el `curso` o la `ruta` de cada solicitud; antes
+  llegaban vacios y la columna "Curso / ruta" de la pantalla quedaba en blanco.
+- Aprobar una solicitud de **salida** ahora si da de baja al estudiante. En el
+  backend anterior el borrado no encontraba la inscripcion y el estudiante
+  seguia inscrito.
+- Al asignar un personaje a un caso, la respuesta trae el personaje nuevo (antes
+  devolvia el anterior).
+- `POST /usuarios` ya no devuelve el hash de la contrasena.
+- Un dato repetido (el dominio de una institucion) responde `409` y un id que
+  no es UUID responde `400`, en vez de `500`.
+- Los mensajes de validacion estan en espanol.
+
+El codigo del backend en NestJS queda en el historial del repositorio, en la
+etiqueta **`nest-final`** (`git checkout nest-final -- backend` lo recupera).
