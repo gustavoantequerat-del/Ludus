@@ -57,6 +57,16 @@ function comoArreglar(pasos: string[]) {
 
 function mostrarConfiguracion() {
   titulo('Configuracion que se esta usando');
+
+  const dbOrigen = (process.env.DB_ORIGEN ?? '').trim().toLowerCase();
+  const comoSeEligio = dbOrigen
+    ? `forzado por DB_ORIGEN=${dbOrigen}`
+    : conexion.origen === 'neon'
+      ? 'DATABASE_URL esta definida'
+      : 'no hay DATABASE_URL ni DB_ORIGEN';
+
+  console.log(`  base de datos: ${conexion.origen === 'neon' ? 'Neon (DATABASE_URL)' : 'local'}`);
+  console.log(`  por que:       ${comoSeEligio}`);
   console.log(`  host:    ${conexion.host}`);
   console.log(`  puerto:  ${conexion.puerto}`);
   console.log(`  base:    ${conexion.nombre}`);
@@ -64,21 +74,14 @@ function mostrarConfiguracion() {
   console.log(`  clave:   ${conexion.clave ? '(definida)' : '(vacia)'}`);
   console.log(`  ssl:     ${conexion.ssl ? 'si' : 'no'}`);
 
-  if (conexion.url) {
-    console.log('  origen:  DATABASE_URL');
-    return;
+  if (!existsSync(RUTA_ENV)) {
+    console.log('  origen:  valores por defecto (no existe backend/.env)');
+    aviso('No hay archivo .env; se estan usando los valores por defecto.');
+    comoArreglar([
+      'cp .env.example .env',
+      'y ajusta las credenciales si tu PostgreSQL usa otras.',
+    ]);
   }
-  if (existsSync(RUTA_ENV)) {
-    console.log('  origen:  backend/.env');
-    return;
-  }
-
-  console.log('  origen:  valores por defecto (no existe backend/.env)');
-  aviso('No hay archivo .env; se estan usando los valores por defecto.');
-  comoArreglar([
-    'cp .env.example .env',
-    'y ajusta las credenciales si tu PostgreSQL usa otras.',
-  ]);
 }
 
 /** Traduce el error del driver a una causa concreta y su remedio. */

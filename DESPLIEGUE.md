@@ -52,12 +52,32 @@ DB_SSL=true                # solo si la base es remota
 DATABASE_URL=postgresql://usuario:clave@ep-algo.region.aws.neon.tech/neondb?sslmode=require
 ```
 
-`DATABASE_URL` tiene prioridad sobre las variables sueltas, y el `sslmode` de
-la URL ya activa TLS. Si el backend es serverless, usa el endpoint **pooled**
-(`-pooler` en el host): cada invocacion abre su propia conexion y el plan
-directo se queda sin cupo enseguida.
+Si `DATABASE_URL` es la unica de las dos que esta definida, se usa sola. El
+`sslmode` de la URL ya activa TLS. Si el backend es serverless, usa el
+endpoint **pooled** (`-pooler` en el host): cada invocacion abre su propia
+conexion y el plan directo se queda sin cupo enseguida.
 
-### 1.3 Crear el esquema (igual en los dos casos)
+### 1.3 Elegir entre la local y Neon sin borrar ninguna: `DB_ORIGEN`
+
+En desarrollo es comun tener las dos credenciales cargadas en el mismo
+`.env`: un Postgres local para trabajar rapido, y la `DATABASE_URL` de Neon a
+mano para probar contra la base real de vez en cuando. `DB_ORIGEN` elige cual
+usar sin tocar ninguna de las dos:
+
+```
+DB_ORIGEN=local   # usa DB_HOST/DB_PUERTO/... e ignora DATABASE_URL
+DB_ORIGEN=neon    # usa DATABASE_URL e ignora las variables sueltas
+```
+
+Vacio (o sin definir) mantiene el comportamiento de siempre: si hay
+`DATABASE_URL` la usa, si no cae a las variables sueltas. Asi que un
+despliegue que solo configura una de las dos (Vercel con `DATABASE_URL`, un
+cPanel con base propia) no necesita tocar `DB_ORIGEN` para nada. Un valor
+invalido, o `DB_ORIGEN=neon` sin `DATABASE_URL`, hace que el backend no
+arranque con un mensaje que dice exactamente que falta, en vez de conectarse
+a la base equivocada en silencio.
+
+### 1.4 Crear el esquema (igual en los dos casos)
 
 Desde `backend/`, con las variables ya configuradas:
 
@@ -196,7 +216,8 @@ vieja: hay que **volver a exportarlos**.
 
 ## 5. Lista de verificacion
 
-- [ ] `npm run bd:verificar` conecta y dice "Esquema completo"
+- [ ] `npm run bd:verificar` conecta y dice "Esquema completo", contra la base
+      esperada (revisa la linea "base de datos:" que imprime)
 - [ ] `JWT_SECRETO` cambiado (no el de ejemplo)
 - [ ] `URL_PUBLICA_API` es la URL publica del backend, con HTTPS
 - [ ] Si el frontend esta en otro dominio, `VITE_URL_API` apunta al backend

@@ -65,6 +65,7 @@ backend/src/
 ├── app.module.ts                Modulo raiz: registra TypeORM y todos los modulos de dominio
 ├── configuracion/
 │   ├── configuracion.ts         Lee variables de entorno (.env)
+│   ├── conexion-bd.ts            Decide DATABASE_URL vs variables sueltas segun DB_ORIGEN (ver 8.2.1)
 │   ├── opciones-typeorm.ts      Arma las opciones de conexion para NestJS
 │   └── datos-origen.ts          DataSource de TypeORM para CLI (migraciones)
 ├── comun/                        Piezas transversales reutilizadas por todos los modulos
@@ -605,6 +606,25 @@ entorno de cada caso.
 sudo -u postgres psql -c "CREATE USER sistema_juegos WITH PASSWORD 'sistema_juegos';"
 sudo -u postgres psql -c "CREATE DATABASE sistema_juegos OWNER sistema_juegos;"
 ```
+
+### 8.2.1 Local o Neon: `DB_ORIGEN`
+
+El `.env` puede tener cargadas **las dos** formas de conexion a la vez — las
+variables sueltas de un Postgres local y la `DATABASE_URL` de Neon — y
+`DB_ORIGEN` elige cual usar sin que haya que borrar ninguna:
+
+```bash
+DB_ORIGEN=local   # usa DB_HOST/DB_PUERTO/... ; ignora DATABASE_URL
+DB_ORIGEN=neon    # usa DATABASE_URL ; ignora las variables sueltas
+#                 # vacio: si hay DATABASE_URL la usa, si no cae a local
+```
+
+Toda la logica vive en `configuracion/conexion-bd.ts`, y de ahi la toman los
+cuatro puntos de entrada que abren una conexion (la app, `bd:verificar`,
+`migracion:ejecutar` y `semilla`), asi que los cuatro coinciden siempre en
+cual base estan usando. Un `DB_ORIGEN` invalido, o `DB_ORIGEN=neon` sin
+`DATABASE_URL`, hace que el proceso no arranque con un mensaje que dice
+exactamente que falta, en vez de arrancar contra la base equivocada.
 
 ### 8.3 Backend
 

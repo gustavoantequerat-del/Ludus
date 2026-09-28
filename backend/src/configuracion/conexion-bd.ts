@@ -8,10 +8,25 @@
  * Acepta las dos formas en que los proveedores entregan una base:
  * - `DATABASE_URL` completa (Neon, Render, Railway, Supabase).
  * - Las variables sueltas `DB_HOST`, `DB_PUERTO`, ... (cPanel, local).
+ *
+ * Y como en desarrollo es comun tener las dos cargadas a la vez (un Postgres
+ * local para trabajar rapido, y la URL de Neon a mano para probar contra la
+ * base real), `DB_ORIGEN` elige cual usar sin tener que borrar ninguna:
+ *
+ *   DB_ORIGEN=local   -> usa DB_HOST/DB_PUERTO/... e ignora DATABASE_URL
+ *   DB_ORIGEN=neon    -> usa DATABASE_URL e ignora las variables sueltas
+ *   (sin definir)     -> si hay DATABASE_URL la usa; si no, cae a local
+ *
+ * El caso "sin definir" es a proposito el mismo comportamiento de antes de
+ * que existiera DB_ORIGEN, para no romper un despliegue que ya funciona con
+ * una sola de las dos formas configurada.
  */
 
+export type OrigenBd = 'local' | 'neon';
+
 export interface ConexionBd {
-  /** Solo cuando se configuro con DATABASE_URL. */
+  origen: OrigenBd;
+  /** Solo cuando el origen es 'neon'. */
   url?: string;
   host: string;
   puerto: number;
@@ -23,11 +38,25 @@ export interface ConexionBd {
 }
 
 export function leerConexionBd(): ConexionBd {
-  const url = (process.env.DATABASE_URL ?? '').trim();
+  const origenForzado = (process.env.DB_ORIGEN ?? '').trim().toLowerCase();
+  if (origenForzado && origenForzado !== 'local' && origenForzado !== 'neon') {
+    throw new Error(
+      `DB_ORIGEN="${origenForzado}" no es un valor valido. Usa "local", "neon", o dejalo vacio.`,
+    );
+  }
 
-  if (url) {
+  const url = (process.env.DATABASE_URL ?? '').trim();
+  const usarNeon = origenForzado === 'neon' || (!origenForzado && Boolean(url));
+
+  if (usarNeon) {
+    if (!url) {
+      throw new Error(
+        'DB_ORIGEN=neon pero no hay DATABASE_URL en el .env. Pega ahi la cadena de conexion de Neon.',
+      );
+    }
     const partes = new URL(url);
     return {
+      origen: 'neon',
       url,
       host: partes.hostname,
       puerto: Number(partes.port) || 5432,
@@ -39,6 +68,7 @@ export function leerConexionBd(): ConexionBd {
   }
 
   return {
+    origen: 'local',
     host: process.env.DB_HOST || 'localhost',
     puerto: Number(process.env.DB_PUERTO) || 5432,
     usuario: process.env.DB_USUARIO || 'sistema_juegos',
