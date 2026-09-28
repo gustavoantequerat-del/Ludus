@@ -794,5 +794,6 @@ los paquetes SCORM ya exportados siguen funcionando sin tocar nada.
   no es UUID responde `400`, en vez de `500`.
 - Los mensajes de validacion estan en espanol.
 
-El codigo del backend en NestJS queda en el historial del repositorio, en la
-etiqueta **`nest-final`** (`git checkout nest-final -- backend` lo recupera).
+El codigo del backend en NestJS queda en el historial del repositorio: es el
+commit **`b6a65c5`**, el ultimo antes del cambio (`git checkout b6a65c5 --
+backend` lo recupera en cualquier momento).
