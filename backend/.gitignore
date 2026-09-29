@@ -1,18 +1,4 @@
-# Dependencias: se instalan con "composer install" (o vienen en el ZIP de despliegue).
-/vendor
-
-# Configuracion local con claves: nunca al repositorio. Se parte de .env.example.
+node_modules/
+dist/
 .env
-.env.backup
-.env.production
-
-# Lo que genera Laravel al correr (sus carpetas traen su propio .gitignore).
 *.log
-/storage/*.key
-/public/storage
-/public/hot
-
-.DS_Store
-Thumbs.db
-/.idea
-/.vscode
