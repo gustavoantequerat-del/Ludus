@@ -1,0 +1,225 @@
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.barraTexto {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+  font: 400 12.5px/1.55 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+/* Muestra del mazo: hasta ocho fichas sobre su fondo. */
+.muestra {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  padding: 30px 14px 14px;
+  background: linear-gradient(160deg, var(--superficie-3), var(--superficie-2));
+  background-size: cover;
+  background-position: center;
+}
+
+.muestraFicha {
+  aspect-ratio: 1;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--superficie);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.muestraFichaMahjong {
+  aspect-ratio: 3 / 4;
+  padding: 5px;
+  background: linear-gradient(160deg, #fffdf6, #e9e1cc);
+}
+
+.muestraIcono {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.marcaBase {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--chip-sobre-brillante);
+  color: var(--tinta-primaria-suave);
+  font: 600 10px var(--fuente-texto);
+  letter-spacing: 0.3px;
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 13px 4px;
+}
+
+.nombre {
+  font: 600 13.5px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.detalle {
+  font: 500 11.5px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.acciones {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 9px 13px 13px;
+}
+
+/* --- Formulario --- */
+
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.seccionCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.etiqueta {
+  font: 600 12px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.ayuda {
+  margin: 0;
+  font: 400 11.5px/1.5 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.botonArchivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border-radius: 11px;
+  background: var(--primario-suave);
+  border: 1px solid var(--primario-borde-3);
+  color: var(--tinta-primaria-suave);
+  font: 600 12px var(--fuente-texto);
+  cursor: pointer;
+}
+
+.archivoOculto {
+  display: none;
+}
+
+.iconos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+  padding: 10px;
+  min-height: 84px;
+  border-radius: 13px;
+  background: var(--celda);
+  border: 1px dashed var(--linea-2);
+}
+
+.icono {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--superficie-2);
+}
+
+.iconoImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.quitar {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 99px;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: var(--velo);
+  color: #fff;
+  cursor: pointer;
+}
+
+.subiendo {
+  align-self: center;
+  font: 500 11.5px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.dosColumnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.imagenUnica {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.imagenUnicaPrevia,
+.imagenUnicaVacia {
+  width: 78px;
+  height: 78px;
+  flex: none;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea-2);
+}
+
+.imagenUnicaVacia {
+  display: grid;
+  place-items: center;
+  font: 600 11px var(--fuente-texto);
+  color: var(--tenue);
+}
+
+.imagenUnicaAcciones {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}

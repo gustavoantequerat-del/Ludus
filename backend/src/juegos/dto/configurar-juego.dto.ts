@@ -1,4 +1,15 @@
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class ConfigurarJuegoDto {
   @IsUUID()
@@ -38,4 +49,9 @@ export class ConfigurarJuegoDto {
   @IsOptional()
   @IsBoolean()
   califica?: boolean;
+
+  /** Lo propio del juego (mazo, rondas, historia). Lo valida cada juego. */
+  @IsOptional()
+  @IsObject()
+  ajustes?: Record<string, unknown>;
 }

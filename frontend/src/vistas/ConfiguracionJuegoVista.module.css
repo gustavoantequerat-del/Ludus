@@ -59,6 +59,7 @@
   height: 30px;
   padding: 7px;
   border-radius: 10px;
+  background: var(--primario);
   color: var(--sobre-brillante);
   display: grid;
   place-items: center;
@@ -114,4 +115,33 @@
 .previaTexto {
   font: 400 11.5px/1.45 var(--fuente-texto);
   color: var(--apagado);
+}
+
+.plantillaIconoLudico {
+  background: var(--secundario);
+}
+
+/* Separa las plantillas de evaluacion de las ludicas. */
+.sector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font: 600 11px var(--fuente-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--apagado);
+}
+
+.notaLudico {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: var(--secundario-suave);
+  border: 1px solid var(--secundario-borde);
+  color: var(--tinta-info);
+  font: 500 12px/1.45 var(--fuente-texto);
 }

@@ -3,8 +3,7 @@
  * Editor de un juego concreto.
  *
  * Cada juego jugable trae sus propias pestanas: son su contenido, no un
- * modulo generico del sistema. Hoy solo la Mesa de Cumplimiento tiene
- * editor; los demas siguen siendo maqueta y lo dicen.
+ * modulo generico del sistema. Los que siguen siendo maqueta lo dicen.
  */
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -13,6 +12,8 @@ import Encabezado from '@/componentes/base/Encabezado.vue';
 import Icono from '@/componentes/base/Icono.vue';
 import EditorCasos from '@/componentes/editor/EditorCasos.vue';
 import EditorPersonajes from '@/componentes/editor/EditorPersonajes.vue';
+import EditorMazos from '@/componentes/editor/EditorMazos.vue';
+import EditorHistorias from '@/componentes/editor/EditorHistorias.vue';
 import { juegosServicio } from '@/servicios/juegos.servicio';
 import type { Juego } from '@/tipos';
 
@@ -25,6 +26,9 @@ const PESTANAS_POR_JUEGO: Record<string, { id: string; etiqueta: string; icono: 
     { id: 'casos', etiqueta: 'Casos', icono: 'file-text' },
     { id: 'personajes', etiqueta: 'Personajes', icono: 'user-round' },
   ],
+  memorama: [{ id: 'mazos', etiqueta: 'Mazos', icono: 'layout-grid' }],
+  mahjong: [{ id: 'mazos', etiqueta: 'Mazos', icono: 'layers' }],
+  'runner-narrativo': [{ id: 'historias', etiqueta: 'Historias', icono: 'clapperboard' }],
 };
 
 const juego = ref<Juego | null>(null);
@@ -68,5 +72,11 @@ onMounted(async () => {
 
     <EditorCasos v-if="pestanaActiva === 'casos'" />
     <EditorPersonajes v-else-if="pestanaActiva === 'personajes'" />
+    <EditorMazos
+      v-else-if="pestanaActiva === 'mazos' && (clave === 'memorama' || clave === 'mahjong')"
+      :key="clave"
+      :juego-clave="clave"
+    />
+    <EditorHistorias v-else-if="pestanaActiva === 'historias'" />
   </template>
 </template>

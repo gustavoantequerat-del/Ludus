@@ -94,17 +94,17 @@ Neon que ya usabas), la migracion y la semilla lo detectan y no la tocan.
 
 ## 2. AWS Lightsail (recomendado)
 
-Una instancia de Lightsail con la imagen **Node.js** trae Node, npm y Apache
-(es la imagen de Bitnami). El plan de 2 GB de RAM y 2 vCPU alcanza de sobra
-para backend, frontend y, si se quiere, PostgreSQL en la misma maquina.
-
-Como queda armado:
+Una instancia propia (aqui, Lightsail con Debian 12) con **Caddy** como
+servidor web: atiende los puertos 80 y 443, saca y renueva solo el certificado
+HTTPS, sirve el frontend y pasa la API a Node. Puede compartir la maquina con
+otros proyectos: cada uno tiene su bloque en el `Caddyfile` y su propio puerto
+de Node.
 
 ```
 https://ludus.tu-dominio.com
-  └── Apache (puertos 80 y 443, con el certificado)
-        ├── /api/*       -> proxy a Node en 127.0.0.1:3000 (PM2 lo mantiene vivo)
-        ├── /archivos/*  -> proxy a Node (imagenes de personajes y fondos)
+  └── Caddy (80 y 443, certificado automatico)
+        ├── /api/*       -> Node en localhost:3000 (PM2 lo mantiene vivo)
+        ├── /archivos/*  -> Node (imagenes y videos de los juegos)
         └── todo lo demas -> frontend/dist (la SPA de Vue)
 ```
 
@@ -113,17 +113,14 @@ Frontend y backend bajo **el mismo dominio**: sin CORS, sin contenido mixto
 
 ### 2.1 Preparar la instancia
 
-1. **IP estatica**: en Lightsail, *Networking* → *Attach static IP* (la de la
-   instancia cambia en cada reinicio si no se fija).
-2. **Firewall**: en la pestana *Networking* de la instancia, deja abiertos
-   `SSH (22)`, `HTTP (80)` y agrega `HTTPS (443)`. **No abras el 3000**: Node
-   solo escucha para Apache.
-3. **DNS**: en el panel donde administras el dominio (por ejemplo el *Zone
-   Editor* de cPanel), crea un registro `A` de `ludus.tu-dominio.com` a la IP
-   estatica. Tarda de minutos a un par de horas en propagarse; se comprueba con
-   `ping ludus.tu-dominio.com`.
-4. Entra por SSH (el boton *Connect using SSH* de Lightsail). El usuario es
-   `bitnami`.
+1. **IP estatica**: en Lightsail, *Networking* → *Attach static IP*.
+2. **Firewall** (pestana *Networking* de la instancia): `SSH (22)`, `HTTP (80)`
+   y `HTTPS (443)` abiertos. **No abras el 3000**: Node solo escucha para Caddy.
+3. **DNS**: un registro `A` de `ludus.tu-dominio.com` a la IP estatica (en el
+   panel donde administras el dominio, por ejemplo el *Zone Editor* de cPanel).
+   Se comprueba con `getent hosts ludus.tu-dominio.com`.
+4. Node 20+, PM2 y Caddy instalados. Si la maquina ya tiene otro proyecto con
+   Caddy, no hay que instalar nada mas.
 
 ### 2.2 Traer el codigo y compilar
 
@@ -142,7 +139,14 @@ npm run migracion:ejecutar
 ```bash
 cd ~/ludus/frontend
 npm ci
-npm run build      # con VITE_URL_API vacio: el frontend llama a /api del mismo dominio
+VITE_URL_API= npm run build   # vacio: el frontend llama a /api del mismo dominio
+```
+
+Comprueba que el frontend no quedo con una URL escrita a mano (no debe
+imprimir nada):
+
+```bash
+grep -rhoE "https?://[a-z0-9.-]+/api" ~/ludus/frontend/dist/assets | sort -u
 ```
 
 ### 2.3 (Opcional) PostgreSQL en la misma instancia
@@ -153,11 +157,11 @@ Solo si no vas a usar Neon:
 sudo apt-get update && sudo apt-get install -y postgresql
 sudo -u postgres psql -c "CREATE USER ludus WITH PASSWORD 'una-clave-larga';"
 sudo -u postgres psql -c "CREATE DATABASE ludus OWNER ludus;"
+sudo -u postgres psql -d ludus -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 ```
 
 Y en el `.env`: `DB_ORIGEN=local`, `DB_HOST=localhost`, `DB_NOMBRE=ludus`,
-`DB_USUARIO=ludus`, `DB_CLAVE=una-clave-larga`. PostgreSQL queda escuchando
-solo en la propia maquina, que es lo correcto. Para no perder datos, activa
+`DB_USUARIO=ludus`, `DB_CLAVE=una-clave-larga`. Para no perder datos, activa
 los *snapshots automaticos* de la instancia en Lightsail.
 
 ### 2.4 El `.env` del backend
@@ -172,109 +176,92 @@ RUTA_ARCHIVOS=
 URL_PUBLICA_API=https://ludus.tu-dominio.com/api
 ```
 
+- `PUERTO`: uno que no use otro proyecto de la maquina (`sudo ss -tlnp` lista
+  los ocupados). Si cambias el 3000, cambialo tambien en el `Caddyfile`.
 - `JWT_SECRETO`: si ya habia usuarios logueados con otro backend, usa el mismo
   valor para no invalidar sus sesiones. Si no, genera uno con
   `openssl rand -hex 32`.
-- `RUTA_ARCHIVOS` **vacio**: usa `backend/archivos`, que en Lightsail es disco
-  persistente. Una ruta relativa como `backend/archivos` se resuelve desde la
-  carpeta `backend/` y termina creando `backend/backend/archivos`.
+- `RUTA_ARCHIVOS` **vacio**: usa `backend/archivos`, que es disco persistente.
+  Una ruta relativa como `backend/archivos` se resuelve desde la carpeta
+  `backend/` y termina creando `backend/backend/archivos`.
 - `URL_PUBLICA_API` con `https://` y terminada en `/api`.
 
 ### 2.5 Mantener Node corriendo con PM2
 
 ```bash
-sudo npm install -g pm2
 cd ~/ludus/backend
 pm2 start dist/main.js --name ludus-api
 pm2 save
-pm2 startup        # imprime un comando con sudo: copialo y ejecutalo
+pm2 startup        # imprime un comando con sudo: copialo y ejecutalo (una sola vez por maquina)
 ```
 
-`pm2 startup` hace que la API vuelva sola despues de un reinicio de la
-instancia. Comandos utiles: `pm2 logs ludus-api`, `pm2 restart ludus-api`,
-`pm2 status`.
+Comandos utiles: `pm2 logs ludus-api`, `pm2 restart ludus-api --update-env`
+(despues de cambiar el `.env`), `pm2 status`.
 
 Comprueba que responde, desde la misma instancia:
 
 ```bash
-curl -s -X POST http://127.0.0.1:3000/api/autenticacion/ingresar \
-  -H "Content-Type: application/json" -d '{"correo":"x@x.io","clave":"x"}'
+curl -s -X POST http://127.0.0.1:3000/api/autenticacion/ingresar -H "Content-Type: application/json" -d '{"correo":"x@x.io","clave":"xxxxxx"}'
 # {"message":"Correo o contrasena invalidos",...}  -> la API y la base funcionan
 ```
 
-### 2.6 Apache: el dominio, el proxy y el frontend
+### 2.6 Caddy: el dominio, el certificado, el proxy y el frontend
 
-Crea `/opt/bitnami/apache/conf/vhosts/ludus-vhost.conf` (con
-`sudo nano ...`), cambiando el dominio:
-
-```apache
-<VirtualHost 127.0.0.1:80 _default_:80>
-  ServerName ludus.tu-dominio.com
-  Include /opt/bitnami/apache/conf/vhosts/ludus-comun.conf.inc
-</VirtualHost>
-
-<VirtualHost 127.0.0.1:443 _default_:443>
-  ServerName ludus.tu-dominio.com
-  SSLEngine on
-  SSLCertificateFile "/opt/bitnami/apache/conf/bitnami/certs/server.crt"
-  SSLCertificateKeyFile "/opt/bitnami/apache/conf/bitnami/certs/server.key"
-  Include /opt/bitnami/apache/conf/vhosts/ludus-comun.conf.inc
-</VirtualHost>
-```
-
-Y `/opt/bitnami/apache/conf/vhosts/ludus-comun.conf.inc`:
-
-```apache
-DocumentRoot "/home/bitnami/ludus/frontend/dist"
-<Directory "/home/bitnami/ludus/frontend/dist">
-  Require all granted
-  # Las rutas de Vue (/editor, /cursos/...) devuelven index.html en vez de 404.
-  FallbackResource /index.html
-</Directory>
-
-ProxyPreserveHost On
-ProxyPass        /api      http://127.0.0.1:3000/api
-ProxyPassReverse /api      http://127.0.0.1:3000/api
-ProxyPass        /archivos http://127.0.0.1:3000/archivos
-ProxyPassReverse /archivos http://127.0.0.1:3000/archivos
-
-# Las imagenes de personajes viajan en base64 (hasta 6 MB).
-LimitRequestBody 7340032
-```
-
-Apache corre como otro usuario y necesita poder leer el frontend:
+Agrega el bloque al final de `/etc/caddy/Caddyfile` (con un respaldo antes; los
+bloques de otros proyectos no se tocan):
 
 ```bash
-chmod o+x /home/bitnami /home/bitnami/ludus /home/bitnami/ludus/frontend
-sudo /opt/bitnami/ctlscript.sh restart apache
+sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak
+sudo tee -a /etc/caddy/Caddyfile > /dev/null <<'FIN'
+
+ludus.tu-dominio.com {
+    encode gzip
+    # Los videos del Runner pesan hasta 10 MB; las imagenes viajan en base64 (6 MB).
+    request_body {
+        max_size 12MB
+    }
+
+    handle /api/* {
+        reverse_proxy localhost:3000
+    }
+    handle /archivos/* {
+        reverse_proxy localhost:3000
+    }
+    handle {
+        root * /home/admin/ludus/frontend/dist
+        try_files {path} /index.html
+        file_server
+    }
+}
+FIN
 ```
 
-Con eso `http://ludus.tu-dominio.com` ya debe mostrar el login (todavia sin
-candado).
-
-### 2.7 HTTPS
-
-La imagen de Bitnami trae una herramienta que pide el certificado gratuito de
-Let's Encrypt, lo instala y lo renueva sola:
+Caddy corre como el usuario `caddy` y necesita poder leer el frontend:
 
 ```bash
-sudo /opt/bitnami/bncert-tool
+chmod o+x /home/admin /home/admin/ludus /home/admin/ludus/frontend
+chmod -R o+rX /home/admin/ludus/frontend/dist
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl reload caddy
 ```
 
-Te pide el dominio (`ludus.tu-dominio.com`; responde que no a agregar el
-`www` si no creaste ese registro), si quieres redirigir HTTP a HTTPS (si) y un
-correo. El DNS del paso 2.1 tiene que estar ya apuntando a la instancia o la
-validacion falla.
+Al recargar, Caddy pide solo el certificado de Let's Encrypt para el dominio
+nuevo (unos segundos; el DNS del paso 2.1 tiene que estar apuntando ya). Si
+algo falla: `sudo journalctl -u caddy -n 30 --no-pager`.
 
-### 2.8 Actualizar a una version nueva
+> **Si ya tenias Ludus desplegado** con un `request_body` de 7MB, subelo a
+> **12MB**: con 7MB, Caddy corta la subida de cualquier video de mas de 7 MB
+> antes de que llegue al servidor, y el docente ve un error generico.
+
+### 2.7 Actualizar a una version nueva
 
 ```bash
 cd ~/ludus && git pull
 cd backend && npm ci && npm run build && npm run migracion:ejecutar && pm2 restart ludus-api
-cd ../frontend && npm ci && npm run build
+cd ../frontend && npm ci && VITE_URL_API= npm run build && chmod -R o+rX dist
 ```
 
-El frontend no necesita reiniciar nada: Apache sirve los archivos nuevos al
+El frontend no necesita reiniciar nada: Caddy sirve los archivos nuevos al
 instante (con Ctrl+F5 en el navegador si quedo algo en cache).
 
 ---
@@ -355,6 +342,7 @@ direccion vieja: hay que **volver a exportarlos**.
 - [ ] El sitio abre con candado y el login funciona (sin errores de
       "Mixed Content" en la consola del navegador)
 - [ ] En Lightsail el puerto 3000 **no** esta abierto en el firewall
+- [ ] `request_body` del `Caddyfile` en 12MB (sube un video de prueba de 9-10 MB)
 - [ ] La pantalla *Paquetes SCORM* no muestra la advertencia amarilla
 - [ ] Un paquete recien exportado abre y guarda nota desde el LMS
 - [ ] Las claves de la semilla cambiadas, o la semilla no ejecutada

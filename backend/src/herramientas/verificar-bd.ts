@@ -32,6 +32,8 @@ const TABLAS_ESPERADAS = [
   'paquetes_scorm',
   'personajes',
   'casos_cumplimiento',
+  'mazos',
+  'historias',
 ];
 
 function titulo(texto: string) {

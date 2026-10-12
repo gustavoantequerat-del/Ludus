@@ -24,10 +24,17 @@ import { ResultadosService } from '../resultados/resultados.service';
 import { JuegosService } from '../juegos/juegos.service';
 import { RespuestaJugador } from '../juegos/mesa-cumplimiento/mesa-cumplimiento.service';
 import { Decision } from '../juegos/mesa-cumplimiento/casos';
+import { CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from '../juegos/catalogo-nuevos';
 import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
 import { RegistrarResultadoScormDto } from './dto/registrar-resultado-scorm.dto';
 
 const ARCHIVOS_PLANTILLA = ['index.html', 'estilos.css', 'ludus-scorm.js'];
+
+/**
+ * Juegos que el paquete SCORM todavia no sabe jugar: el lanzador del paquete
+ * es JavaScript aparte (plantilla/) y hoy solo trae la Mesa de Cumplimiento.
+ */
+const JUEGOS_SIN_SCORM = [CLAVE_MEMORAMA, CLAVE_MAHJONG, CLAVE_RUNNER];
 
 @Injectable()
 export class ScormService {
@@ -145,6 +152,11 @@ export class ScormService {
     if (!configuracion) {
       throw new BadRequestException(
         'El modulo necesita un juego configurado antes de exportarlo a SCORM',
+      );
+    }
+    if (JUEGOS_SIN_SCORM.includes(configuracion.juego.clave)) {
+      throw new BadRequestException(
+        `${configuracion.juego.nombre} todavia no se puede exportar a SCORM: por ahora se juega dentro de Ludus.`,
       );
     }
 

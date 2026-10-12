@@ -55,6 +55,14 @@ export class ConfiguracionJuego {
   @Column({ name: 'puntaje_maximo', type: 'int', default: 100 })
   puntajeMaximo: number;
 
+  /**
+   * Lo propio de cada juego, sin una columna por parametro: que mazo usa el
+   * Memorama, cuantas rondas, que historia corre el Runner. Cada juego valida
+   * los suyos al configurar.
+   */
+  @Column({ type: 'jsonb', default: () => "'{}'" })
+  ajustes: Record<string, unknown>;
+
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;
 

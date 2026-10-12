@@ -38,3 +38,22 @@ estar recortada a la altura del pecho o la cintura. Maximo 3 MB por archivo.
 
 Un personaje se asigna a cada caso desde *Casos de cumplimiento*. Un caso sin
 personaje se juega igual: la escena muestra una silueta neutra.
+
+## `fichas/`
+
+Iconos y fichas de los mazos del Memorama y el Mahjong.
+
+- `fichas/base/memorama/` y `fichas/base/mahjong/`: los iconos de los mazos
+  base ("Clasico"), generados a partir de [Lucide](https://lucide.dev) (licencia
+  ISC). No se borran nunca solos.
+- Lo que el docente sube desde *Editor > Memorama/Mahjong > Mazos* se guarda
+  aqui con un nombre aleatorio y se borra cuando ningun mazo lo usa.
+
+Recomendado: imagenes cuadradas; para el Mahjong, PNG con fondo transparente.
+Maximo 3 MB por imagen. Los fondos de mesa van a `fondos/`.
+
+## `videos/`
+
+Videos del Runner Narrativo: **MP4 (H.264), maximo 10 segundos y 10 MB cada
+uno.** El servidor revisa los tres limites al subir (lee la duracion y el codec
+del propio archivo). Un video que ninguna historia usa se borra solo.

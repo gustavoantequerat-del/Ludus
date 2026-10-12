@@ -1,0 +1,90 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.etiqueta {
+  font: 600 12px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.ayuda {
+  font: 400 11.5px/1.45 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.vacio {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--linea-2);
+  font: 500 12px/1.45 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  border: 1px solid var(--linea);
+  background: var(--celda);
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.opcionActiva {
+  border-color: var(--primario-borde);
+  background: var(--primario-suave);
+}
+
+.miniaturas {
+  display: grid;
+  grid-template-columns: repeat(2, 18px);
+  gap: 3px;
+  flex: none;
+}
+
+.miniatura {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: var(--superficie);
+}
+
+.iconoOpcion {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--primario-suave);
+  color: var(--terciario);
+}
+
+.opcionTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.opcionNombre {
+  font: 600 13px var(--fuente-titulos);
+}
+
+.opcionDetalle {
+  font: 500 11px var(--fuente-texto);
+  color: var(--apagado);
+}

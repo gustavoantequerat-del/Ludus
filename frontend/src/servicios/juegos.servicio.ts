@@ -5,8 +5,13 @@ import type {
   DecisionCumplimiento,
   Juego,
   PartidaCumplimiento,
+  PartidaMahjong,
+  PartidaMemorama,
+  PartidaRunner,
+  ResultadoRunner,
   Velocidad,
   VeredictoCaso,
+  VeredictoRunner,
 } from '@/tipos';
 
 export interface DatosConfiguracionJuego {
@@ -19,7 +24,10 @@ export interface DatosConfiguracionJuego {
   intentosPermitidos: number;
   puntajeMaximo: number;
   califica?: boolean;
+  ajustes?: Record<string, unknown>;
 }
+
+const RUNNER = '/juegos/runner-narrativo/partida';
 
 export const juegosServicio = {
   listarCatalogo() {
@@ -47,6 +55,29 @@ export const juegosServicio = {
   ) {
     return cliente
       .post<CalificacionPartida>(`/juegos/partida/${moduloId}/terminar`, { respuestas })
+      .then((r) => r.data);
+  },
+
+  /* --- Juegos ludicos: la partida; el intento se guarda con resultadosServicio --- */
+  partidaMemorama(moduloId: string) {
+    return cliente.get<PartidaMemorama>(`/juegos/memorama/partida/${moduloId}`).then((r) => r.data);
+  },
+  partidaMahjong(moduloId: string) {
+    return cliente.get<PartidaMahjong>(`/juegos/mahjong/partida/${moduloId}`).then((r) => r.data);
+  },
+
+  /* --- Runner Narrativo --- */
+  partidaRunner(moduloId: string) {
+    return cliente.get<PartidaRunner>(`${RUNNER}/${moduloId}`).then((r) => r.data);
+  },
+  verificarRunner(moduloId: string, preguntaId: string, opcionId: string) {
+    return cliente
+      .post<VeredictoRunner>(`${RUNNER}/${moduloId}/verificar`, { preguntaId, opcionId })
+      .then((r) => r.data);
+  },
+  terminarRunner(moduloId: string, respuestas: { preguntaId: string; opcionId: string }[]) {
+    return cliente
+      .post<ResultadoRunner>(`${RUNNER}/${moduloId}/terminar`, { respuestas })
       .then((r) => r.data);
   },
 

@@ -529,9 +529,14 @@
   }
 
   function prepararJuego() {
-    // Los juegos con mecanica programada tienen su propia pantalla.
-    if (paquete.juego && paquete.juego.jugable) {
+    // Los juegos con mecanica programada tienen su propia pantalla. Hoy el
+    // paquete solo trae la de la Mesa de Cumplimiento.
+    if (paquete.juego && paquete.juego.clave === 'mesa-cumplimiento') {
       iniciarMesa();
+      return;
+    }
+    if (paquete.juego && paquete.juego.jugable) {
+      mostrarError('Este juego se juega dentro de Ludus: todavia no esta disponible en el LMS.');
       return;
     }
 

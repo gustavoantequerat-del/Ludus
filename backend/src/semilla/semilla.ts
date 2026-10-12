@@ -15,6 +15,7 @@ import { Inscripcion } from '../inscripciones/inscripcion.entidad';
 import { Solicitud, TipoSolicitud, EstadoSolicitud } from '../solicitudes/solicitud.entidad';
 import { Resultado } from '../resultados/resultado.entidad';
 import { Rol } from '../comun/enums/rol.enum';
+import { JUEGO_MAHJONG, JUEGO_MEMORAMA, JUEGO_RUNNER } from '../juegos/catalogo-nuevos';
 
 cargarEnv();
 
@@ -47,15 +48,7 @@ const CATALOGO_JUEGOS = [
       'Las piezas caen con un valor; encajalas en la columna que corresponde antes de que la torre llegue arriba.',
     parametros: ['Caida', 'Niveles', 'Piezas'],
   },
-  {
-    clave: 'memorama',
-    nombre: 'Memorama',
-    categoria: 'Memoria',
-    icono: 'layout-grid',
-    eslogan: 'Empareja imagen y concepto contra el reloj.',
-    descripcion: 'Voltea dos cartas por turno y encuentra los pares de imagen y concepto.',
-    parametros: ['Pares', 'Tiempo', 'Pistas'],
-  },
+  JUEGO_MEMORAMA,
   {
     clave: 'burbujas',
     nombre: 'Burbujas',
@@ -95,6 +88,8 @@ const CATALOGO_JUEGOS = [
     parametros: ['Casos', 'Tiempo', 'Intentos'],
     jugable: true,
   },
+  JUEGO_MAHJONG,
+  JUEGO_RUNNER,
 ];
 
 async function sembrar() {

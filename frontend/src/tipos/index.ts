@@ -154,10 +154,14 @@ export interface CalificacionPartida {
   puntajeMaximo: number;
 }
 
+/** Evaluacion mide lo aprendido y puede calificar; ludico nunca califica. */
+export type TipoJuego = 'evaluacion' | 'ludico';
+
 export interface Juego {
   id: string;
   clave: string;
   jugable: boolean;
+  tipo: TipoJuego;
   nombre: string;
   categoria: string;
   icono: string;
@@ -180,6 +184,106 @@ export interface ConfiguracionJuego {
   paresContenido: number;
   intentosPermitidos: number;
   puntajeMaximo: number;
+  /** Lo propio de cada juego: mazoId y rondas, tamano, historiaId. */
+  ajustes: Record<string, unknown>;
+}
+
+/* --- Juegos de fichas (Memorama y Mahjong) --- */
+
+export type ClaveJuegoFichas = 'memorama' | 'mahjong';
+
+export interface Mazo {
+  id: string;
+  juegoClave: ClaveJuegoFichas;
+  nombre: string;
+  iconos: string[];
+  /** Dorso de la carta (Memorama) o cuerpo de la ficha (Mahjong). */
+  imagenFicha: string | null;
+  fondo: string | null;
+  institucionId: string | null;
+}
+
+export interface MazoPartida {
+  nombre: string;
+  iconos: string[];
+  imagenFicha: string | null;
+  fondo: string | null;
+}
+
+export interface PartidaMemorama {
+  juego: { clave: string; nombre: string };
+  titulo: string;
+  instrucciones: string;
+  mazo: MazoPartida;
+  rondas: number;
+  paresPorRonda: number;
+  volteoMs: number;
+}
+
+export type TamanoMahjong = 'pequeno' | 'mediano' | 'grande';
+
+export interface PartidaMahjong {
+  juego: { clave: string; nombre: string };
+  titulo: string;
+  instrucciones: string;
+  mazo: MazoPartida;
+  tamano: TamanoMahjong;
+}
+
+/* --- Runner Narrativo --- */
+
+export interface PreguntaHistoria {
+  id?: string;
+  texto: string;
+  respuestaCorrecta: string;
+  respuestaIncorrecta: string;
+  videoBueno: string | null;
+  videoMalo: string | null;
+}
+
+export interface Historia {
+  id: string;
+  nombre: string;
+  videoIntro: string | null;
+  preguntas: PreguntaHistoria[];
+  institucionId: string | null;
+}
+
+export interface LimitesVideo {
+  formato: string;
+  maximoSegundos: number;
+  maximoMegas: number;
+}
+
+export interface PartidaRunner {
+  juego: { clave: string; nombre: string };
+  titulo: string;
+  instrucciones: string;
+  historia: {
+    nombre: string;
+    videoIntro: string | null;
+    preguntas: { id: string; texto: string; opciones: { id: string; texto: string }[] }[];
+  };
+}
+
+export interface VeredictoRunner {
+  correcta: boolean;
+  video: string | null;
+}
+
+export interface ResultadoRunner {
+  correctas: number;
+  total: number;
+  completada: boolean;
+  puntaje: number;
+  nota: string | null;
+  intento: number;
+}
+
+/** Lo que cualquier juego informa al terminar una partida. */
+export interface FinDePartida {
+  puntaje: number;
+  nota: string | null;
 }
 
 export interface Inscripcion {

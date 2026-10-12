@@ -1,0 +1,41 @@
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 6px;
+}
+
+.icono {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--primario-suave);
+  color: var(--terciario);
+}
+
+.iconoLudico {
+  background: var(--secundario-suave);
+  color: var(--secundario);
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.titulo {
+  margin: 0;
+  font: 600 16px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.descripcion {
+  margin: 0;
+  font: 500 12px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+}

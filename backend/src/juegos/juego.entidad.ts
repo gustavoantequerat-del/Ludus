@@ -39,4 +39,13 @@ export class Juego {
   /** false mientras el juego siga siendo solo maqueta visual. */
   @Column({ type: 'boolean', default: false })
   jugable: boolean;
+
+  /**
+   * Sector del catalogo. Un juego de evaluacion mide lo aprendido en el curso
+   * y puede calificar; uno ludico es para pasar el rato y nunca califica.
+   */
+  @Column({ type: 'varchar', length: 12, default: 'evaluacion' })
+  tipo: TipoJuego;
 }
+
+export type TipoJuego = 'evaluacion' | 'ludico';

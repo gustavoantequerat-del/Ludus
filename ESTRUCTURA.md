@@ -18,13 +18,14 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 - **Autenticacion real** con JWT y pantalla de login. El prototipo no tenia
   login (usaba un selector de rol como atajo de demo); aqui el rol siempre
   viene del usuario autenticado, no hay forma de "cambiar de rol" en la UI.
-- **Un juego jugable, el resto maqueta.** El prototipo dejo la mecanica de
-  juego fuera a proposito ("Pendientes que no hice a proposito: juegos
-  realmente jugables"). Hoy **Mesa de Cumplimiento** ya tiene mecanica real y
-  contenido tomado del curso de Cripto Compliance (ver 6.2); las otras cinco
-  plantillas siguen siendo maqueta visual: se configuran con parametros reales
-  y registran un intento, pero la partida es simulada. El catalogo marca cuales
-  son jugables con la bandera `jugable`.
+- **Cuatro juegos jugables, el resto maqueta.** El prototipo dejo la mecanica
+  de juego fuera a proposito. Hoy tienen mecanica real **Mesa de
+  Cumplimiento** (contenido del curso de Cripto Compliance, ver 6.2), el
+  **Runner Narrativo** (historias en video, ver 6.3.4) y los ludicos
+  **Memorama** y **Mahjong** (ver 6.3). Las demas plantillas siguen siendo
+  maqueta visual: se configuran con parametros reales y registran un intento,
+  pero la partida es simulada. El catalogo marca cuales son jugables con la
+  bandera `jugable`, y en que sector van (evaluacion o ludico) con `tipo`.
 - **Monorepo sin Docker.** `backend/` y `frontend/` viven en el mismo
   repositorio; se asume que ya existe un PostgreSQL accesible (local o
   remoto) y solo se documentan las variables de conexion.
@@ -84,10 +85,14 @@ backend/src/
 ├── rutas/                            CRUD rutas + su relacion ordenada con cursos existentes
 │   ├── ruta.entidad.ts
 │   └── ruta-curso.entidad.ts        tabla puente ruta<->curso con orden
-├── archivos/                          Servicio que guarda y lista las imagenes del juego
+├── archivos/                          Guarda y sirve imagenes y videos (validar-mp4.ts lee duracion y codec)
 ├── juegos/                            Catalogo fijo de plantillas + configuracion por modulo
-│   ├── juego.entidad.ts             catalogo (se administra por semilla, no CRUD de usuario)
-│   ├── configuracion-juego.entidad.ts
+│   ├── juego.entidad.ts             catalogo (semilla/migracion, no CRUD); tipo: evaluacion | ludico
+│   ├── configuracion-juego.entidad.ts  parametros genericos + ajustes (jsonb) propios de cada juego
+│   ├── acceso-modulo.service.ts     quien ve/configura el juego de un modulo (lo usan todos los juegos)
+│   ├── catalogo-nuevos.ts           datos de catalogo de Memorama, Mahjong y Runner (migracion y semilla)
+│   ├── fichas/                      Memorama y Mahjong: mazos (iconos, ficha, fondo) y su partida
+│   ├── runner/                      Runner Narrativo: historias en video, partida y calificacion
 │   └── mesa-cumplimiento/           el juego jugable, con todo su contenido adentro
 │       ├── caso-cumplimiento.entidad.ts
 │       ├── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
@@ -129,12 +134,17 @@ frontend/src/
 ├── enrutador/indice.ts            Rutas de vue-router + guardia de autenticacion/rol
 ├── utilidades/
 │   ├── archivos.ts                URL de las imagenes del backend y lectura de un archivo a base64
-│   └── errores.ts                  Saca el mensaje que manda el backend cuando rechaza algo
+│   ├── errores.ts                  Saca el mensaje que manda el backend cuando rechaza algo
+│   ├── catalogo.ts                 Los dos sectores del catalogo (evaluacion / ludico)
+│   ├── partidas.ts                 Registrar el intento de un juego ludico, formato de tiempo
+│   └── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
 │   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
-│   ├── editor/                     Pestanas del editor de cada juego (EditorCasos, EditorPersonajes)
-│   └── juegos/                     Los juegos jugables (MesaCumplimiento: escena + expediente)
+│   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoVideo)
+│   ├── configuracion/              Parametros propios de cada juego al configurar un modulo
+│   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo)
+│       └── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
 
@@ -147,9 +157,11 @@ se referencian como objeto JS, `estilos.claseX`). Los unicos estilos
 `<style>`, son hojas de estilo normales importadas como archivo. No se usa
 Tailwind ni ningun framework de utilidades.
 
-La unica excepcion es el fondo de la escena del juego, que depende de una URL
-que llega del servidor: la vista solo define la variable CSS `--fondo-escena`
-y todas las reglas visuales siguen viviendo en el archivo `.module.css`.
+La unica excepcion son los valores que llegan del servidor o dependen de la
+partida: el fondo de la escena, la imagen del mazo o la posicion de cada ficha
+del Mahjong. La vista solo define variables CSS (`--fondo-escena`,
+`--fondo-mesa`, `--dorso`, `--x`/`--y`/`--z`) y todas las reglas visuales
+siguen viviendo en el archivo `.module.css`.
 
 ## 4. Modelo de datos
 
@@ -172,6 +184,10 @@ usuario(estudiante) 1───* resultado (puntaje de un intento de un modulo)
 institucion 1───* personaje (el CEO que aparece en escena; institucion_id null = catalogo base)
 institucion 1───* caso_cumplimiento (expediente del juego; institucion_id null = catalogo base)
 personaje 1───* caso_cumplimiento (opcional: un caso puede no tener personaje)
+
+institucion 1───* mazo (iconos, ficha y fondo del Memorama o del Mahjong; null = catalogo base)
+institucion 1───* historia (intro y preguntas en video del Runner Narrativo; null = catalogo base)
+configuracion_juego.ajustes ──> mazo o historia (por id, dentro del jsonb)
 ```
 
 Puntos que vale la pena aclarar:
@@ -186,12 +202,22 @@ Puntos que vale la pena aclarar:
 - **solicitud** es el flujo de autoservicio del estudiante: pide entrar o
   salir, y un admin la aprueba o rechaza. Aprobar una solicitud de ingreso
   crea la inscripcion; aprobar una de salida la borra.
-- **juego** es un catalogo fijo (6 plantillas: Viborita Numerica, Torre de
-  Bloques, Memorama, Burbujas, Ordena la Secuencia, Laberinto) que carga el
-  script de semilla. No tiene CRUD de usuario porque, segun la definicion
-  del negocio, las plantillas las programa el equipo de desarrollo; los
-  roles con permiso solo las **seleccionan y configuran** por modulo
-  (`configuracion_juego`: velocidad, tiempo, pares, intentos, puntaje).
+- **juego** es un catalogo fijo de plantillas que cargan la semilla y las
+  migraciones. No tiene CRUD de usuario porque, segun la definicion del
+  negocio, las plantillas las programa el equipo de desarrollo; los roles con
+  permiso solo las **seleccionan y configuran** por modulo. Cada plantilla es
+  de uno de dos **sectores** (`juego.tipo`):
+  - **evaluacion**: mide lo aprendido en el curso y puede calificar (Mesa de
+    Cumplimiento, Runner Narrativo y las maquetas Viborita Numerica, Torre de
+    Bloques, Burbujas, Ordena la Secuencia y Laberinto).
+  - **ludico**: para jugar sin saber el tema; **nunca califica** (Memorama y
+    Mahjong). Al configurar un juego ludico el modulo queda con
+    `califica = false` aunque antes calificara.
+- **configuracion_juego** guarda los parametros genericos (velocidad, tiempo,
+  pares, intentos, puntaje) y en `ajustes` (jsonb) lo propio de cada juego: el
+  mazo y las rondas del Memorama, el mazo y el tamano del Mahjong, la historia
+  del Runner. Cada juego valida sus ajustes al configurar y descarta lo que no
+  reconoce.
 - **resultado** guarda cada intento jugado (puntaje e intento consecutivo).
   La nota solo se calcula (`puntaje / 10`) si el modulo esta marcado como
   `califica`; si no, `nota` queda `null` y cuenta solo como practica.
@@ -314,13 +340,28 @@ GET|POST /juegos/mesa-cumplimiento/personajes             los CEO de la escena
 GET      /juegos/mesa-cumplimiento/personajes/disponibles imagenes en el servidor aun sin registrar
 PATCH|DELETE /juegos/mesa-cumplimiento/personajes/:id
 
+GET|POST /juegos/mazos?juego=memorama|mahjong   mazos propios + el base (superadmin/admin/docente)
+POST     /juegos/mazos/imagenes                 { imagen: dataURL, uso: icono|ficha|fondo } -> { ruta }
+POST     /juegos/mazos/:id/duplicar             copia (por ejemplo el base) a la institucion
+PATCH|DELETE /juegos/mazos/:id                  no se borra si un modulo lo usa
+GET      /juegos/memorama/partida/:moduloId     mazo, rondas, pares por ronda y ms de volteo
+GET      /juegos/mahjong/partida/:moduloId      mazo y tamano del tablero
+
+GET      /juegos/runner-narrativo/videos/limites   { formato, maximoSegundos, maximoMegas }
+POST     /juegos/runner-narrativo/videos           cuerpo = el MP4 crudo (Content-Type: video/mp4) -> { ruta }
+GET|POST /juegos/runner-narrativo/historias
+PUT|DELETE /juegos/runner-narrativo/historias/:id  PUT reemplaza la historia entera, con sus preguntas en orden
+GET      /juegos/runner-narrativo/partida/:moduloId           historia sin respuestas ni videos de reaccion
+POST     /juegos/runner-narrativo/partida/:moduloId/verificar { preguntaId, opcionId } -> { correcta, video }
+POST     /juegos/runner-narrativo/partida/:moduloId/terminar  { respuestas } -> nota (solo estudiante)
+
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
 GET|PUT  /rutas/:rutaId/inscripciones
 
 GET|POST /solicitudes                     crear: solo estudiante
 PATCH    /solicitudes/:id                 { estado: 'aprobada' | 'rechazada' }; solo admin/superadmin
 
-GET|POST /resultados                      crear: solo estudiante (al terminar una partida)
+GET|POST /resultados                      crear: solo estudiante (maquetas y juegos ludicos)
 
 GET      /panel/resumen                   KPIs segun el rol de quien consulta
 GET      /panel/actividad                 solo superadmin
@@ -554,6 +595,98 @@ misma escena, consumiendo los endpoints publicos equivalentes con el token del
 paquete. Las imagenes se piden al servidor de Ludus con URL absoluta (derivada
 de `URL_PUBLICA_API`), porque el paquete corre en el dominio del LMS. La nota
 que llega al LMS es la calculada por el servidor.
+
+## 6.3 Juegos ludicos y Runner Narrativo
+
+### 6.3.1 Memorama (ludico)
+
+Se voltean dos fichas por turno buscando parejas. Se juega por **rondas**: cada
+ronda saca al azar `pares por ronda` iconos del mazo y arma un tablero nuevo.
+
+Lo que configura el docente en el modulo:
+
+| Parametro | Donde se guarda | Valores |
+|---|---|---|
+| Mazo | `ajustes.mazoId` | uno propio o el base; sin mazo valido se juega con el base |
+| Rondas | `ajustes.rondas` | 1 a 5 |
+| Pares por ronda | `pares_contenido` | 4 a 12, y nunca mas que los iconos del mazo |
+| Velocidad de volteo | `velocidad` | lenta 1,6 s / normal 1 s / rapida 0,55 s: cuanto quedan a la vista dos fichas que no son pareja |
+
+El puntaje (sin nota) es `100 x parejas / movimientos`: 100 si cada pareja
+salio al primer intento.
+
+### 6.3.2 Mahjong (ludico)
+
+Mahjong solitario: se retiran de a dos las fichas **libres** con el mismo icono.
+Una ficha esta libre si no tiene otra encima y le queda un costado (izquierdo
+o derecho) sin tapar. Tres tamanos de tablero (`ajustes.tamano`): pequeno (36
+fichas), mediano (80) y grande (108), en piramides de capas definidas en
+`componentes/juegos/mahjong/tablero.ts`.
+
+- **Siempre tiene solucion al empezar.** El reparto se hace "jugando al reves":
+  desde el tablero lleno se toman dos fichas libres, se les pone el mismo icono
+  y se sacan. Ese orden es una forma valida de vaciarlo.
+- **Barajar** reparte de nuevo lo que queda, otra vez con solucion. Si lo que
+  queda no tiene salida con ningun reparto (por ejemplo dos fichas apiladas),
+  el juego lo dice y ofrece terminar, en vez de barajar sin fin.
+- **Pista** resalta una pareja libre.
+- Puntaje (sin nota): la parte del tablero que se vacio, menos 5 por barajada.
+
+### 6.3.3 Mazos: el aspecto del Memorama y del Mahjong
+
+Un mazo (`mazos`) tiene **iconos** (minimo 4, maximo 60), una **imagen de
+ficha** y un **fondo** de mesa. En el Memorama la imagen de ficha es el dorso
+de la carta; en el Mahjong, el cuerpo de la pieza sobre el que va el icono. Sin
+imagen, cada juego dibuja la suya.
+
+- Hay un mazo base por juego ("Clasico", 24 iconos en `archivos/fichas/base/`,
+  hechos con Lucide). Solo el superadmin lo edita; los demas lo **duplican** y
+  cambian la copia.
+- Las imagenes se suben de a una (`POST /juegos/mazos/imagenes`) y el mazo
+  guarda sus rutas: un mazo de 24 imagenes no entra en una peticion de 6 MB.
+  PNG, JPG o WEBP de hasta 3 MB.
+- Lo que se sube y deja de usarse se borra del disco al guardar o borrar el
+  mazo. Un mazo que usa algun modulo no se puede borrar.
+
+### 6.3.4 Runner Narrativo (evaluacion)
+
+Una historia en video que avanza pregunta por pregunta. No hay personaje
+programado: **el docente sube los videos** y arma la cadena.
+
+```
+Intro ──> Pregunta 1 ──acierta──> video bueno ──> Pregunta 2 ──> ... ──> video bueno final ──> gana
+                     └─falla───> video malo ──> fin de la partida
+```
+
+- Cada pregunta tiene una respuesta correcta, una incorrecta, el video si
+  acierta y el video si falla. El estudiante ve las dos respuestas en orden al
+  azar.
+- La historia puede ser tan larga como se quiera (hasta 100 preguntas); el
+  orden de la lista es el orden de juego.
+- **Videos: MP4 (H.264), maximo 10 segundos y 10 MB cada uno.** El editor lo
+  revisa antes de subir y el servidor lo vuelve a revisar leyendo el propio
+  archivo (`archivos/validar-mp4.ts`): duracion, codec y que no sea un `.mov`.
+  HEVC (el formato de los iPhone) se rechaza porque Chrome y Firefox en
+  Windows no lo reproducen.
+- **Nada se puede adivinar mirando la red**: la partida llega sin decir cual
+  opcion es la buena (las opciones tienen ids al azar) y sin los videos de
+  reaccion. Cada respuesta se verifica en el servidor, que recien ahi entrega
+  el video que corresponde. La nota tambien se calcula alla: cuenta las
+  respuestas buenas, en orden, hasta el primer error. Puntaje = parte de la
+  historia recorrida (1 de 2 = 50, nota 5.0).
+- Si a una pregunta le falta un video, o el navegador no lo puede reproducir,
+  se muestra un cartel ("Correcto!" / "Incorrecto") unos segundos y la
+  historia sigue.
+
+### 6.3.5 Lo que todavia no hacen
+
+- **No se exportan a SCORM.** El paquete SCORM trae su propio lanzador en
+  JavaScript (`scorm/plantilla/`) y hoy solo sabe jugar la Mesa de
+  Cumplimiento. Exportar un modulo con Memorama, Mahjong o Runner responde un
+  error claro en vez de generar un paquete que no funcionaria.
+- Las imagenes o videos que se suben y nunca se guardan en un mazo o historia
+  (por ejemplo, se cancela el editor) quedan en el disco. Ocupan poco; no hay
+  limpieza automatica de esos sobrantes.
 
 ## 7. Simplificaciones deliberadas (KISS)
 

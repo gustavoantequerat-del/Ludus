@@ -1,15 +1,9 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Juego } from './juego.entidad';
 import { ConfiguracionJuego } from './configuracion-juego.entidad';
 import { ModuloCurso } from '../cursos/modulo-curso.entidad';
-import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { ConfigurarJuegoDto } from './dto/configurar-juego.dto';
 import { ResultadosService } from '../resultados/resultados.service';
@@ -19,6 +13,10 @@ import {
 } from './mesa-cumplimiento/mesa-cumplimiento.service';
 import { Decision } from './mesa-cumplimiento/casos';
 import { FONDO_MESA } from '../archivos/archivos.constantes';
+import { AccesoModuloService } from './acceso-modulo.service';
+import { FichasService } from './fichas/fichas.service';
+import { RunnerService } from './runner/runner.service';
+import { CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from './catalogo-nuevos';
 
 export const CLAVE_MESA_CUMPLIMIENTO = 'mesa-cumplimiento';
 
@@ -33,6 +31,9 @@ export class JuegosService {
     private readonly modulosRepo: Repository<ModuloCurso>,
     private readonly mesaCumplimiento: MesaCumplimientoService,
     private readonly resultadosService: ResultadosService,
+    private readonly acceso: AccesoModuloService,
+    private readonly fichas: FichasService,
+    private readonly runner: RunnerService,
   ) {}
 
   /* ---------------------------------------------------------------- *
@@ -84,19 +85,11 @@ export class JuegosService {
     };
   }
 
-  private async configuracionJugable(
+  private configuracionJugable(
     quien: UsuarioAutenticado,
     moduloId: string,
   ): Promise<ConfiguracionJuego> {
-    await this.moduloConAcceso(quien, moduloId, false);
-    const configuracion = await this.configuracionesRepo.findOne({ where: { moduloId } });
-    if (!configuracion) {
-      throw new BadRequestException('El modulo no tiene un juego configurado');
-    }
-    if (configuracion.juego.clave !== CLAVE_MESA_CUMPLIMIENTO) {
-      throw new BadRequestException('Este juego todavia no tiene mecanica jugable');
-    }
-    return configuracion;
+    return this.acceso.configuracionDe(quien, moduloId, CLAVE_MESA_CUMPLIMIENTO);
   }
 
   listarCatalogo(): Promise<Juego[]> {
@@ -107,7 +100,7 @@ export class JuegosService {
     quien: UsuarioAutenticado,
     moduloId: string,
   ): Promise<ConfiguracionJuego | null> {
-    await this.moduloConAcceso(quien, moduloId, false);
+    await this.acceso.modulo(quien, moduloId, false);
     return this.configuracionesRepo.findOne({ where: { moduloId } });
   }
 
@@ -116,9 +109,10 @@ export class JuegosService {
     moduloId: string,
     datos: ConfigurarJuegoDto,
   ): Promise<ConfiguracionJuego> {
-    const modulo = await this.moduloConAcceso(quien, moduloId, true);
+    const modulo = await this.acceso.modulo(quien, moduloId, true);
     const juego = await this.juegosRepo.findOne({ where: { id: datos.juegoId } });
     if (!juego) throw new NotFoundException('Plantilla de juego no encontrada');
+    const ajustes = await this.ajustesDe(quien, juego, datos);
 
     let configuracion = await this.configuracionesRepo.findOne({ where: { moduloId } });
     if (!configuracion) {
@@ -132,46 +126,32 @@ export class JuegosService {
     configuracion.paresContenido = datos.paresContenido;
     configuracion.intentosPermitidos = datos.intentosPermitidos;
     configuracion.puntajeMaximo = datos.puntajeMaximo;
+    configuracion.ajustes = ajustes;
     await this.configuracionesRepo.save(configuracion);
 
-    if (datos.califica !== undefined && modulo.califica !== datos.califica) {
-      modulo.califica = datos.califica;
+    // Un juego ludico nunca califica, aunque el modulo calificara antes.
+    const califica = juego.tipo === 'ludico' ? false : datos.califica;
+    if (califica !== undefined && modulo.califica !== califica) {
+      modulo.califica = califica;
       await this.modulosRepo.save(modulo);
     }
 
     return this.configuracionesRepo.findOneOrFail({ where: { moduloId } });
   }
 
-  private async moduloConAcceso(
+  /** Cada juego valida lo suyo; los que no tienen ajustes propios guardan {}. */
+  private ajustesDe(
     quien: UsuarioAutenticado,
-    moduloId: string,
-    requiereEscritura: boolean,
-  ): Promise<ModuloCurso> {
-    const modulo = await this.modulosRepo.findOne({
-      where: { id: moduloId },
-      relations: ['curso'],
-    });
-    if (!modulo) throw new NotFoundException('Modulo no encontrado');
-
-    if (quien.rol === Rol.SUPERADMIN) return modulo;
-    if (quien.rol === Rol.ADMIN_INSTITUCION) {
-      if (modulo.curso.institucionId !== quien.institucionId) {
-        throw new ForbiddenException('No tienes acceso a este modulo');
-      }
-      return modulo;
+    juego: Juego,
+    datos: ConfigurarJuegoDto,
+  ): Promise<Record<string, unknown>> {
+    const ajustes = datos.ajustes ?? {};
+    if (juego.clave === CLAVE_MEMORAMA || juego.clave === CLAVE_MAHJONG) {
+      return this.fichas.validarAjustes(quien, juego.clave, ajustes, datos.paresContenido);
     }
-    if (quien.rol === Rol.DOCENTE) {
-      if (requiereEscritura && modulo.curso.docenteId !== quien.id) {
-        throw new ForbiddenException('Solo el docente del curso puede configurar el juego');
-      }
-      if (modulo.curso.institucionId !== quien.institucionId) {
-        throw new ForbiddenException('No tienes acceso a este modulo');
-      }
-      return modulo;
+    if (juego.clave === CLAVE_RUNNER) {
+      return this.runner.validarAjustes(quien, ajustes);
     }
-    if (requiereEscritura) {
-      throw new ForbiddenException('Los estudiantes no pueden configurar juegos');
-    }
-    return modulo;
+    return Promise.resolve({});
   }
 }

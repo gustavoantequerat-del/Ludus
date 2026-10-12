@@ -9,18 +9,30 @@ import { cursosServicio } from '@/servicios/cursos.servicio';
 import { juegosServicio } from '@/servicios/juegos.servicio';
 import { resultadosServicio } from '@/servicios/resultados.servicio';
 import MesaCumplimiento from '@/componentes/juegos/MesaCumplimiento.vue';
+import Memorama from '@/componentes/juegos/Memorama.vue';
+import Mahjong from '@/componentes/juegos/Mahjong.vue';
+import RunnerNarrativo from '@/componentes/juegos/RunnerNarrativo.vue';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
-import type { CalificacionPartida, ConfiguracionJuego, Curso, ModuloCurso } from '@/tipos';
+import type { ConfiguracionJuego, Curso, FinDePartida, ModuloCurso } from '@/tipos';
 
 const props = defineProps<{ cursoId: string; moduloId: string }>();
 const enrutador = useRouter();
 const { notificar } = usarNotificaciones();
 
 /** Los juegos con mecanica programada se renderizan por su clave. */
-const esJugable = computed(() => configuracion.value?.juego.jugable === true);
+const JUEGOS = {
+  'mesa-cumplimiento': MesaCumplimiento,
+  memorama: Memorama,
+  mahjong: Mahjong,
+  'runner-narrativo': RunnerNarrativo,
+};
+const componenteJuego = computed(() => {
+  const clave = configuracion.value?.juego.clave ?? '';
+  return clave in JUEGOS ? JUEGOS[clave as keyof typeof JUEGOS] : null;
+});
 const partidaTerminada = ref(false);
 
-function alTerminarPartida(datos: CalificacionPartida) {
+function alTerminarPartida(datos: FinDePartida) {
   partidaTerminada.value = true;
   notificar(
     datos.nota ? `Calificacion registrada: ${datos.nota}` : `Puntaje registrado: ${datos.puntaje}`,
@@ -94,8 +106,8 @@ onMounted(cargar);
   />
 
   <!-- Juego con mecanica real -->
-  <template v-if="esJugable">
-    <MesaCumplimiento :modulo-id="props.moduloId" @terminada="alTerminarPartida" />
+  <template v-if="componenteJuego">
+    <component :is="componenteJuego" :modulo-id="props.moduloId" @terminada="alTerminarPartida" />
     <div v-if="partidaTerminada" style="display: flex; gap: 9px; flex-wrap: wrap">
       <Boton
         variante="primario"

@@ -9,19 +9,27 @@ import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoSelector from '@/componentes/base/CampoSelector.vue';
 import CampoRango from '@/componentes/base/CampoRango.vue';
 import CampoInterruptor from '@/componentes/base/CampoInterruptor.vue';
+import AjustesFichas from '@/componentes/configuracion/AjustesFichas.vue';
+import AjustesRunner from '@/componentes/configuracion/AjustesRunner.vue';
 import { juegosServicio, type DatosConfiguracionJuego } from '@/servicios/juegos.servicio';
 import { cursosServicio } from '@/servicios/cursos.servicio';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
-import type { Juego, Velocidad } from '@/tipos';
+import { porSector } from '@/utilidades/catalogo';
+import { mensajeDeError } from '@/utilidades/errores';
+import type { Juego } from '@/tipos';
 
 const props = defineProps<{ cursoId: string; moduloId: string }>();
 const enrutador = useRouter();
 const { notificar } = usarNotificaciones();
 
+/** Juegos con parametros propios: no usan los genericos de la maqueta. */
+const JUEGOS_CON_AJUSTES = ['memorama', 'mahjong', 'runner-narrativo'];
+
 const catalogo = ref<Juego[]>([]);
 const nombreModulo = ref('');
 const califica = ref(true);
 const cargando = ref(true);
+const guardando = ref(false);
 
 const form = ref<DatosConfiguracionJuego>({
   juegoId: '',
@@ -33,8 +41,13 @@ const form = ref<DatosConfiguracionJuego>({
   intentosPermitidos: 3,
   puntajeMaximo: 100,
 });
+const ajustes = ref<Record<string, unknown>>({});
 
+const sectores = computed(() => porSector(catalogo.value));
 const juegoSeleccionado = computed(() => catalogo.value.find((j) => j.id === form.value.juegoId) ?? null);
+const clave = computed(() => juegoSeleccionado.value?.clave ?? '');
+const esLudico = computed(() => juegoSeleccionado.value?.tipo === 'ludico');
+const usaGenericos = computed(() => !JUEGOS_CON_AJUSTES.includes(clave.value));
 const tiempoEtiqueta = computed(() => {
   const m = Math.floor(form.value.tiempoLimiteSegundos / 60);
   const s = String(form.value.tiempoLimiteSegundos % 60).padStart(2, '0');
@@ -64,6 +77,7 @@ async function cargar() {
       intentosPermitidos: configuracion.intentosPermitidos,
       puntajeMaximo: configuracion.puntajeMaximo,
     };
+    ajustes.value = { ...(configuracion.ajustes ?? {}) };
   } else {
     form.value.juegoId = juegos[0]?.id ?? '';
     form.value.titulo = nombreModulo.value;
@@ -73,8 +87,19 @@ async function cargar() {
 }
 
 function elegirPlantilla(juego: Juego) {
+  if (form.value.juegoId === juego.id) return;
+  // Si las instrucciones eran las de la plantilla anterior (no las escribio
+  // el docente), pasan a ser las de la nueva.
+  const anterior = juegoSeleccionado.value;
+  if (!form.value.instrucciones || form.value.instrucciones === anterior?.descripcion) {
+    form.value.instrucciones = juego.descripcion;
+  }
   form.value.juegoId = juego.id;
+  // Los ajustes son de cada juego: al cambiar de plantilla se empieza de cero.
+  ajustes.value = {};
   if (!form.value.titulo) form.value.titulo = juego.nombre;
+  // Un juego de evaluacion vuelve a calificar por defecto.
+  if (juego.tipo === 'evaluacion') califica.value = true;
 }
 
 function volver() {
@@ -82,9 +107,20 @@ function volver() {
 }
 
 async function guardar() {
-  await juegosServicio.configurar(props.moduloId, { ...form.value, califica: califica.value });
-  notificar('Configuracion guardada');
-  volver();
+  guardando.value = true;
+  try {
+    await juegosServicio.configurar(props.moduloId, {
+      ...form.value,
+      califica: esLudico.value ? false : califica.value,
+      ajustes: ajustes.value,
+    });
+    notificar('Configuracion guardada');
+    volver();
+  } catch (error) {
+    notificar(mensajeDeError(error));
+  } finally {
+    guardando.value = false;
+  }
 }
 
 onMounted(cargar);
@@ -104,21 +140,28 @@ onMounted(cargar);
         <Icono nombre="gamepad-2" :tamano="17" />
         <h3 :class="estilos.panelTitulo">Plantilla de juego</h3>
       </div>
-      <div :class="estilos.plantillas">
-        <button
-          v-for="juego in catalogo"
-          :key="juego.id"
-          type="button"
-          :class="[estilos.plantilla, form.juegoId === juego.id ? estilos.plantillaActiva : '']"
-          @click="elegirPlantilla(juego)"
-        >
-          <span :class="estilos.plantillaIcono" style="background: var(--primario)">
-            <Icono :nombre="juego.icono" :tamano="16" />
-          </span>
-          <span :class="estilos.plantillaNombre">{{ juego.nombre }}</span>
-          <span :class="estilos.plantillaTagline">{{ juego.eslogan }}</span>
-        </button>
-      </div>
+      <template v-for="sector in sectores" :key="sector.tipo">
+        <span :class="estilos.sector">
+          <Icono :nombre="sector.icono" :tamano="13" />{{ sector.titulo }}
+        </span>
+        <div :class="estilos.plantillas">
+          <button
+            v-for="juego in sector.juegos"
+            :key="juego.id"
+            type="button"
+            :class="[estilos.plantilla, form.juegoId === juego.id ? estilos.plantillaActiva : '']"
+            @click="elegirPlantilla(juego)"
+          >
+            <span
+              :class="[estilos.plantillaIcono, juego.tipo === 'ludico' ? estilos.plantillaIconoLudico : '']"
+            >
+              <Icono :nombre="juego.icono" :tamano="16" />
+            </span>
+            <span :class="estilos.plantillaNombre">{{ juego.nombre }}</span>
+            <span :class="estilos.plantillaTagline">{{ juego.eslogan }}</span>
+          </button>
+        </div>
+      </template>
     </div>
 
     <div :class="estilos.panel">
@@ -128,23 +171,41 @@ onMounted(cargar);
       </div>
       <CampoTexto v-model="form.titulo" etiqueta="Titulo del juego" />
       <CampoTexto v-model="form.instrucciones as string" etiqueta="Instrucciones para el estudiante" tipo="area" />
-      <CampoSelector
-        v-model="form.velocidad"
-        etiqueta="Velocidad"
-        :opciones="[
-          { valor: 'baja', texto: 'Baja' },
-          { valor: 'media', texto: 'Media' },
-          { valor: 'alta', texto: 'Alta' },
-        ]"
+
+      <AjustesFichas
+        v-if="clave === 'memorama' || clave === 'mahjong'"
+        :key="clave"
+        v-model:ajustes="ajustes"
+        v-model:pares-contenido="form.paresContenido"
+        v-model:velocidad="form.velocidad"
+        :juego-clave="clave"
       />
-      <CampoRango v-model="form.tiempoLimiteSegundos" etiqueta="Tiempo limite (segundos)" :min="30" :max="600" unidad=" s" />
-      <CampoRango v-model="form.paresContenido" etiqueta="Pares de contenido" :min="4" :max="24" />
-      <CampoRango v-model="form.intentosPermitidos" etiqueta="Intentos permitidos" :min="1" :max="5" />
-      <CampoRango v-model="form.puntajeMaximo" etiqueta="Puntaje maximo" :min="10" :max="200" unidad=" pts" />
-      <CampoInterruptor v-model="califica" :texto="califica ? 'Genera calificacion' : 'Sin calificacion'" />
+      <AjustesRunner v-else-if="clave === 'runner-narrativo'" v-model:ajustes="ajustes" />
+
+      <template v-if="usaGenericos">
+        <CampoSelector
+          v-model="form.velocidad"
+          etiqueta="Velocidad"
+          :opciones="[
+            { valor: 'baja', texto: 'Baja' },
+            { valor: 'media', texto: 'Media' },
+            { valor: 'alta', texto: 'Alta' },
+          ]"
+        />
+        <CampoRango v-model="form.tiempoLimiteSegundos" etiqueta="Tiempo limite (segundos)" :min="30" :max="600" unidad=" s" />
+        <CampoRango v-model="form.paresContenido" etiqueta="Pares de contenido" :min="4" :max="24" />
+        <CampoRango v-model="form.intentosPermitidos" etiqueta="Intentos permitidos" :min="1" :max="5" />
+        <CampoRango v-model="form.puntajeMaximo" etiqueta="Puntaje maximo" :min="10" :max="200" unidad=" pts" />
+      </template>
+
+      <p v-if="esLudico" :class="estilos.notaLudico">
+        <Icono nombre="party-popper" :tamano="15" />
+        Juego ludico: no genera calificacion. Se registra que el estudiante jugo, para su progreso.
+      </p>
+      <CampoInterruptor v-else v-model="califica" :texto="califica ? 'Genera calificacion' : 'Sin calificacion'" />
 
       <div :class="estilos.acciones">
-        <Boton variante="primario" icono="save" @click="guardar">Guardar configuracion</Boton>
+        <Boton variante="primario" icono="save" :deshabilitado="guardando" @click="guardar">Guardar configuracion</Boton>
         <Boton variante="secundario" @click="volver">Cancelar</Boton>
       </div>
     </div>
@@ -158,7 +219,7 @@ onMounted(cargar);
       <div :class="estilos.previa">
         <div :class="estilos.previaCabecera">
           <span :class="estilos.previaChip">{{ juegoSeleccionado?.nombre }}</span>
-          <span :class="estilos.previaTiempo">{{ tiempoEtiqueta }}</span>
+          <span v-if="usaGenericos" :class="estilos.previaTiempo">{{ tiempoEtiqueta }}</span>
         </div>
         <p :class="estilos.previaTexto">{{ form.instrucciones || juegoSeleccionado?.descripcion }}</p>
       </div>
