@@ -7,6 +7,10 @@
  *
  * El paquete nunca lleva credenciales: el token del paquete solo identifica
  * que modulo abrir, y el acceso siempre lo da el login del estudiante.
+ *
+ * La Mesa de Cumplimiento vive en este archivo. Los demas juegos jugables
+ * estan en su propio archivo (juego-*.js): se registran en window.LudusJuegos
+ * y usan lo comun que este lanzador deja en window.LudusComun.
  */
 (function () {
   'use strict';
@@ -529,14 +533,19 @@
   }
 
   function prepararJuego() {
-    // Los juegos con mecanica programada tienen su propia pantalla. Hoy el
-    // paquete solo trae la de la Mesa de Cumplimiento.
-    if (paquete.juego && paquete.juego.clave === 'mesa-cumplimiento') {
+    // Los juegos con mecanica programada tienen su propia pantalla.
+    var clave = paquete.juego && paquete.juego.clave;
+    if (clave === 'mesa-cumplimiento') {
       iniciarMesa();
       return;
     }
+    var juegos = window.LudusJuegos || {};
+    if (juegos[clave]) {
+      juegos[clave].iniciar();
+      return;
+    }
     if (paquete.juego && paquete.juego.jugable) {
-      mostrarError('Este juego se juega dentro de Ludus: todavia no esta disponible en el LMS.');
+      mostrarError('Este paquete no trae el juego ' + paquete.juego.nombre + '. Vuelve a exportarlo desde Ludus.');
       return;
     }
 
@@ -556,7 +565,8 @@
     mostrarPantalla('pantalla-juego');
   }
 
-  function mostrarResultado(resultado, reportado) {
+  /** detalle: una linea opcional propia del juego ("Respondiste bien 3 de 5"). */
+  function mostrarResultado(resultado, reportado, detalle) {
     elemento('resultado-puntaje').textContent = resultado.puntaje;
     elemento('resultado-maximo').textContent = 'puntos de ' + resultado.puntajeMaximo;
 
@@ -576,6 +586,7 @@
     }
 
     elemento('resultado-detalle').textContent =
+      (detalle ? detalle + ' ' : '') +
       'Intento ' + resultado.intento + ' registrado en Ludus para ' + sesion.estudiante.nombre + '.';
     elemento('resultado-lms').textContent = reportado
       ? 'Resultado enviado al LMS.'
@@ -583,6 +594,48 @@
 
     mostrarPantalla('pantalla-resultado');
   }
+
+  /** Guarda en Ludus el puntaje de un juego que no califica en el servidor. */
+  function registrarPuntaje(puntaje, detalle) {
+    return pedir('/resultado', { metodo: 'POST', cuerpo: { puntaje: puntaje } })
+      .then(function (resultado) {
+        cerrarPartida(resultado, detalle);
+      })
+      .catch(function (fallo) {
+        mostrarError(fallo.message);
+      });
+  }
+
+  /** Reporta al LMS el resultado que ya devolvio Ludus y lo muestra. */
+  function cerrarPartida(resultado, detalle) {
+    var reportado = reportarResultadoAlLms(resultado);
+    mostrarResultado(resultado, reportado, detalle);
+  }
+
+  /** Lo que los juegos de los otros archivos necesitan del lanzador. */
+  window.LudusComun = {
+    pedir: pedir,
+    elemento: elemento,
+    mostrarPantalla: mostrarPantalla,
+    mostrarError: mostrarError,
+    urlArchivo: urlArchivo,
+    formatearTiempo: formatearTiempo,
+    registrarPuntaje: registrarPuntaje,
+    cerrarPartida: cerrarPartida,
+    estudiante: function () {
+      return sesion.estudiante;
+    },
+    mezclar: function (lista) {
+      var copia = lista.slice();
+      for (var i = copia.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temporal = copia[i];
+        copia[i] = copia[j];
+        copia[j] = temporal;
+      }
+      return copia;
+    },
+  };
 
   /* ------------------------------------------------------------------ *
    * Acciones

@@ -374,7 +374,10 @@ DELETE   /scorm/paquetes/:id
 
 GET      /scorm/publico/:token            datos del modulo para la pantalla de login (sin sesion)
 POST     /scorm/publico/:token/ingresar   login del estudiante desde el LMS
-POST     /scorm/publico/:token/resultado  guarda el intento (requiere el token del login)
+GET      /scorm/publico/:token/partida   partida del juego del modulo (Mesa, Memorama, Mahjong o Runner)
+POST     /scorm/publico/:token/runner/verificar  { preguntaId, opcionId } -> { correcta, video }
+POST     /scorm/publico/:token/runner/terminar   { respuestas } -> nota + lo que se reporta al LMS
+POST     /scorm/publico/:token/resultado  guarda el intento de maquetas y ludicos (requiere el token del login)
 ```
 
 ## 6.1 Exportacion a SCORM (usar un modulo dentro de otro LMS)
@@ -678,15 +681,34 @@ Intro ──> Pregunta 1 ──acierta──> video bueno ──> Pregunta 2 ─
   se muestra un cartel ("Correcto!" / "Incorrecto") unos segundos y la
   historia sigue.
 
-### 6.3.5 Lo que todavia no hacen
+### 6.3.5 En SCORM
 
-- **No se exportan a SCORM.** El paquete SCORM trae su propio lanzador en
-  JavaScript (`scorm/plantilla/`) y hoy solo sabe jugar la Mesa de
-  Cumplimiento. Exportar un modulo con Memorama, Mahjong o Runner responde un
-  error claro en vez de generar un paquete que no funcionaria.
-- Las imagenes o videos que se suben y nunca se guardan en un mazo o historia
-  (por ejemplo, se cancela el editor) quedan en el disco. Ocupan poco; no hay
-  limpieza automatica de esos sobrantes.
+Los tres se exportan a SCORM igual que la Mesa de Cumplimiento y se juegan
+dentro del LMS con las mismas reglas:
+
+- El paquete trae un archivo por juego (`scorm/plantilla/juego-memorama.js`,
+  `juego-mahjong.js`, `juego-runner.js`). El lanzador (`ludus-scorm.js`) se
+  encarga de la sesion y del LMS, deja lo comun en `window.LudusComun` y le
+  pasa el control al juego que se registro en `window.LudusJuegos` con la
+  clave del modulo.
+- `GET /scorm/publico/:token/partida` devuelve la partida del juego que tenga
+  el modulo. El Memorama y el Mahjong guardan el intento con
+  `POST /scorm/publico/:token/resultado` y el LMS recibe `completed` (no
+  califican). El Runner verifica cada respuesta con
+  `POST /scorm/publico/:token/runner/verificar` y termina con
+  `.../runner/terminar`: la nota sale de Ludus y el LMS recibe `passed` (60 o
+  mas) o `failed`.
+- Las imagenes y los videos se siguen sirviendo desde Ludus: el paquete solo
+  lleva el codigo, asi que un mazo o una historia editados despues de exportar
+  se ven en el LMS sin volver a exportar.
+- El Mahjong del paquete es una copia en JavaScript simple de
+  `mahjong/tablero.ts`: si cambian las reglas, hay que cambiar los dos.
+
+### 6.3.6 Sobrantes
+
+Las imagenes o videos que se suben y nunca se guardan en un mazo o historia
+(por ejemplo, se cancela el editor) quedan en el disco. Ocupan poco; no hay
+limpieza automatica de esos sobrantes.
 
 ## 7. Simplificaciones deliberadas (KISS)
 

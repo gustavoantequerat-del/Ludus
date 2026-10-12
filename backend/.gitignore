@@ -2,3 +2,6 @@ node_modules/
 dist/
 .env
 *.log
+
+# Lo que suben los docentes desde Ludus (nombre aleatorio de 16 hex): vive solo en el servidor.
+archivos/**/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].*

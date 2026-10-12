@@ -25,16 +25,25 @@ import { JuegosService } from '../juegos/juegos.service';
 import { RespuestaJugador } from '../juegos/mesa-cumplimiento/mesa-cumplimiento.service';
 import { Decision } from '../juegos/mesa-cumplimiento/casos';
 import { CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from '../juegos/catalogo-nuevos';
+import { FichasService } from '../juegos/fichas/fichas.service';
+import { RunnerService } from '../juegos/runner/runner.service';
+import { RespuestaRunnerDto } from '../juegos/runner/dto/historia.dto';
 import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
 import { RegistrarResultadoScormDto } from './dto/registrar-resultado-scorm.dto';
 
-const ARCHIVOS_PLANTILLA = ['index.html', 'estilos.css', 'ludus-scorm.js'];
-
 /**
- * Juegos que el paquete SCORM todavia no sabe jugar: el lanzador del paquete
- * es JavaScript aparte (plantilla/) y hoy solo trae la Mesa de Cumplimiento.
+ * Lo que va en el ZIP. ludus-scorm.js es el lanzador (sesion, LMS, Mesa de
+ * Cumplimiento); cada juego nuevo trae su propio archivo y usa lo comun que el
+ * lanzador deja en window.LudusComun.
  */
-const JUEGOS_SIN_SCORM = [CLAVE_MEMORAMA, CLAVE_MAHJONG, CLAVE_RUNNER];
+const ARCHIVOS_PLANTILLA = [
+  'index.html',
+  'estilos.css',
+  'ludus-scorm.js',
+  'juego-memorama.js',
+  'juego-mahjong.js',
+  'juego-runner.js',
+];
 
 @Injectable()
 export class ScormService {
@@ -51,15 +60,41 @@ export class ScormService {
     private readonly autenticacionService: AutenticacionService,
     private readonly resultadosService: ResultadosService,
     private readonly juegosService: JuegosService,
+    private readonly fichasService: FichasService,
+    private readonly runnerService: RunnerService,
   ) {}
 
   /* ---------------------------------------------------------------- *
    * Partida del juego real dentro del LMS
    * ---------------------------------------------------------------- */
 
+  /** La partida del juego que tenga el modulo; el lanzador la pinta segun juego.clave. */
   async armarPartida(token: string, quien: UsuarioAutenticado) {
     const paquete = await this.paqueteActivo(token);
+    const configuracion = await this.configuracionesRepo.findOne({
+      where: { moduloId: paquete.moduloId },
+    });
+    const clave = configuracion?.juego.clave;
+    if (clave === CLAVE_MEMORAMA || clave === CLAVE_MAHJONG) {
+      return this.fichasService.armarPartida(quien, paquete.moduloId, clave);
+    }
+    if (clave === CLAVE_RUNNER) {
+      return this.runnerService.armarPartida(quien, paquete.moduloId);
+    }
     return this.juegosService.armarPartida(quien, paquete.moduloId);
+  }
+
+  async verificarRunner(token: string, quien: UsuarioAutenticado, respuesta: RespuestaRunnerDto) {
+    const paquete = await this.paqueteActivo(token);
+    return this.runnerService.verificar(quien, paquete.moduloId, respuesta);
+  }
+
+  /** Califica la historia y devuelve lo que el lanzador reporta al LMS. */
+  async terminarRunner(token: string, quien: UsuarioAutenticado, respuestas: RespuestaRunnerDto[]) {
+    const paquete = await this.paqueteActivo(token);
+    const modulo = await this.moduloCompleto(paquete.moduloId);
+    const datos = await this.runnerService.terminar(quien, paquete.moduloId, respuestas);
+    return { ...datos, califica: modulo.califica, puntajeMaximo: 100 };
   }
 
   verificarCaso(casoId: string, decision: Decision) {
@@ -152,11 +187,6 @@ export class ScormService {
     if (!configuracion) {
       throw new BadRequestException(
         'El modulo necesita un juego configurado antes de exportarlo a SCORM',
-      );
-    }
-    if (JUEGOS_SIN_SCORM.includes(configuracion.juego.clave)) {
-      throw new BadRequestException(
-        `${configuracion.juego.nombre} todavia no se puede exportar a SCORM: por ahora se juega dentro de Ludus.`,
       );
     }
 

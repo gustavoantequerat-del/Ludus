@@ -702,3 +702,361 @@ body {
   width: 0;
   background: linear-gradient(90deg, var(--primario), var(--secundario));
 }
+
+/* ==================================================================== *
+ * Juegos de fichas: Memorama y Mahjong
+ * ==================================================================== */
+
+/*
+ * El fondo del mazo llega por --fondo-mesa (y el dorso por --dorso, el
+ * cuerpo de la ficha por --cuerpo). Van en capas sobre un degradado: si el
+ * mazo no los trae, la mesa se ve igual de bien.
+ */
+.mesaFichas {
+  position: relative;
+  margin-top: 14px;
+  padding: clamp(12px, 3vw, 24px);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  background:
+    linear-gradient(rgba(8, 4, 16, 0.25), rgba(8, 4, 16, 0.25)),
+    var(--fondo-mesa, none) center / cover no-repeat,
+    radial-gradient(circle at 30% 20%, var(--superficie-3), var(--superficie) 70%);
+}
+
+.avisoMesa {
+  position: absolute;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(8, 4, 16, 0.75);
+}
+
+.avisoMesaTitulo {
+  font-size: 19px;
+  color: #ffffff;
+}
+
+.avisoMesaTexto {
+  margin: 0;
+  font-size: 13px;
+  color: #e8e1f5;
+}
+
+.barraJuego {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.barraJuego .boton {
+  width: auto;
+  padding: 8px 14px;
+}
+
+.espaciador {
+  flex: 1;
+}
+
+/* --- Memorama --- */
+
+.memoramaTablero {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas, 4), 1fr);
+  gap: clamp(6px, 1.4vw, 12px);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.carta {
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  perspective: 700px;
+}
+
+.cartaInterior {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform var(--giro, 330ms) ease;
+}
+
+.cartaVolteada .cartaInterior {
+  transform: rotateY(180deg);
+}
+
+.cara {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.dorso {
+  background:
+    var(--dorso, none) center / cover no-repeat,
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.06) 0 8px, transparent 8px 16px),
+    linear-gradient(140deg, var(--primario), var(--secundario));
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.frente {
+  transform: rotateY(180deg);
+  background: #ffffff;
+}
+
+.iconoCarta {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.cartaEmparejada .frente {
+  box-shadow: 0 0 0 3px var(--exito), 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Mahjong --- */
+
+.mesaMahjong {
+  display: grid;
+  place-items: center;
+  background:
+    var(--fondo-mesa, none) center / cover no-repeat,
+    radial-gradient(circle at 50% 30%, #1f5f4a, #0d2e26 75%);
+}
+
+/*
+ * Cada ficha trae su posicion (--x, --y, --z) y el tablero el tamano de ficha
+ * (--w, --h) y el corrimiento por capa (--d): las capas de arriba se corren
+ * hacia arriba a la izquierda, que es lo que da el relieve.
+ */
+.mahjongTablero {
+  position: relative;
+  width: calc(var(--columnas) * var(--w) + var(--capas) * var(--d));
+  height: calc(var(--filas) * var(--h) + var(--capas) * var(--d));
+}
+
+.ficha {
+  position: absolute;
+  left: calc(var(--x) * var(--w) + (var(--capas) - var(--z)) * var(--d));
+  top: calc(var(--y) * var(--h) + (var(--capas) - var(--z)) * var(--d));
+  width: var(--w);
+  height: var(--h);
+  padding: calc(var(--w) * 0.14);
+  border: none;
+  border-radius: calc(var(--w) * 0.14);
+  background:
+    var(--cuerpo, none) center / cover no-repeat,
+    linear-gradient(155deg, #fffdf6 0%, #f3ecd8 60%, #e4d9bd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 100, 60, 0.25),
+    calc(var(--d) * 0.9) calc(var(--d) * 0.9) 0 #b9a77c,
+    calc(var(--d) * 1.2) calc(var(--d) * 1.6) 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.iconoFicha {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fichaTapada {
+  filter: brightness(0.78) saturate(0.85);
+  cursor: default;
+}
+
+.fichaSeleccionada {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 3px var(--secundario),
+    calc(var(--d) * 0.9) calc(var(--d) * 0.9) 0 #b9a77c;
+}
+
+.fichaPista {
+  box-shadow:
+    0 0 0 4px #ffce6a,
+    calc(var(--d) * 0.9) calc(var(--d) * 0.9) 0 #b9a77c;
+}
+
+/* ==================================================================== *
+ * Runner Narrativo
+ * ==================================================================== */
+
+.runnerCamino {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.runnerPaso {
+  flex: 1;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--superficie-3);
+}
+
+.runnerPasoActual {
+  background: rgba(168, 85, 247, 0.55);
+}
+
+.runnerPasoHecho {
+  background: var(--exito);
+}
+
+.runnerPasoFallado {
+  background: #ff6b6b;
+}
+
+.runnerPantalla {
+  position: relative;
+  margin-top: 12px;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #05030a;
+  border: 1px solid var(--linea);
+}
+
+.runnerVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.runnerLienzo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: radial-gradient(circle at 50% 35%, var(--superficie-3), #05030a 75%);
+}
+
+.runnerLienzoTexto {
+  font-size: clamp(18px, 3vw, 26px);
+  color: #ffffff;
+}
+
+.runnerLienzoNota {
+  font-size: 12px;
+  color: #d6cde6;
+}
+
+.runnerCapa {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px;
+  text-align: center;
+  background: rgba(8, 4, 16, 0.72);
+}
+
+.runnerCapa .boton {
+  width: auto;
+  padding: 10px 22px;
+}
+
+/* La pregunta deja ver el ultimo cuadro del video, abajo como un subtitulo. */
+.runnerCapaPregunta {
+  justify-content: flex-end;
+  padding-bottom: clamp(14px, 4vw, 30px);
+  background: linear-gradient(to top, rgba(8, 4, 16, 0.92) 0%, rgba(8, 4, 16, 0.55) 55%, transparent 100%);
+}
+
+.runnerCapaTitulo {
+  font-size: clamp(18px, 2.6vw, 23px);
+  color: #ffffff;
+}
+
+.runnerCapaTexto {
+  margin: 0;
+  max-width: 540px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #e8e1f5;
+}
+
+.runnerCapaDato,
+.runnerNumero {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c9bee0;
+}
+
+.runnerNumero {
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.runnerPreguntaTexto {
+  max-width: 720px;
+  font-size: clamp(16px, 2.4vw, 22px);
+  line-height: 1.35;
+  color: #ffffff;
+}
+
+.runnerOpciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 250px));
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.runnerOpcion {
+  padding: 13px 15px;
+  border-radius: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  background: rgba(22, 13, 45, 0.85);
+  color: #ffffff;
+  font: 600 14.5px/1.35 var(--fuente);
+  cursor: pointer;
+}
+
+.runnerOpcion:hover:not(:disabled) {
+  border-color: var(--secundario);
+  background: rgba(0, 229, 255, 0.16);
+}
+
+.runnerOpcion:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 560px) {
+  .runnerOpciones {
+    grid-template-columns: 1fr;
+  }
+}

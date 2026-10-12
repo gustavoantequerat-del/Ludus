@@ -54,6 +54,6 @@ import { RunnerController } from './runner/runner.controller';
     HistoriasController,
     RunnerController,
   ],
-  exports: [JuegosService, MesaCumplimientoService],
+  exports: [JuegosService, MesaCumplimientoService, FichasService, RunnerService],
 })
 export class JuegosModule {}

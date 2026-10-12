@@ -126,6 +126,93 @@
           </div>
         </section>
 
+        <!-- Memorama (ludico): juego-memorama.js -->
+        <section class="pantalla oculto" id="pantalla-memorama">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="memorama-titulo"></h1>
+                <p class="subtitulo" id="memorama-instrucciones"></p>
+              </div>
+              <span class="chipEstudiante" id="memorama-estudiante"></span>
+            </div>
+            <div class="chips">
+              <span class="chip" id="memorama-ronda"></span>
+              <span class="chip" id="memorama-parejas"></span>
+              <span class="chip" id="memorama-movimientos"></span>
+              <span class="chip chipCian" id="memorama-tiempo"></span>
+            </div>
+            <div class="mesaFichas" id="memorama-mesa">
+              <div class="memoramaTablero" id="memorama-tablero"></div>
+              <div class="avisoMesa oculto" id="memorama-aviso">
+                <strong class="avisoMesaTitulo" id="memorama-aviso-titulo"></strong>
+                <button class="boton botonPrimario" type="button" id="memorama-siguiente">Siguiente ronda</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mahjong (ludico): juego-mahjong.js -->
+        <section class="pantalla oculto" id="pantalla-mahjong">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="mahjong-titulo"></h1>
+                <p class="subtitulo" id="mahjong-instrucciones"></p>
+              </div>
+              <span class="chipEstudiante" id="mahjong-estudiante"></span>
+            </div>
+            <div class="barraJuego">
+              <span class="chip" id="mahjong-fichas"></span>
+              <span class="chip" id="mahjong-barajadas"></span>
+              <span class="chip chipCian" id="mahjong-tiempo"></span>
+              <span class="espaciador"></span>
+              <button class="boton botonSecundario" type="button" id="mahjong-pista">Pista</button>
+              <button class="boton botonSecundario" type="button" id="mahjong-barajar">Barajar</button>
+              <button class="boton botonSecundario" type="button" id="mahjong-terminar">Terminar</button>
+            </div>
+            <div class="mesaFichas mesaMahjong" id="mahjong-mesa">
+              <div class="mahjongTablero" id="mahjong-tablero"></div>
+              <div class="avisoMesa oculto" id="mahjong-aviso">
+                <strong class="avisoMesaTitulo" id="mahjong-aviso-titulo"></strong>
+                <p class="avisoMesaTexto" id="mahjong-aviso-texto"></p>
+                <button class="boton botonPrimario" type="button" id="mahjong-aviso-boton"></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Runner Narrativo (evaluacion): juego-runner.js -->
+        <section class="pantalla oculto" id="pantalla-runner">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="runner-titulo"></h1>
+              </div>
+              <span class="chipEstudiante" id="runner-estudiante"></span>
+            </div>
+            <div class="runnerCamino" id="runner-camino"></div>
+            <div class="runnerPantalla">
+              <video class="runnerVideo oculto" id="runner-video" playsinline preload="auto"></video>
+              <div class="runnerLienzo" id="runner-lienzo">
+                <strong class="runnerLienzoTexto" id="runner-lienzo-texto"></strong>
+                <span class="runnerLienzoNota oculto" id="runner-lienzo-nota">El video no se pudo reproducir.</span>
+              </div>
+              <div class="runnerCapa" id="runner-portada">
+                <strong class="runnerCapaTitulo" id="runner-portada-titulo"></strong>
+                <p class="runnerCapaTexto" id="runner-portada-texto"></p>
+                <span class="runnerCapaDato" id="runner-portada-dato"></span>
+                <button class="boton botonPrimario" type="button" id="runner-comenzar">Comenzar</button>
+              </div>
+              <div class="runnerCapa runnerCapaPregunta oculto" id="runner-pregunta">
+                <span class="runnerNumero" id="runner-numero"></span>
+                <strong class="runnerPreguntaTexto" id="runner-pregunta-texto"></strong>
+                <div class="runnerOpciones" id="runner-opciones"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Repaso de la partida -->
         <section class="pantalla oculto" id="pantalla-repaso">
           <div class="tarjeta tarjetaAncha">
@@ -195,5 +282,8 @@
 
     <script src="configuracion.js"></script>
     <script src="ludus-scorm.js"></script>
+    <script src="juego-memorama.js"></script>
+    <script src="juego-mahjong.js"></script>
+    <script src="juego-runner.js"></script>
   </body>
 </html>

@@ -22,6 +22,7 @@ import { ActualizarPaqueteDto } from './dto/actualizar-paquete.dto';
 import { RegistrarResultadoScormDto } from './dto/registrar-resultado-scorm.dto';
 import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
 import { TerminarPartidaDto, VerificarCasoDto } from '../juegos/dto/partida.dto';
+import { RespuestaRunnerDto, TerminarRunnerDto } from '../juegos/runner/dto/historia.dto';
 
 const PUEDE_EXPORTAR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 
@@ -119,6 +120,28 @@ export class ScormController {
     return this.scormService.terminarPartida(token, quien, datos.respuestas);
   }
 
+  /* Runner Narrativo: cada respuesta se verifica aqui y la nota sale de aqui. */
+  @Post('publico/:token/runner/verificar')
+  @UseGuards(JwtGuardia)
+  verificarRunner(
+    @Param('token') token: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: RespuestaRunnerDto,
+  ) {
+    return this.scormService.verificarRunner(token, quien, datos);
+  }
+
+  @Post('publico/:token/runner/terminar')
+  @UseGuards(JwtGuardia)
+  terminarRunner(
+    @Param('token') token: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: TerminarRunnerDto,
+  ) {
+    return this.scormService.terminarRunner(token, quien, datos.respuestas);
+  }
+
+  /* Maquetas y juegos ludicos: el lanzador manda el puntaje y aqui se registra. */
   @Post('publico/:token/resultado')
   @UseGuards(JwtGuardia)
   registrarResultado(
