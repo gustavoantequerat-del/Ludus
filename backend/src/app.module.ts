@@ -16,6 +16,7 @@ import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { ResultadosModule } from './resultados/resultados.module';
 import { PanelModule } from './panel/panel.module';
 import { ScormModule } from './scorm/scorm.module';
+import { AccesosModule } from './accesos/accesos.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ScormModule } from './scorm/scorm.module';
     ResultadosModule,
     PanelModule,
     ScormModule,
+    AccesosModule,
   ],
 })
 export class AppModule {}

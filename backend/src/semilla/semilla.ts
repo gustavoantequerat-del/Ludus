@@ -28,55 +28,7 @@ const origen = new DataSource({
 const CLAVE_DEMO = 'ludus123';
 
 const CATALOGO_JUEGOS = [
-  {
-    clave: 'viborita-numerica',
-    nombre: 'Viborita Numerica',
-    categoria: 'Arcade',
-    icono: 'worm',
-    eslogan: 'La vibora crece comiendo solo las respuestas correctas.',
-    descripcion:
-      'Guia la vibora hacia el resultado correcto. Cada acierto la hace crecer; un error cuesta una vida.',
-    parametros: ['Velocidad', 'Pares', 'Vidas'],
-  },
-  {
-    clave: 'torre-de-bloques',
-    nombre: 'Torre de Bloques',
-    categoria: 'Logica',
-    icono: 'blocks',
-    eslogan: 'Encaja la pieza donde coincide el concepto.',
-    descripcion:
-      'Las piezas caen con un valor; encajalas en la columna que corresponde antes de que la torre llegue arriba.',
-    parametros: ['Caida', 'Niveles', 'Piezas'],
-  },
   JUEGO_MEMORAMA,
-  {
-    clave: 'burbujas',
-    nombre: 'Burbujas',
-    categoria: 'Velocidad',
-    icono: 'circle-dot',
-    eslogan: 'Revienta la burbuja con la equivalencia correcta.',
-    descripcion:
-      'Las burbujas suben con valores; revienta solo las equivalentes al objetivo del nivel.',
-    parametros: ['Flujo', 'Objetivo', 'Vidas'],
-  },
-  {
-    clave: 'ordena-la-secuencia',
-    nombre: 'Ordena la Secuencia',
-    categoria: 'Logica',
-    icono: 'arrow-down-up',
-    eslogan: 'Arrastra los elementos hasta el orden correcto.',
-    descripcion: 'Arrastra las piezas hasta formar la secuencia correcta antes de que termine el tiempo.',
-    parametros: ['Elementos', 'Tiempo', 'Intentos'],
-  },
-  {
-    clave: 'laberinto',
-    nombre: 'Laberinto',
-    categoria: 'Arcade',
-    icono: 'map',
-    eslogan: 'Avanza por el camino que resuelve la pista.',
-    descripcion: 'Recorre el laberinto tomando en cada bifurcacion el camino que responde a la pista.',
-    parametros: ['Tamano', 'Pistas', 'Vidas'],
-  },
   {
     clave: 'mesa-cumplimiento',
     nombre: 'Mesa de Cumplimiento',
@@ -188,45 +140,30 @@ async function sembrar() {
     );
 
   const modulosMatematicas = await crearModulos(matematicas.id, [
-    { titulo: 'Sumas basicas', descripcion: 'Resolver sumas de una y dos cifras.', juego: 'Viborita Numerica', califica: true },
-    { titulo: 'Restas sin llevar', descripcion: 'Restas simples con apoyo visual.', juego: 'Burbujas', califica: false },
+    { titulo: 'Sumas basicas', descripcion: 'Resolver sumas de una y dos cifras.', califica: true },
+    { titulo: 'Restas sin llevar', descripcion: 'Restas simples con apoyo visual.', califica: false },
     { titulo: 'Tablas del 2 al 5', descripcion: 'Memorizar tablas con pares imagen-resultado.', juego: 'Memorama', califica: true },
     { titulo: 'Repaso general', descripcion: 'Mezcla de operaciones del curso.', califica: true },
   ]);
   await crearModulos(operaciones.id, [
-    { titulo: 'Multiplicar por 10', descripcion: 'Patrones al multiplicar por decenas.', juego: 'Torre de Bloques', califica: true },
-    { titulo: 'Division exacta', descripcion: 'Repartos sin residuo.', juego: 'Ordena la Secuencia', califica: true },
-    { titulo: 'Practica libre', descripcion: 'Sesion sin calificacion.', juego: 'Viborita Numerica', califica: false },
+    { titulo: 'Multiplicar por 10', descripcion: 'Patrones al multiplicar por decenas.', califica: true },
+    { titulo: 'Division exacta', descripcion: 'Repartos sin residuo.', califica: true },
+    { titulo: 'Practica libre', descripcion: 'Sesion sin calificacion.', califica: false },
   ]);
   await crearModulos(algebra.id, [
-    { titulo: 'El valor oculto', descripcion: 'Encontrar la incognita en sumas.', juego: 'Laberinto', califica: true },
+    { titulo: 'El valor oculto', descripcion: 'Encontrar la incognita en sumas.', califica: true },
   ]);
   await crearModulos(fracciones.id, [
-    { titulo: 'Mitades y cuartos', descripcion: 'Reconocer fracciones en figuras.', juego: 'Burbujas', califica: true },
+    { titulo: 'Mitades y cuartos', descripcion: 'Reconocer fracciones en figuras.', califica: true },
     { titulo: 'Equivalencias', descripcion: 'Encontrar fracciones equivalentes.', juego: 'Memorama', califica: true },
   ]);
   await crearModulos(lectura.id, [
     { titulo: 'Sinonimos', descripcion: 'Asociar palabras de significado cercano.', juego: 'Memorama', califica: true },
-    { titulo: 'Orden de la historia', descripcion: 'Ordenar los hechos de un relato.', juego: 'Ordena la Secuencia', califica: false },
+    { titulo: 'Orden de la historia', descripcion: 'Ordenar los hechos de un relato.', califica: false },
   ]);
   await crearModulos(geografia.id, [
-    { titulo: 'Capitales', descripcion: 'Relacionar pais y capital.', juego: 'Laberinto', califica: true },
+    { titulo: 'Capitales', descripcion: 'Relacionar pais y capital.', califica: true },
   ]);
-
-  // Configurar el primer modulo de Matematicas Basicas como ejemplo de plantilla configurada
-  await configuracionesRepo.save(
-    configuracionesRepo.create({
-      moduloId: modulosMatematicas[0].id,
-      juegoId: juegoPorNombre('Viborita Numerica').id,
-      titulo: 'Sumas basicas',
-      instrucciones: 'Guia la vibora hacia el resultado correcto de cada suma.',
-      velocidad: 'media',
-      tiempoLimiteSegundos: 180,
-      paresContenido: 8,
-      intentosPermitidos: 3,
-      puntajeMaximo: 100,
-    }),
-  );
 
   // Curso de Cripto Compliance: usa el juego con mecanica real
   const [criptoCompliance] = await cursosRepo.save([

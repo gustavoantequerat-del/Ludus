@@ -18,6 +18,7 @@ const NAV_POR_ROL: Record<string, ItemNavegacion[]> = {
     { ruta: 'editor', etiqueta: 'Editor', icono: 'pencil-ruler' },
     { ruta: 'scorm', etiqueta: 'Paquetes SCORM', icono: 'package' },
     { ruta: 'actividad', etiqueta: 'Actividad', icono: 'activity' },
+    { ruta: 'accesos', etiqueta: 'Accesos', icono: 'log-in' },
     { ruta: 'ajustes', etiqueta: 'Mi perfil', icono: 'user-round-cog' },
   ],
   admin_institucion: [
@@ -30,6 +31,7 @@ const NAV_POR_ROL: Record<string, ItemNavegacion[]> = {
     { ruta: 'juegos', etiqueta: 'Juegos', icono: 'gamepad-2' },
     { ruta: 'editor', etiqueta: 'Editor', icono: 'pencil-ruler' },
     { ruta: 'scorm', etiqueta: 'Paquetes SCORM', icono: 'package' },
+    { ruta: 'accesos', etiqueta: 'Accesos', icono: 'log-in' },
     { ruta: 'ajustes', etiqueta: 'Mi perfil', icono: 'user-round-cog' },
   ],
   docente: [

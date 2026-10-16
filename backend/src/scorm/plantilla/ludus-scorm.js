@@ -8,7 +8,7 @@
  * El paquete nunca lleva credenciales: el token del paquete solo identifica
  * que modulo abrir, y el acceso siempre lo da el login del estudiante.
  *
- * La Mesa de Cumplimiento vive en este archivo. Los demas juegos jugables
+ * La Mesa de Cumplimiento vive en este archivo. Los demas juegos
  * estan en su propio archivo (juego-*.js): se registran en window.LudusJuegos
  * y usan lo comun que este lanzador deja en window.LudusComun.
  */
@@ -255,20 +255,6 @@
   function mostrarError(mensaje) {
     elemento('error-mensaje').textContent = mensaje;
     mostrarPantalla('pantalla-error');
-  }
-
-  function dibujarTablero() {
-    var tablero = elemento('tablero');
-    tablero.innerHTML = '';
-    var activas = [10, 11, 12, 20, 28];
-    var objetivos = [5, 27, 33];
-    for (var i = 0; i < 40; i++) {
-      var celda = document.createElement('div');
-      celda.className = 'celda';
-      if (activas.indexOf(i) > -1) celda.className += ' celdaActiva';
-      else if (objetivos.indexOf(i) > -1) celda.className += ' celdaObjetivo';
-      tablero.appendChild(celda);
-    }
   }
 
   function formatearTiempo(segundos) {
@@ -544,25 +530,11 @@
       juegos[clave].iniciar();
       return;
     }
-    if (paquete.juego && paquete.juego.jugable) {
-      mostrarError('Este paquete no trae el juego ' + paquete.juego.nombre + '. Vuelve a exportarlo desde Ludus.');
+    if (!paquete.juego) {
+      mostrarError('Este modulo todavia no tiene un juego asignado en Ludus.');
       return;
     }
-
-    var configuracion = paquete.configuracion;
-
-    elemento('juego-titulo').textContent = configuracion.titulo || paquete.modulo.titulo;
-    elemento('juego-instrucciones').textContent =
-      configuracion.instrucciones || paquete.juego.descripcion;
-    elemento('chip-juego').textContent = paquete.juego.nombre;
-    elemento('chip-tiempo').textContent = formatearTiempo(configuracion.tiempoLimiteSegundos);
-    elemento('chip-intentos').textContent =
-      'Hasta ' + configuracion.intentosPermitidos + ' intentos';
-    elemento('juego-objetivo').textContent = 'Llegar a ' + configuracion.puntajeMaximo + ' puntos';
-    elemento('chip-estudiante').textContent = sesion.estudiante.nombre;
-
-    dibujarTablero();
-    mostrarPantalla('pantalla-juego');
+    mostrarError('Este paquete no trae el juego ' + paquete.juego.nombre + '. Vuelve a exportarlo desde Ludus.');
   }
 
   /** detalle: una linea opcional propia del juego ("Respondiste bien 3 de 5"). */
@@ -675,29 +647,6 @@
       });
   }
 
-  function alTerminar() {
-    var boton = elemento('boton-terminar');
-    boton.disabled = true;
-    boton.textContent = 'Guardando...';
-
-    // Los juegos son maqueta por ahora: el puntaje se simula y lo que se
-    // registra de verdad es el intento del estudiante.
-    var puntaje = Math.floor(60 + Math.random() * 40);
-
-    pedir('/resultado', { metodo: 'POST', cuerpo: { puntaje: puntaje } })
-      .then(function (resultado) {
-        var reportado = reportarResultadoAlLms(resultado);
-        mostrarResultado(resultado, reportado);
-      })
-      .catch(function (fallo) {
-        mostrarError(fallo.message);
-      })
-      .then(function () {
-        boton.disabled = false;
-        boton.textContent = 'Terminar';
-      });
-  }
-
   function alReintentar() {
     inicioDeSesion = Date.now();
     prepararJuego();
@@ -722,7 +671,6 @@
     }
 
     elemento('formulario-login').addEventListener('submit', alIngresar);
-    elemento('boton-terminar').addEventListener('click', alTerminar);
     elemento('boton-reintentar').addEventListener('click', alReintentar);
     elemento('mesa-siguiente').addEventListener('click', siguienteCaso);
     window.addEventListener('unload', cerrarScorm);

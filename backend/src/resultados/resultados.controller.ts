@@ -22,6 +22,6 @@ export class ResultadosController {
   @Post()
   @Roles(Rol.ESTUDIANTE)
   crear(@UsuarioActual() quien: UsuarioAutenticado, @Body() datos: CrearResultadoDto) {
-    return this.resultadosService.crear(quien, datos);
+    return this.resultadosService.crearDesdeCliente(quien, datos);
   }
 }

@@ -6,6 +6,7 @@ import { join } from 'path';
 import { ConfiguracionApp } from './configuracion/configuracion';
 import { CARPETAS_ARCHIVOS } from './archivos/archivos.constantes';
 import { ErroresBdFiltro } from './comun/filtros/errores-bd.filtro';
+import { TIPO_XLSX } from './usuarios/importacion/excel-usuarios';
 import { crearErrorValidacion } from './comun/validacion/errores-validacion';
 
 /** Tope del cuerpo JSON: las imagenes de personajes viajan en base64. */
@@ -17,6 +18,9 @@ const LIMITE_CUERPO = '6mb';
  * servicio y no el error generico de "cuerpo demasiado grande".
  */
 const LIMITE_VIDEO = '11mb';
+
+/** Tope del Excel de importacion masiva de usuarios. */
+const LIMITE_EXCEL = '2mb';
 
 /**
  * Todo lo que la aplicacion necesita antes de atender peticiones.
@@ -31,6 +35,7 @@ export function configurarApp(app: INestApplication): void {
   app.enableCors();
   app.use(express.json({ limit: LIMITE_CUERPO }));
   app.use(express.raw({ type: 'video/mp4', limit: LIMITE_VIDEO }));
+  app.use(express.raw({ type: TIPO_XLSX, limit: LIMITE_EXCEL }));
 
   // Imagenes del juego: se sirven crudas en /archivos, fuera del prefijo /api.
   const rutaArchivos = config.get('rutaArchivos', { infer: true });

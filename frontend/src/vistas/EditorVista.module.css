@@ -14,10 +14,6 @@
   border: 1px solid var(--linea);
 }
 
-.juegoMaqueta {
-  opacity: 0.66;
-}
-
 .cabecera {
   display: flex;
   align-items: center;
@@ -33,11 +29,6 @@
   place-items: center;
   background: var(--primario-suave);
   color: var(--terciario);
-}
-
-.iconoMaqueta {
-  background: var(--celda);
-  color: var(--tenue);
 }
 
 .textos {
@@ -71,9 +62,4 @@
   align-items: center;
   gap: 9px;
   flex-wrap: wrap;
-}
-
-.nota {
-  font: 500 11.5px var(--fuente-texto);
-  color: var(--tenue);
 }

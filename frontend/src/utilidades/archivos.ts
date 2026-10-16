@@ -21,3 +21,15 @@ export function leerComoDataUrl(archivo: File): Promise<string> {
     lector.readAsDataURL(archivo);
   });
 }
+
+/** Ofrece al usuario guardar un archivo recibido del backend. */
+export function guardarArchivo(contenido: Blob, nombre: string): void {
+  const url = URL.createObjectURL(contenido);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  document.body.removeChild(enlace);
+  URL.revokeObjectURL(url);
+}

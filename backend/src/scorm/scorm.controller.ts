@@ -8,8 +8,9 @@ import {
   Post,
   Res,
   UseGuards,
+  Req,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { JwtGuardia } from '../comun/guardias/jwt.guardia';
 import { RolesGuardia } from '../comun/guardias/roles.guardia';
 import { Roles } from '../comun/decoradores/roles.decorador';
@@ -21,6 +22,7 @@ import { CrearPaqueteDto } from './dto/crear-paquete.dto';
 import { ActualizarPaqueteDto } from './dto/actualizar-paquete.dto';
 import { RegistrarResultadoScormDto } from './dto/registrar-resultado-scorm.dto';
 import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
+import { origenDePeticion } from '../accesos/origen-acceso';
 import { TerminarPartidaDto, VerificarCasoDto } from '../juegos/dto/partida.dto';
 import { RespuestaRunnerDto, TerminarRunnerDto } from '../juegos/runner/dto/historia.dto';
 
@@ -94,8 +96,8 @@ export class ScormController {
   }
 
   @Post('publico/:token/ingresar')
-  ingresar(@Param('token') token: string, @Body() datos: IngresarDto) {
-    return this.scormService.ingresar(token, datos);
+  ingresar(@Param('token') token: string, @Body() datos: IngresarDto, @Req() peticion: Request) {
+    return this.scormService.ingresar(token, datos, origenDePeticion(peticion, 'scorm'));
   }
 
   @Get('publico/:token/partida')
@@ -141,7 +143,7 @@ export class ScormController {
     return this.scormService.terminarRunner(token, quien, datos.respuestas);
   }
 
-  /* Maquetas y juegos ludicos: el lanzador manda el puntaje y aqui se registra. */
+  /* Juegos ludicos: el lanzador manda el puntaje y aqui se registra (sin nota). */
   @Post('publico/:token/resultado')
   @UseGuards(JwtGuardia)
   registrarResultado(

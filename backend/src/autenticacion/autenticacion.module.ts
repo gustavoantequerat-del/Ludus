@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { UsuariosModule } from '../usuarios/usuarios.module';
+import { AccesosModule } from '../accesos/accesos.module';
 import { AutenticacionService } from './autenticacion.service';
 import { AutenticacionController } from './autenticacion.controller';
 import { JwtEstrategia } from './estrategias/jwt.estrategia';
@@ -11,6 +12,7 @@ import { ConfiguracionApp } from '../configuracion/configuracion';
 @Module({
   imports: [
     UsuariosModule,
+    AccesosModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

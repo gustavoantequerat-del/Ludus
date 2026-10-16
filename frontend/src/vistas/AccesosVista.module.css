@@ -1,0 +1,31 @@
+.celdaCuenta {
+  flex: 1.8;
+  min-width: 0;
+}
+
+.celdaRol,
+.celdaInstitucion,
+.celdaMetodo,
+.celdaIp {
+  flex: 0.9;
+  min-width: 0;
+}
+
+.celdaFecha {
+  flex: 1.1;
+}
+
+.celdaRol,
+.celdaInstitucion,
+.celdaFecha {
+  font: 500 12.5px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.celdaIp {
+  color: var(--tenue);
+  font: 500 11.5px var(--fuente-texto);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

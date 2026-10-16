@@ -34,6 +34,7 @@ const TABLAS_ESPERADAS = [
   'casos_cumplimiento',
   'mazos',
   'historias',
+  'accesos',
 ];
 
 function titulo(texto: string) {

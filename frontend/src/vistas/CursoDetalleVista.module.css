@@ -156,3 +156,9 @@
   font: 700 10px var(--fuente-titulos);
   color: var(--terciario);
 }
+
+.sinJuego {
+  padding: 0 10px;
+  font: 600 12px var(--fuente-texto);
+  color: var(--tenue);
+}

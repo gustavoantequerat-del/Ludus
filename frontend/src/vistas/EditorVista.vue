@@ -23,13 +23,7 @@ const enrutador = useRouter();
 const juegos = ref<Juego[]>([]);
 const cargando = ref(true);
 
-// En cada sector, primero los que se pueden editar: es a lo que vino el docente.
-const sectores = computed(() =>
-  porSector(juegos.value).map((sector) => ({
-    ...sector,
-    juegos: [...sector.juegos].sort((a, b) => Number(b.jugable) - Number(a.jugable)),
-  })),
-);
+const sectores = computed(() => porSector(juegos.value));
 
 function abrir(juego: Juego) {
   enrutador.push({ name: 'editor-juego', params: { clave: juego.clave } });
@@ -58,10 +52,10 @@ onMounted(async () => {
       <article
         v-for="juego in sector.juegos"
         :key="juego.id"
-        :class="[estilos.juego, juego.jugable ? '' : estilos.juegoMaqueta]"
+        :class="estilos.juego"
       >
         <div :class="estilos.cabecera">
-          <span :class="[estilos.icono, juego.jugable ? '' : estilos.iconoMaqueta]">
+          <span :class="estilos.icono">
             <Icono :nombre="juego.icono" :tamano="19" />
           </span>
           <div :class="estilos.textos">
@@ -73,18 +67,8 @@ onMounted(async () => {
         <p :class="estilos.descripcion">{{ juego.eslogan }}</p>
 
         <div :class="estilos.pie">
-          <Insignia :tono="juego.jugable ? 'ok' : 'neutro'">
-            {{ juego.jugable ? 'Editable' : 'Maqueta' }}
-          </Insignia>
-          <Boton
-            v-if="juego.jugable"
-            variante="primario"
-            icono="pencil"
-            @click="abrir(juego)"
-          >
-            Editar contenido
-          </Boton>
-          <span v-else :class="estilos.nota">Todavia no tiene contenido que editar</span>
+          <Insignia tono="ok">Editable</Insignia>
+          <Boton variante="primario" icono="pencil" @click="abrir(juego)">Editar contenido</Boton>
         </div>
       </article>
     </div>

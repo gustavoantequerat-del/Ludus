@@ -35,6 +35,14 @@ export class UsuariosService {
       .getOne();
   }
 
+  /** Para el login con Google: el correo de Google puede venir con otras mayusculas. */
+  buscarPorCorreo(correo: string): Promise<Usuario | null> {
+    return this.usuariosRepo
+      .createQueryBuilder('usuario')
+      .where('LOWER(usuario.correo) = LOWER(:correo)', { correo })
+      .getOne();
+  }
+
   /** Datos propios del usuario que inicio sesion (nombre y correo). */
   async actualizarPerfil(id: string, datos: ActualizarPerfilDto): Promise<Usuario> {
     const usuario = await this.usuariosRepo.findOne({ where: { id } });

@@ -1,7 +1,8 @@
 export type Rol = 'superadmin' | 'admin_institucion' | 'docente' | 'estudiante';
 
+/** La carga del JWT tal como la devuelve el login: el id viaja como `sub`. */
 export interface UsuarioAutenticado {
-  id: string;
+  sub: string;
   correo: string;
   nombre: string;
   rol: Rol;
@@ -27,6 +28,37 @@ export interface Usuario {
   institucionId: string | null;
   institucion?: Institucion | null;
   activo: boolean;
+}
+
+export interface FilaImportacion {
+  fila: number;
+  nombre: string;
+  correo: string;
+  rol: string;
+  institucion: string;
+  errores: string[];
+}
+
+export interface ResultadoImportacion {
+  filas: FilaImportacion[];
+  validas: number;
+  conErrores: number;
+  creados?: number;
+}
+
+export interface Acceso {
+  id: string;
+  metodo: 'clave' | 'google' | 'scorm';
+  ip: string | null;
+  agente: string | null;
+  creadoEn: string;
+  usuario: { id: string; nombre: string; correo: string; rol: Rol; institucion: string | null };
+}
+
+export interface ListadoAccesos {
+  dias: number;
+  resumen: { total: number; usuariosDistintos: number; ultimas24h: number };
+  accesos: Acceso[];
 }
 
 export interface ModuloCurso {

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { UsuarioAutenticado } from '@/tipos';
 import { autenticacionServicio } from '@/servicios/autenticacion.servicio';
+import { identificarUsuario, registrarIngreso } from '@/utilidades/analitica';
 
 const LLAVE_TOKEN = 'ludus-token';
 const LLAVE_USUARIO = 'ludus-usuario';
@@ -32,6 +33,12 @@ export const useAlmacenAutenticacion = defineStore('autenticacion', {
     async ingresar(correo: string, clave: string) {
       const respuesta = await autenticacionServicio.ingresar(correo, clave);
       this.guardarSesion(respuesta.tokenAcceso, respuesta.usuario);
+      registrarIngreso('clave');
+    },
+    async ingresarConGoogle(credencial: string) {
+      const respuesta = await autenticacionServicio.ingresarConGoogle(credencial);
+      this.guardarSesion(respuesta.tokenAcceso, respuesta.usuario);
+      registrarIngreso('google');
     },
     /** El backend reemite el token porque lleva el nombre y el correo. */
     async actualizarPerfil(datos: { nombre?: string; correo?: string }) {
@@ -43,12 +50,14 @@ export const useAlmacenAutenticacion = defineStore('autenticacion', {
       this.usuario = usuario;
       localStorage.setItem(LLAVE_TOKEN, token);
       localStorage.setItem(LLAVE_USUARIO, JSON.stringify(usuario));
+      identificarUsuario(usuario);
     },
     cerrarSesion() {
       this.token = null;
       this.usuario = null;
       localStorage.removeItem(LLAVE_TOKEN);
       localStorage.removeItem(LLAVE_USUARIO);
+      identificarUsuario(null);
     },
   },
 });

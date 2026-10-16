@@ -6,7 +6,21 @@ export interface RespuestaIngreso {
   usuario: UsuarioAutenticado;
 }
 
+/** Ids publicos de Google; null si el servidor no los tiene configurados. */
+export interface OpcionesPublicas {
+  googleClientId: string | null;
+  googleAnalyticsId: string | null;
+}
+
 export const autenticacionServicio = {
+  opciones() {
+    return cliente.get<OpcionesPublicas>('/autenticacion/opciones').then((r) => r.data);
+  },
+  ingresarConGoogle(credencial: string) {
+    return cliente
+      .post<RespuestaIngreso>('/autenticacion/google', { credencial })
+      .then((r) => r.data);
+  },
   ingresar(correo: string, clave: string) {
     return cliente
       .post<RespuestaIngreso>('/autenticacion/ingresar', { correo, clave })

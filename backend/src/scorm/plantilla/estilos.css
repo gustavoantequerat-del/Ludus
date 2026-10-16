@@ -18,7 +18,6 @@
   --error: #ff8a8a;
   --linea: rgba(255, 255, 255, 0.09);
   --linea-2: rgba(255, 255, 255, 0.16);
-  --celda: rgba(255, 255, 255, 0.04);
   --exito-suave: rgba(94, 242, 196, 0.12);
   --error-suave: rgba(255, 138, 138, 0.14);
   --fuente: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -278,51 +277,11 @@ body {
   color: var(--secundario);
 }
 
-.tablero {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 5px;
-  aspect-ratio: 8 / 5;
-  padding: 11px;
-  border-radius: 16px;
-  background: #130b26;
-  border: 1px solid var(--linea);
-}
-
-.celda {
-  border-radius: 6px;
-  background: var(--celda);
-}
-
-.celdaActiva {
-  background: var(--primario);
-}
-
-.celdaObjetivo {
-  background: rgba(0, 229, 255, 0.22);
-}
-
 .filaInferior {
   display: flex;
   align-items: center;
   gap: 13px;
   flex-wrap: wrap;
-}
-
-.metrica {
-  display: flex;
-  flex-direction: column;
-}
-
-.metricaEtiqueta {
-  font: 500 10.5px var(--fuente);
-  color: var(--apagado);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metricaValor {
-  font: 600 14px var(--fuente);
 }
 
 .filaInferior .boton {

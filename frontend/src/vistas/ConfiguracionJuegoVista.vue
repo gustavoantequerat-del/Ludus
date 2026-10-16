@@ -22,7 +22,7 @@ const props = defineProps<{ cursoId: string; moduloId: string }>();
 const enrutador = useRouter();
 const { notificar } = usarNotificaciones();
 
-/** Juegos con parametros propios: no usan los genericos de la maqueta. */
+/** Juegos con parametros propios; la Mesa de Cumplimiento usa los comunes (tiempo, casos, intentos). */
 const JUEGOS_CON_AJUSTES = ['memorama', 'mahjong', 'runner-narrativo'];
 
 const catalogo = ref<Juego[]>([]);

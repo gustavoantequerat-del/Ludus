@@ -18,6 +18,16 @@ export interface ConfiguracionApp {
    * tal cual en /archivos, sin el prefijo /api: son estaticos, no endpoints.
    */
   rutaArchivos: string;
+  /**
+   * Servicios de Google, opcionales. Sin GOOGLE_CLIENT_ID el boton "Continuar
+   * con Google" no aparece; sin GOOGLE_ANALYTICS_ID no se carga Analytics.
+   * El frontend los lee en tiempo de ejecucion (GET /autenticacion/opciones),
+   * asi que cambiarlos no exige recompilarlo.
+   */
+  google: {
+    clientId: string;
+    analyticsId: string;
+  };
 }
 
 export default (): ConfiguracionApp => ({
@@ -31,4 +41,8 @@ export default (): ConfiguracionApp => ({
     process.env.URL_PUBLICA_API ||
     `http://localhost:${Number(process.env.PUERTO || process.env.PORT) || 3000}/api`,
   rutaArchivos: process.env.RUTA_ARCHIVOS || join(process.cwd(), 'archivos'),
+  google: {
+    clientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
+    analyticsId: (process.env.GOOGLE_ANALYTICS_ID || '').trim(),
+  },
 });

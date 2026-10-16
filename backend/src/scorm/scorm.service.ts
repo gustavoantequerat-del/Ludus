@@ -19,6 +19,7 @@ import { Inscripcion } from '../inscripciones/inscripcion.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { ConfiguracionApp } from '../configuracion/configuracion';
+import { OrigenAcceso } from '../accesos/origen-acceso';
 import { AutenticacionService } from '../autenticacion/autenticacion.service';
 import { ResultadosService } from '../resultados/resultados.service';
 import { JuegosService } from '../juegos/juegos.service';
@@ -267,7 +268,7 @@ export class ScormService {
    * Login del estudiante desde el LMS. Ademas de validar la contrasena, exige
    * que sea estudiante y que este inscrito en el curso del modulo.
    */
-  async ingresar(token: string, datos: IngresarDto) {
+  async ingresar(token: string, datos: IngresarDto, origen: OrigenAcceso) {
     const paquete = await this.paqueteActivo(token);
     const modulo = await this.moduloCompleto(paquete.moduloId);
     const configuracion = await this.configuracionesRepo.findOne({
@@ -277,7 +278,7 @@ export class ScormService {
       throw new BadRequestException('El modulo ya no tiene un juego configurado');
     }
 
-    const sesion = await this.autenticacionService.ingresar(datos);
+    const sesion = await this.autenticacionService.ingresar(datos, origen);
     if (sesion.usuario.rol !== Rol.ESTUDIANTE) {
       throw new ForbiddenException('Este modulo solo puede abrirlo un estudiante');
     }
@@ -322,7 +323,7 @@ export class ScormService {
       where: { moduloId: paquete.moduloId },
     });
 
-    const resultado = await this.resultadosService.crear(quien, {
+    const resultado = await this.resultadosService.crearDesdeCliente(quien, {
       moduloId: paquete.moduloId,
       puntaje: datos.puntaje,
     });

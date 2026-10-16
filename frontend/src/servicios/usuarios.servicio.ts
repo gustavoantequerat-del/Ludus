@@ -1,5 +1,8 @@
 import { cliente } from './cliente';
-import type { Rol, Usuario } from '@/tipos';
+import type { ResultadoImportacion, Rol, Usuario } from '@/tipos';
+import { guardarArchivo } from '@/utilidades/archivos';
+
+const TIPO_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 export interface DatosUsuario {
   nombre: string;
@@ -24,5 +27,18 @@ export const usuariosServicio = {
   },
   eliminar(id: string) {
     return cliente.delete(`/usuarios/${id}`);
+  },
+  async descargarPlantilla() {
+    const respuesta = await cliente.get('/usuarios/plantilla', { responseType: 'blob' });
+    guardarArchivo(respuesta.data as Blob, 'plantilla-usuarios.xlsx');
+  },
+  /** Sin `confirmar` el backend solo revisa el archivo y devuelve la vista previa. */
+  importar(archivo: File, confirmar: boolean) {
+    return cliente
+      .post<ResultadoImportacion>('/usuarios/importar', archivo, {
+        params: confirmar ? { confirmar: 'true' } : {},
+        headers: { 'Content-Type': TIPO_XLSX },
+      })
+      .then((r) => r.data);
   },
 };

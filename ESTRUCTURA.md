@@ -18,14 +18,19 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
 - **Autenticacion real** con JWT y pantalla de login. El prototipo no tenia
   login (usaba un selector de rol como atajo de demo); aqui el rol siempre
   viene del usuario autenticado, no hay forma de "cambiar de rol" en la UI.
-- **Cuatro juegos jugables, el resto maqueta.** El prototipo dejo la mecanica
-  de juego fuera a proposito. Hoy tienen mecanica real **Mesa de
-  Cumplimiento** (contenido del curso de Cripto Compliance, ver 6.2), el
-  **Runner Narrativo** (historias en video, ver 6.3.4) y los ludicos
-  **Memorama** y **Mahjong** (ver 6.3). Las demas plantillas siguen siendo
-  maqueta visual: se configuran con parametros reales y registran un intento,
-  pero la partida es simulada. El catalogo marca cuales son jugables con la
-  bandera `jugable`, y en que sector van (evaluacion o ludico) con `tipo`.
+- **Solo juegos programados.** El prototipo dejo la mecanica de juego fuera
+  a proposito e inventaba seis plantillas de maqueta. Hoy el catalogo tiene
+  solo los cuatro juegos con mecanica real: **Mesa de Cumplimiento**
+  (contenido del curso de Cripto Compliance, ver 6.2), el **Runner
+  Narrativo** (historias en video, ver 6.3.4) y los ludicos **Memorama** y
+  **Mahjong** (ver 6.3). Las maquetas (Viborita Numerica, Torre de Bloques,
+  Burbujas, Ordena la Secuencia y Laberinto) se quitaron con la migracion
+  `QuitarJuegosMaqueta`: los modulos que las usaban quedan "sin juego" hasta
+  que el docente les asigne uno. El sector de cada juego (evaluacion o
+  ludico) lo dice `tipo`.
+- **Alta masiva por Excel**, **registro de accesos** e integraciones
+  opcionales de **Google** (inicio de sesion y Analytics), ver 6.4 y
+  `GOOGLE.md`.
 - **Monorepo sin Docker.** `backend/` y `frontend/` viven en el mismo
   repositorio; se asume que ya existe un PostgreSQL accesible (local o
   remoto) y solo se documentan las variables de conexion.
@@ -76,9 +81,11 @@ backend/src/
 │   ├── filtros/errores-bd.filtro.ts  Errores de PostgreSQL del cliente -> 400/409 (no 500)
 │   ├── validacion/errores-validacion.ts  Mensajes de validacion en espanol
 │   └── tipos/usuario-autenticado.ts
-├── autenticacion/                 POST /autenticacion/ingresar, GET /autenticacion/perfil
+├── autenticacion/                 Login con clave o con Google, perfil, opciones publicas (ids de Google)
+├── accesos/                        Registro de cada inicio de sesion (quien, cuando, por donde) y su listado
 ├── instituciones/                  CRUD instituciones (solo superadmin)
 ├── usuarios/                       CRUD usuarios, alcance segun quien consulta
+│   └── importacion/                 Alta masiva desde .xlsx: plantilla, lectura y validacion por fila
 ├── cursos/                          CRUD cursos + submodulos (modulos de un curso)
 │   ├── curso.entidad.ts
 │   └── modulo-curso.entidad.ts     "modulo" del curso (no confundir con modulo de Nest)
@@ -118,7 +125,7 @@ class-validator), `*.service.ts` (reglas de negocio y acceso a datos),
 
 ```
 frontend/src/
-├── main.ts                    Monta la app, importa los estilos globales
+├── main.ts                    Monta la app, importa los estilos globales, engancha Analytics al enrutador
 ├── App.vue                    Decide si mostrar el layout con barra o la pantalla de login
 ├── vite-env.d.ts               Tipos de Vite + modulos *.vue y *.module.css
 ├── estilos/
@@ -137,12 +144,16 @@ frontend/src/
 │   ├── errores.ts                  Saca el mensaje que manda el backend cuando rechaza algo
 │   ├── catalogo.ts                 Los dos sectores del catalogo (evaluacion / ludico)
 │   ├── partidas.ts                 Registrar el intento de un juego ludico, formato de tiempo
-│   └── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
+│   ├── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
+│   ├── opciones.ts                  Pide una vez al backend los ids publicos de Google
+│   ├── analitica.ts                 Google Analytics 4 opcional: vistas por ruta, user_id sin datos personales
+│   └── google.ts                    Boton "Continuar con Google" (Google Identity Services)
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
 │   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
 │   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoVideo)
 │   ├── configuracion/              Parametros propios de cada juego al configurar un modulo
+│   ├── usuarios/                    ImportarUsuarios: modal de alta masiva por Excel (plantilla, vista previa, confirmar)
 │   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo)
 │       └── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
 └── vistas/                        Una vista por pantalla (ver seccion 5)
@@ -188,6 +199,8 @@ personaje 1───* caso_cumplimiento (opcional: un caso puede no tener person
 institucion 1───* mazo (iconos, ficha y fondo del Memorama o del Mahjong; null = catalogo base)
 institucion 1───* historia (intro y preguntas en video del Runner Narrativo; null = catalogo base)
 configuracion_juego.ajustes ──> mazo o historia (por id, dentro del jsonb)
+
+usuario 1───* acceso (cada inicio de sesion: metodo clave/google/scorm, IP, navegador)
 ```
 
 Puntos que vale la pena aclarar:
@@ -208,8 +221,7 @@ Puntos que vale la pena aclarar:
   permiso solo las **seleccionan y configuran** por modulo. Cada plantilla es
   de uno de dos **sectores** (`juego.tipo`):
   - **evaluacion**: mide lo aprendido en el curso y puede calificar (Mesa de
-    Cumplimiento, Runner Narrativo y las maquetas Viborita Numerica, Torre de
-    Bloques, Burbujas, Ordena la Secuencia y Laberinto).
+    Cumplimiento y Runner Narrativo). Su puntaje lo calcula el servidor.
   - **ludico**: para jugar sin saber el tema; **nunca califica** (Memorama y
     Mahjong). Al configurar un juego ludico el modulo queda con
     `califica = false` aunque antes calificara.
@@ -245,7 +257,7 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 | `AutenticacionVista` | `/ingresar` | publica |
 | `PanelVista` (dashboard) | `/` | todos, contenido distinto por rol |
 | `InstitucionesVista` | `/instituciones` | superadmin |
-| `UsuariosVista` | `/usuarios`, `/docentes`, `/estudiantes` | superadmin, admin_institucion, docente (solo lectura) |
+| `UsuariosVista` | `/usuarios`, `/docentes`, `/estudiantes` | superadmin, admin_institucion, docente (solo lectura); "Importar Excel" para los dos primeros |
 | `CursosVista` | `/cursos` | todos (tarjetas; acciones segun rol) |
 | `CursoDetalleVista` | `/cursos/:id` | todos (modulos, asignar estudiantes, jugar) |
 | `RutasVista` / `RutaDetalleVista` | `/rutas`, `/rutas/:id` | todos |
@@ -258,6 +270,7 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 | `SolicitudesVista` | `/solicitudes` | superadmin, admin_institucion, estudiante |
 | `ResultadosVista` (Resultados/Calificaciones) | `/resultados` | todos |
 | `ActividadVista` | `/actividad` | superadmin |
+| `AccesosVista` | `/accesos` | superadmin (todos), admin_institucion (su institucion) |
 | `PaquetesScormVista` | `/scorm` | superadmin, admin_institucion, docente |
 | `AjustesVista` (Mi perfil) | `/ajustes` | todos |
 
@@ -301,6 +314,8 @@ Todo bajo el prefijo `/api`. Autenticacion con `Authorization: Bearer
 
 ```
 POST   /autenticacion/ingresar          { correo, clave } -> { tokenAcceso, usuario }
+POST   /autenticacion/google            { credencial: ID token de Google } -> { tokenAcceso, usuario }; 503 si no hay GOOGLE_CLIENT_ID
+GET    /autenticacion/opciones          publico: { googleClientId, googleAnalyticsId } (null si no estan configurados)
 GET    /autenticacion/perfil
 PATCH  /autenticacion/perfil            { nombre?, correo? } -> { tokenAcceso, usuario }
 PATCH  /autenticacion/clave             { claveActual, claveNueva } -> 204
@@ -309,7 +324,11 @@ GET|POST /instituciones                 superadmin
 GET|PATCH|DELETE /instituciones/:id     superadmin
 
 GET|POST /usuarios                      alcance segun rol; ?rol= filtra
+GET      /usuarios/plantilla            .xlsx de ejemplo para la importacion (superadmin/admin)
+POST     /usuarios/importar             cuerpo = el .xlsx crudo; sin ?confirmar=true solo devuelve la vista previa
 GET|PATCH|DELETE /usuarios/:id
+
+GET      /accesos?dias=30               inicios de sesion + resumen (superadmin todos, admin su institucion)
 
 GET|POST /cursos                        alcance segun rol
 GET      /cursos/explorar               estudiante: cursos de su institucion en los que no esta
@@ -361,7 +380,7 @@ GET|PUT  /rutas/:rutaId/inscripciones
 GET|POST /solicitudes                     crear: solo estudiante
 PATCH    /solicitudes/:id                 { estado: 'aprobada' | 'rechazada' }; solo admin/superadmin
 
-GET|POST /resultados                      crear: solo estudiante (maquetas y juegos ludicos)
+GET|POST /resultados                      crear: solo estudiante y solo en juegos ludicos (los de evaluacion califican en el servidor)
 
 GET      /panel/resumen                   KPIs segun el rol de quien consulta
 GET      /panel/actividad                 solo superadmin
@@ -377,7 +396,7 @@ POST     /scorm/publico/:token/ingresar   login del estudiante desde el LMS
 GET      /scorm/publico/:token/partida   partida del juego del modulo (Mesa, Memorama, Mahjong o Runner)
 POST     /scorm/publico/:token/runner/verificar  { preguntaId, opcionId } -> { correcta, video }
 POST     /scorm/publico/:token/runner/terminar   { respuestas } -> nota + lo que se reporta al LMS
-POST     /scorm/publico/:token/resultado  guarda el intento de maquetas y ludicos (requiere el token del login)
+POST     /scorm/publico/:token/resultado  guarda el intento de un juego ludico (requiere el token del login)
 ```
 
 ## 6.1 Exportacion a SCORM (usar un modulo dentro de otro LMS)
@@ -453,8 +472,7 @@ el LMS recibe la nota del intento.
 
 ## 6.2 Juego jugable: Mesa de Cumplimiento
 
-Es el primer juego del catalogo con mecanica real (los demas siguen siendo
-maqueta). Esta inspirado en *That's Not My Neighbor*: en vez de dejar pasar
+Fue el primer juego del catalogo con mecanica real. Esta inspirado en *That's Not My Neighbor*: en vez de dejar pasar
 personas, el estudiante atiende la mesa de Cumplimiento de un banco boliviano y
 decide sobre solicitudes de **PSAV/VASP**.
 
@@ -585,9 +603,8 @@ backend (`src/juegos/mesa-cumplimiento/`), nunca en el cliente:
   partir de las respuestas y registra el intento como cualquier otro resultado.
 
 El catalogo de juegos tiene ahora `clave` (identificador estable) y `jugable`.
-El frontend y el paquete SCORM usan esa clave para decidir si renderizan el
-juego real o la maqueta, asi que agregar un segundo juego jugable no exige
-tocar las vistas existentes.
+El frontend y el paquete SCORM usan esa clave para decidir que juego
+renderizar, asi que agregar un juego nuevo no exige tocar los existentes.
 
 `src/juegos/mesa-cumplimiento/casos.ts` ya no es el banco en vivo: es la
 **semilla** que la migracion carga como catalogo base, y donde viven las
@@ -710,14 +727,75 @@ Las imagenes o videos que se suben y nunca se guardan en un mazo o historia
 (por ejemplo, se cancela el editor) quedan en el disco. Ocupan poco; no hay
 limpieza automatica de esos sobrantes.
 
+## 6.4 Alta masiva, accesos y Google
+
+### 6.4.1 Importar usuarios desde Excel
+
+En **Usuarios** (superadmin), **Estudiantes** y **Docentes** (admin de
+institucion) esta el boton **Importar Excel**. El modal tiene dos pasos:
+
+1. **Descargar la plantilla** (`GET /usuarios/plantilla`). Es un .xlsx real
+   generado con `exceljs`: hoja `Usuarios` con las columnas `nombre`,
+   `correo`, `clave`, `rol` (lista desplegable) y, solo para el superadmin,
+   `institucion`; hoja `Instrucciones`; y para el superadmin una hoja
+   `Instituciones` con los nombres y dominios validos.
+2. **Subir el archivo lleno.** El frontend manda el archivo crudo
+   (`Content-Type` de xlsx, tope 2 MB) y el backend devuelve una **vista
+   previa**: cada fila con sus errores. No se crea nada hasta que se
+   confirma; al confirmar se crean **solo las filas sin errores**, en una
+   transaccion, y el resto se informa como omitido.
+
+Reglas de cada fila (`usuarios/importacion/`):
+
+- Encabezados sin importar mayusculas ni acentos; filas vacias se ignoran;
+  maximo 500 filas por archivo (cada clave se cifra con bcrypt, ~75 ms cada
+  una: 500 filas tardan cerca de un minuto).
+- `nombre` 2 a 120 caracteres; `clave` 6 a 72 (un numero escrito en la celda
+  se lee como texto); `correo` valido, se guarda en minusculas, y no puede
+  existir ya (sin importar mayusculas) ni repetirse dentro del archivo.
+- `rol` vacio = estudiante. Un admin de institucion importa docentes y
+  estudiantes de su institucion (la columna `institucion` se ignora). El
+  superadmin puede importar tambien `admin_institucion` y la institucion de
+  cada fila se busca por dominio o por nombre. Superadmins no se importan.
+- Un correo que Excel guardo como hipervinculo se lee igual.
+
+### 6.4.2 Registro de accesos
+
+Cada inicio de sesion exitoso guarda una fila en `accesos`: usuario, metodo
+(`clave`, `google` o `scorm`), IP (la de `X-Forwarded-For` cuando hay un
+proxy como Caddy) y navegador. Si guardar falla, el login no falla (solo
+queda en el log). La vista **Accesos** muestra los ultimos 500 del periodo
+elegido y un resumen (ultimas 24 h, total y cuentas distintas). Es el dato de
+"que cuenta entro y cuando" que Google Analytics no puede guardar.
+
+### 6.4.3 Google: inicio de sesion y Analytics (opcionales)
+
+Los dos se activan con variables del backend, sin recompilar el frontend: el
+frontend las pide a `GET /autenticacion/opciones` al arrancar.
+
+- **`GOOGLE_CLIENT_ID`** muestra el boton "Continuar con Google" en el login.
+  Google entrega un ID token firmado; el backend lo verifica con
+  `google-auth-library` contra ese client id, exige `email_verified` y busca
+  una cuenta **existente y activa** con ese correo. No hay autoregistro:
+  quien no fue dado de alta recibe "No hay una cuenta activa de Ludus para
+  ...". Si el script de Google no carga, el boton simplemente no aparece.
+- **`GOOGLE_ANALYTICS_ID`** carga GA4 (`utilidades/analitica.ts`). Manda una
+  vista por cada cambio de ruta (el titulo es el nombre de la ruta, asi
+  "curso-detalle" se agrupa), el evento `login`, el `user_id` = id interno de
+  Ludus y las propiedades `rol` e `institucion_id`. **Nunca** correo ni
+  nombre: las condiciones de Google lo prohiben.
+
+Los pasos para crear el client id y la propiedad de Analytics estan en
+**GOOGLE.md**.
+
 ## 7. Simplificaciones deliberadas (KISS)
 
 Estas decisiones se tomaron para no sobre-construir funcionalidad que el
 prototipo tampoco resolvia, o que no aporta al alcance pedido:
 
-- **Solo un juego tiene mecanica real.** Ver 6.2. Para las otras cinco
-  plantillas `JugarVista` simula el puntaje; el backend si persiste un
-  `resultado` real con ese puntaje.
+- **No hay juegos simulados.** Las maquetas del prototipo se quitaron del
+  catalogo. Un modulo sin juego muestra "Pronto" en el curso y, si se abre su
+  URL, un aviso; no hay tablero de mentira ni puntaje al azar.
 - **"Actividad" es una vista derivada, no una bitacora de auditoria.**
   `PanelService.actividadReciente()` arma la lista combinando las tablas
   existentes (ultimos cursos, solicitudes, resultados, usuarios) en vez de

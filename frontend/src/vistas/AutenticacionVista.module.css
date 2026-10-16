@@ -63,3 +63,25 @@
   font: 400 11.5px/1.5 var(--fuente-texto);
   color: var(--tenue);
 }
+
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tenue);
+  font: 500 11.5px var(--fuente-texto);
+}
+
+.separador::before,
+.separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--linea-2);
+}
+
+.botonGoogle {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}

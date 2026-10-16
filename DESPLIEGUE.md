@@ -174,6 +174,8 @@ JWT_SECRETO=una-cadena-larga-y-aleatoria
 JWT_EXPIRACION=8h
 RUTA_ARCHIVOS=
 URL_PUBLICA_API=https://ludus.tu-dominio.com/api
+GOOGLE_CLIENT_ID=                 # opcional: boton "Continuar con Google" (ver GOOGLE.md)
+GOOGLE_ANALYTICS_ID=              # opcional: G-XXXXXXXXXX de Google Analytics 4
 ```
 
 - `PUERTO`: uno que no use otro proyecto de la maquina (`sudo ss -tlnp` lista
@@ -185,6 +187,10 @@ URL_PUBLICA_API=https://ludus.tu-dominio.com/api
   Una ruta relativa como `backend/archivos` se resuelve desde la carpeta
   `backend/` y termina creando `backend/backend/archivos`.
 - `URL_PUBLICA_API` con `https://` y terminada en `/api`.
+- `GOOGLE_CLIENT_ID` y `GOOGLE_ANALYTICS_ID`: vacios, el sitio funciona igual
+  (sin boton de Google y sin Analytics). Se leen al arrancar: tras cambiarlos
+  basta `pm2 restart ludus-api`, el frontend no se recompila. Como
+  crearlos: **GOOGLE.md**.
 
 ### 2.5 Mantener Node corriendo con PM2
 
@@ -263,6 +269,11 @@ cd ../frontend && npm ci && VITE_URL_API= npm run build && chmod -R o+rX dist
 
 El frontend no necesita reiniciar nada: Caddy sirve los archivos nuevos al
 instante (con Ctrl+F5 en el navegador si quedo algo en cache).
+
+`npm ci` hace falta cuando la version nueva trae dependencias nuevas (por
+ejemplo `exceljs` y `google-auth-library`); si no, no hace dano.
+`migracion:ejecutar` aplica solo las migraciones que falten; las que ya
+corrieron no se repiten.
 
 ---
 
@@ -346,3 +357,9 @@ direccion vieja: hay que **volver a exportarlos**.
 - [ ] La pantalla *Paquetes SCORM* no muestra la advertencia amarilla
 - [ ] Un paquete recien exportado abre y guarda nota desde el LMS
 - [ ] Las claves de la semilla cambiadas, o la semilla no ejecutada
+- [ ] *Estudiantes > Importar Excel*: la plantilla se descarga y un archivo de
+      prueba muestra la vista previa (la subida pasa por el `request_body` de Caddy)
+- [ ] La vista *Accesos* muestra tu propio inicio de sesion con tu IP real
+      (no 127.0.0.1: si sale esa, Caddy no esta mandando `X-Forwarded-For`)
+- [ ] Si configuraste Google: el boton aparece en el login y entra con una
+      cuenta que ya existe en Ludus; en Analytics > Tiempo real se ve la visita

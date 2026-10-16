@@ -1,9 +1,10 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Resultado } from './resultado.entidad';
 import { ModuloCurso } from '../cursos/modulo-curso.entidad';
 import { Inscripcion } from '../inscripciones/inscripcion.entidad';
+import { ConfiguracionJuego } from '../juegos/configuracion-juego.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { CrearResultadoDto } from './dto/crear-resultado.dto';
@@ -17,7 +18,26 @@ export class ResultadosService {
     private readonly modulosRepo: Repository<ModuloCurso>,
     @InjectRepository(Inscripcion)
     private readonly inscripcionesRepo: Repository<Inscripcion>,
+    @InjectRepository(ConfiguracionJuego)
+    private readonly configuracionesRepo: Repository<ConfiguracionJuego>,
   ) {}
+
+  /**
+   * Puntaje que calcula el navegador (en Ludus o en el paquete SCORM). Solo
+   * se acepta en juegos ludicos, que no generan nota: los de evaluacion
+   * calculan su puntaje en el servidor y llaman directo a `crear`.
+   */
+  async crearDesdeCliente(quien: UsuarioAutenticado, datos: CrearResultadoDto): Promise<Resultado> {
+    const configuracion = await this.configuracionesRepo.findOne({
+      where: { moduloId: datos.moduloId },
+      relations: ['juego'],
+    });
+    if (!configuracion) throw new BadRequestException('Este modulo no tiene un juego configurado');
+    if (configuracion.juego.tipo !== 'ludico') {
+      throw new BadRequestException('El puntaje de este juego lo calcula Ludus al terminar la partida');
+    }
+    return this.crear(quien, datos);
+  }
 
   async listar(quien: UsuarioAutenticado): Promise<Resultado[]> {
     const consulta = this.resultadosRepo

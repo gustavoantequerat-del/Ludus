@@ -10,6 +10,7 @@ import BotonIcono from '@/componentes/base/BotonIcono.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoSelector from '@/componentes/base/CampoSelector.vue';
+import ImportarUsuarios from '@/componentes/usuarios/ImportarUsuarios.vue';
 import { usuariosServicio, type DatosUsuario } from '@/servicios/usuarios.servicio';
 import { institucionesServicio } from '@/servicios/instituciones.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
@@ -30,7 +31,7 @@ const busqueda = ref('');
 const filtroRol = ref<Rol | 'todos'>(filtroRolFijo ?? 'todos');
 const cargando = ref(true);
 
-const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
+const modalAbierto = ref<'formulario' | 'eliminar' | 'importar' | null>(null);
 const edicion = ref<Usuario | null>(null);
 const form = ref<DatosUsuario>({ nombre: '', correo: '', clave: '', rol: 'estudiante' });
 
@@ -121,12 +122,21 @@ async function confirmar() {
   await cargar();
 }
 
+async function alImportar(creados: number) {
+  cerrarModal();
+  notificar(`Se crearon ${creados} usuario(s)`);
+  await cargar();
+}
+
 onMounted(cargar);
 </script>
 
 <template>
   <Encabezado :titulo="titulo" subtitulo="Usuarios con su rol y alcance institucional.">
-    <Boton v-if="!soloLectura" variante="primario" icono="plus" @click="abrirCrear">Nuevo usuario</Boton>
+    <template v-if="!soloLectura">
+      <Boton icono="file-spreadsheet" @click="modalAbierto = 'importar'">Importar Excel</Boton>
+      <Boton variante="primario" icono="plus" @click="abrirCrear">Nuevo usuario</Boton>
+    </template>
   </Encabezado>
 
   <Tabla v-if="!cargando" :columnas="columnas" :items="filtrados" v-model:busqueda="busqueda">
@@ -204,6 +214,13 @@ onMounted(cargar);
       @update:model-value="(v) => (form.activo = v === 'activo')"
     />
   </Modal>
+
+  <ImportarUsuarios
+    v-if="modalAbierto === 'importar'"
+    :con-institucion="almacen.usuario?.rol === 'superadmin'"
+    @cerrar="cerrarModal"
+    @importado="alImportar"
+  />
 
   <Modal
     v-if="modalAbierto === 'eliminar'"

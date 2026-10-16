@@ -176,7 +176,10 @@ onMounted(cargar);
           </div>
           <div :class="estilos.acciones">
             <template v-if="esEstudiante">
-              <Boton variante="primario" icono="play" @click="irAJugar(modulo)">Jugar</Boton>
+              <Boton v-if="modulo.configuracionJuego" variante="primario" icono="play" @click="irAJugar(modulo)">
+                Jugar
+              </Boton>
+              <span v-else :class="estilos.sinJuego">Pronto</span>
             </template>
             <template v-else>
               <BotonIcono icono="chevron-up" titulo="Subir" @click="mover(modulo, 'arriba')" />

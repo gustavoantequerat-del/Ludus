@@ -11,8 +11,7 @@ export class Juego {
 
   /**
    * Identificador estable de la plantilla. El frontend y el paquete SCORM lo
-   * usan para saber que juego renderizar; "maqueta" son los que todavia no
-   * tienen mecanica programada.
+   * usan para saber que juego renderizar.
    */
   @Index({ unique: true })
   @Column({ length: 60 })
@@ -36,7 +35,11 @@ export class Juego {
   @Column({ type: 'jsonb', default: () => "'[]'" })
   parametros: string[];
 
-  /** false mientras el juego siga siendo solo maqueta visual. */
+  /**
+   * Si el juego tiene mecanica programada. Hoy todos los del catalogo la
+   * tienen (las maquetas se quitaron en la migracion QuitarJuegosMaqueta); se
+   * conserva para poder sumar una plantilla en preparacion sin mostrarla rota.
+   */
   @Column({ type: 'boolean', default: false })
   jugable: boolean;
 

@@ -2,8 +2,8 @@
 /**
  * Editor de un juego concreto.
  *
- * Cada juego jugable trae sus propias pestanas: son su contenido, no un
- * modulo generico del sistema. Los que siguen siendo maqueta lo dicen.
+ * Cada juego trae sus propias pestanas: son su contenido, no un modulo
+ * generico del sistema.
  */
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -20,7 +20,7 @@ import type { Juego } from '@/tipos';
 const props = defineProps<{ clave: string }>();
 const enrutador = useRouter();
 
-/** Pestanas de cada juego jugable, por clave del catalogo. */
+/** Pestanas de cada juego, por clave del catalogo. */
 const PESTANAS_POR_JUEGO: Record<string, { id: string; etiqueta: string; icono: string }[]> = {
   'mesa-cumplimiento': [
     { id: 'casos', etiqueta: 'Casos', icono: 'file-text' },
@@ -67,7 +67,7 @@ onMounted(async () => {
     </div>
 
     <p v-else :class="estilos.aviso">
-      Este juego todavia es una maqueta: no tiene contenido que editar.
+      Este juego no esta en el catalogo.
     </p>
 
     <EditorCasos v-if="pestanaActiva === 'casos'" />

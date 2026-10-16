@@ -133,6 +133,12 @@ const rutas: RouteRecordRaw[] = [
     meta: { roles: ['superadmin'] },
   },
   {
+    path: '/accesos',
+    name: 'accesos',
+    component: () => import('@/vistas/AccesosVista.vue'),
+    meta: { roles: ['superadmin', 'admin_institucion'] },
+  },
+  {
     path: '/ajustes',
     name: 'ajustes',
     component: () => import('@/vistas/AjustesVista.vue'),
