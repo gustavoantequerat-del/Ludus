@@ -1,0 +1,91 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 11px;
+  border-radius: 14px;
+  background: var(--celda);
+  border: 1px solid var(--linea);
+  min-width: 0;
+}
+
+.bueno {
+  border-color: var(--exito-borde);
+  background: var(--exito-suave);
+}
+
+.malo {
+  border-color: var(--error);
+  background: var(--error-suave);
+}
+
+.etiqueta {
+  font: 600 12px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.ayuda {
+  font: 400 11px/1.4 var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.entrada {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--linea-3);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font: 500 12px var(--fuente-texto);
+  outline: none;
+}
+
+.entrada:focus {
+  border-color: var(--primario-borde);
+}
+
+.entradaInvalida {
+  border-color: var(--error);
+}
+
+.estado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font: 500 11.5px var(--fuente-texto);
+}
+
+.fuente {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--suave);
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--secundario);
+  font: 600 11.5px var(--fuente-texto);
+  cursor: pointer;
+}
+
+.error {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.vacioTexto {
+  color: var(--tenue);
+}
+
+.previa {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 10px;
+  background: #000;
+}

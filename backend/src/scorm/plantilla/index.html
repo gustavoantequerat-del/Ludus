@@ -193,10 +193,16 @@
             </div>
             <div class="runnerCamino" id="runner-camino"></div>
             <div class="runnerPantalla">
-              <video class="runnerVideo oculto" id="runner-video" playsinline preload="auto"></video>
+              <!-- Reproductor de YouTube o Drive: lo arma juego-runner.js en cada video -->
+              <div class="runnerVideo oculto" id="runner-video">
+                <div class="runnerMarco" id="runner-marco"></div>
+                <div class="runnerVideoPie oculto" id="runner-video-pie">
+                  <span class="runnerVideoAyuda" id="runner-video-ayuda"></span>
+                  <button class="boton botonPrimario" type="button" id="runner-continuar">Continuar</button>
+                </div>
+              </div>
               <div class="runnerLienzo" id="runner-lienzo">
                 <strong class="runnerLienzoTexto" id="runner-lienzo-texto"></strong>
-                <span class="runnerLienzoNota oculto" id="runner-lienzo-nota">El video no se pudo reproducir.</span>
               </div>
               <div class="runnerCapa" id="runner-portada">
                 <strong class="runnerCapaTitulo" id="runner-portada-titulo"></strong>

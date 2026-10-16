@@ -281,10 +281,10 @@ export interface Historia {
   institucionId: string | null;
 }
 
-export interface LimitesVideo {
-  formato: string;
-  maximoSegundos: number;
-  maximoMegas: number;
+/** Un video de la historia ya reconocido: de que servicio es y su id. */
+export interface VideoExterno {
+  fuente: 'youtube' | 'drive';
+  id: string;
 }
 
 export interface PartidaRunner {
@@ -293,14 +293,14 @@ export interface PartidaRunner {
   instrucciones: string;
   historia: {
     nombre: string;
-    videoIntro: string | null;
+    videoIntro: VideoExterno | null;
     preguntas: { id: string; texto: string; opciones: { id: string; texto: string }[] }[];
   };
 }
 
 export interface VeredictoRunner {
   correcta: boolean;
-  video: string | null;
+  video: VideoExterno | null;
 }
 
 export interface ResultadoRunner {

@@ -6,8 +6,10 @@
  * recien ahi entrega el video), y la nota tambien sale de Ludus; el paquete
  * solo la reporta al LMS.
  *
- * Los videos se sirven desde Ludus, en otro dominio que el LMS: un <video>
- * los reproduce igual, sin permisos especiales.
+ * Los videos estan en YouTube o en Google Drive (Ludus solo guarda el link).
+ * Con YouTube se usa su API, que avisa cuando el video termina; Drive no
+ * avisa nada, asi que el estudiante pulsa "Continuar". Si la API de YouTube
+ * no carga, se usa el iframe simple con "Continuar".
  */
 (function () {
   'use strict';
@@ -37,44 +39,111 @@
     });
   }
 
-  /**
-   * Reproduce un video y avisa al terminar. Sin video (el docente no lo subio)
-   * o si no carga, muestra un cartel unos segundos y la historia sigue.
-   */
-  function reproducir(ruta, cartel, alTerminar) {
-    var video = el('runner-video');
-    el('runner-lienzo-texto').textContent = cartel;
-    mostrar('runner-lienzo-nota', false);
+  var cargaYoutube = null;
 
-    if (!ruta) {
+  function cargarApiYoutube() {
+    if (cargaYoutube) return cargaYoutube;
+    cargaYoutube = new Promise(function (resolver, rechazar) {
+      if (window.YT && window.YT.Player) {
+        resolver(window.YT);
+        return;
+      }
+      var previo = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () {
+        if (previo) previo();
+        resolver(window.YT);
+      };
+      var script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.async = true;
+      script.onerror = function () {
+        cargaYoutube = null;
+        rechazar(new Error('No se pudo cargar YouTube'));
+      };
+      document.head.appendChild(script);
+      setTimeout(function () {
+        rechazar(new Error('YouTube no respondio'));
+      }, 8000);
+    });
+    return cargaYoutube;
+  }
+
+  function urlInsercion(video) {
+    return video.fuente === 'youtube'
+      ? 'https://www.youtube-nocookie.com/embed/' + video.id + '?rel=0&playsinline=1&autoplay=1'
+      : 'https://drive.google.com/file/d/' + video.id + '/preview';
+  }
+
+  /**
+   * Muestra un video ({ fuente, id }) y avisa al terminar. Sin video (el
+   * docente no puso link), un cartel unos segundos y la historia sigue.
+   */
+  function reproducir(video, cartel, alTerminar) {
+    var marco = el('runner-marco');
+    el('runner-lienzo-texto').textContent = cartel;
+
+    if (!video) {
       mostrar('runner-video', false);
-      mostrar('runner-lienzo', true);
       setTimeout(alTerminar, 1600);
       return;
     }
 
     var listo = false;
+    var reproductor = null;
     function terminar() {
       if (listo) return;
       listo = true;
-      video.removeEventListener('ended', terminar);
-      video.removeEventListener('error', fallar);
+      if (reproductor && reproductor.destroy) reproductor.destroy();
+      marco.innerHTML = '';
+      mostrar('runner-video', false);
       alTerminar();
     }
-    function fallar() {
-      mostrar('runner-video', false);
-      mostrar('runner-lienzo', true);
-      mostrar('runner-lienzo-nota', true);
-      setTimeout(terminar, 1600);
+    function conBoton(texto) {
+      marco.innerHTML = '';
+      var iframe = document.createElement('iframe');
+      iframe.src = urlInsercion(video);
+      iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+      iframe.setAttribute('allowfullscreen', '');
+      iframe.title = 'Video de la historia';
+      marco.appendChild(iframe);
+      el('runner-video-ayuda').textContent = texto;
+      mostrar('runner-video-pie', true);
     }
 
-    video.addEventListener('ended', terminar);
-    video.addEventListener('error', fallar);
-    video.src = C.urlArchivo(ruta);
-    mostrar('runner-lienzo', false);
+    el('runner-continuar').onclick = terminar;
+    mostrar('runner-video-pie', false);
     mostrar('runner-video', true);
-    var promesa = video.play();
-    if (promesa && promesa.catch) promesa.catch(fallar);
+
+    if (video.fuente !== 'youtube') {
+      conBoton('Dale play al video y, cuando termine, continua.');
+      return;
+    }
+    marco.innerHTML = '<div></div>';
+    cargarApiYoutube()
+      .then(function (YT) {
+        if (listo) return;
+        reproductor = new YT.Player(marco.firstChild, {
+          videoId: video.id,
+          host: 'https://www.youtube-nocookie.com',
+          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, iv_load_policy: 3 },
+          events: {
+            onReady: function (evento) {
+              evento.target.playVideo();
+            },
+            onStateChange: function (evento) {
+              if (evento.data === YT.PlayerState.ENDED) terminar();
+            },
+            onError: function () {
+              if (reproductor && reproductor.destroy) reproductor.destroy();
+              reproductor = null;
+              conBoton('El video no se pudo reproducir.');
+            },
+          },
+        });
+      })
+      .catch(function () {
+        conBoton('Dale play al video y, cuando termine, continua.');
+      });
   }
 
   function mostrarPregunta() {
@@ -171,6 +240,7 @@
           historia.preguntas.length + ' pregunta(s) · un error y se acaba';
         el('runner-lienzo-texto').textContent = '';
         el('runner-camino').innerHTML = '';
+        el('runner-marco').innerHTML = '';
         mostrar('runner-video', false);
         mostrar('runner-lienzo', true);
         mostrar('runner-pregunta', false);

@@ -14,25 +14,23 @@ import Icono from '@/componentes/base/Icono.vue';
 import Insignia from '@/componentes/base/Insignia.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
-import CampoVideo from './CampoVideo.vue';
+import CampoLinkVideo from './CampoLinkVideo.vue';
 import { historiasServicio, type DatosHistoria } from '@/servicios/historias.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import { mensajeDeError } from '@/utilidades/errores';
-import type { Historia, LimitesVideo, PreguntaHistoria } from '@/tipos';
+import type { Historia, PreguntaHistoria } from '@/tipos';
 
 const almacen = useAlmacenAutenticacion();
 const { notificar } = usarNotificaciones();
 
 const historias = ref<Historia[]>([]);
-const limites = ref<LimitesVideo | null>(null);
 const cargando = ref(true);
 const esSuperadmin = computed(() => almacen.usuario?.rol === 'superadmin');
 
 /** null: se ve la lista. Una historia (o 'nueva'): se ve el editor. */
 const editando = ref<Historia | 'nueva' | null>(null);
 const form = ref<DatosHistoria>({ nombre: '', videoIntro: null, preguntas: [] });
-const subidasEnCurso = ref(0);
 const guardando = ref(false);
 const aEliminar = ref<Historia | null>(null);
 
@@ -56,10 +54,7 @@ function preguntaVacia(): PreguntaHistoria {
 
 async function cargar() {
   cargando.value = true;
-  [historias.value, limites.value] = await Promise.all([
-    historiasServicio.listar(),
-    limites.value ? Promise.resolve(limites.value) : historiasServicio.limites(),
-  ]);
+  historias.value = await historiasServicio.listar();
   cargando.value = false;
 }
 
@@ -91,10 +86,6 @@ function mover(indice: number, paso: -1 | 1) {
   [lista[indice], lista[destino]] = [lista[destino], lista[indice]];
 }
 
-function alSubir(activo: boolean) {
-  subidasEnCurso.value += activo ? 1 : -1;
-}
-
 function primerError(): string | null {
   if (form.value.nombre.trim().length < 2) return 'Ponle un nombre a la historia';
   const incompleta = form.value.preguntas.findIndex(
@@ -105,10 +96,6 @@ function primerError(): string | null {
 }
 
 async function guardar() {
-  if (subidasEnCurso.value > 0) {
-    notificar('Espera a que terminen de subir los videos');
-    return;
-  }
   const error = primerError();
   if (error) {
     notificar(error);
@@ -186,7 +173,7 @@ onMounted(cargar);
   </template>
 
   <!-- Editor de una historia -->
-  <template v-else-if="limites">
+  <template v-else>
     <div :class="estilos.barra">
       <Boton variante="fantasma" icono="arrow-left" @click="editando = null">Volver a historias</Boton>
     </div>
@@ -194,21 +181,19 @@ onMounted(cargar);
     <div :class="estilos.limites">
       <Icono nombre="info" :tamano="16" />
       <span>
-        Cada video: <strong>{{ limites.formato }}</strong>, maximo
-        <strong>{{ limites.maximoSegundos }} segundos</strong> y <strong>{{ limites.maximoMegas }} MB</strong>.
-        Exporta en 720p: diez segundos entran de sobra. Los videos de iPhone en HEVC o .mov no sirven:
-        exportalos como MP4 (H.264).
+        Los videos no se suben a Ludus: subelos a <strong>YouTube</strong> (como "No listado") o a
+        <strong>Google Drive</strong> (compartido como "Cualquier persona con el enlace") y pega aqui el link.
+        Con YouTube la historia avanza sola al terminar cada video; con Drive el estudiante pulsa "Continuar".
+        Usa videos cortos: de 5 a 15 segundos funciona mejor.
       </span>
     </div>
 
     <div :class="estilos.panel">
       <CampoTexto v-model="form.nombre" etiqueta="Nombre de la historia" marcador="La carrera del compliance" />
-      <CampoVideo
+      <CampoLinkVideo
         v-model="form.videoIntro"
         etiqueta="Intro"
         ayuda="Lo primero que ve el estudiante: presenta la historia. Al terminar llega la pregunta 1."
-        :limites="limites"
-        @subiendo="alSubir"
       />
     </div>
 
@@ -234,21 +219,17 @@ onMounted(cargar);
       </div>
       <p :class="estilos.ayuda">El estudiante ve las dos respuestas en orden al azar.</p>
       <div :class="estilos.dosColumnas">
-        <CampoVideo
+        <CampoLinkVideo
           v-model="pregunta.videoBueno"
           etiqueta="Si acierta"
           :ayuda="indice === form.preguntas.length - 1 ? 'Al terminar, gana la historia.' : `Al terminar, llega la pregunta ${indice + 2}.`"
           tono="bueno"
-          :limites="limites"
-          @subiendo="alSubir"
         />
-        <CampoVideo
+        <CampoLinkVideo
           v-model="pregunta.videoMalo"
           etiqueta="Si falla"
           ayuda="Al terminar, la partida se acaba."
           tono="malo"
-          :limites="limites"
-          @subiendo="alSubir"
         />
       </div>
     </div>
@@ -258,7 +239,7 @@ onMounted(cargar);
       <span :class="estilos.espaciador" />
       <Boton variante="secundario" @click="editando = null">Cancelar</Boton>
       <Boton variante="primario" icono="save" :deshabilitado="guardando" @click="guardar">
-        {{ subidasEnCurso > 0 ? 'Subiendo videos...' : 'Guardar historia' }}
+        Guardar historia
       </Boton>
     </div>
   </template>
@@ -266,7 +247,7 @@ onMounted(cargar);
   <Modal
     v-if="aEliminar"
     titulo="Eliminar historia?"
-    :descripcion="`Se borran «${aEliminar.nombre}» y sus videos. Si algun modulo la usa, primero elige otra en su configuracion.`"
+    :descripcion="`Se borra «${aEliminar.nombre}» (los videos siguen en YouTube o Drive). Si algun modulo la usa, primero elige otra en su configuracion.`"
     icono="trash-2"
     peligro
     etiqueta-confirmar="Eliminar"

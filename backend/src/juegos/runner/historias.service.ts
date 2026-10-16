@@ -9,15 +9,15 @@ import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
 import { Historia, PreguntaRunner } from './historia.entidad';
 import { ConfiguracionJuego } from '../configuracion-juego.entidad';
-import { ArchivosService, LIMITES_VIDEO } from '../../archivos/archivos.service';
-import { CARPETA_VIDEOS, PATRON_ARCHIVO_SUBIDO } from '../../archivos/archivos.constantes';
 import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { GuardarHistoriaDto, PreguntaHistoriaDto } from './dto/historia.dto';
+import { leerLinkVideo, linkCanonico } from './videos-externos';
 
 /**
- * Historias del Runner Narrativo: el docente sube los videos de a uno y la
- * historia guarda sus rutas, en el orden en que se juegan las preguntas.
+ * Historias del Runner Narrativo. Los videos no se suben a Ludus: el docente
+ * pega el link de YouTube o de Google Drive y la historia guarda ese link,
+ * normalizado, en el orden en que se juegan las preguntas.
  */
 @Injectable()
 export class HistoriasService {
@@ -26,20 +26,7 @@ export class HistoriasService {
     private readonly historiasRepo: Repository<Historia>,
     @InjectRepository(ConfiguracionJuego)
     private readonly configuracionesRepo: Repository<ConfiguracionJuego>,
-    private readonly archivos: ArchivosService,
   ) {}
-
-  limites() {
-    return {
-      formato: 'MP4 (H.264)',
-      maximoSegundos: LIMITES_VIDEO.maximoSegundos,
-      maximoMegas: LIMITES_VIDEO.maximoBytes / (1024 * 1024),
-    };
-  }
-
-  async subirVideo(contenido: Buffer): Promise<{ ruta: string }> {
-    return { ruta: await this.archivos.guardarVideo(contenido) };
-  }
 
   /** Las propias de la institucion mas las del catalogo base. */
   listar(quien: UsuarioAutenticado): Promise<Historia[]> {
@@ -65,12 +52,7 @@ export class HistoriasService {
 
   async actualizar(quien: UsuarioAutenticado, id: string, datos: GuardarHistoriaDto): Promise<Historia> {
     const historia = await this.conAcceso(quien, id);
-    const anteriores = this.videosDe(historia);
-    const guardada = await this.guardar(historia, datos);
-
-    const actuales = new Set(this.videosDe(guardada));
-    await this.limpiarHuerfanos(anteriores.filter((ruta) => !actuales.has(ruta)));
-    return guardada;
+    return this.guardar(historia, datos);
   }
 
   async eliminar(quien: UsuarioAutenticado, id: string): Promise<void> {
@@ -85,7 +67,6 @@ export class HistoriasService {
       );
     }
     await this.historiasRepo.remove(historia);
-    await this.limpiarHuerfanos(this.videosDe(historia));
   }
 
   /** Una historia que quien puede usar: la suya o una del catalogo base. */
@@ -103,20 +84,20 @@ export class HistoriasService {
   /* ---------------------------------------------------------------- */
 
   private async guardar(historia: Historia, datos: GuardarHistoriaDto): Promise<Historia> {
-    const videoIntro = datos.videoIntro || null;
-    await this.validarVideos([videoIntro, ...datos.preguntas.flatMap((p) => [p.videoBueno, p.videoMalo])]);
+    const videoIntro = this.link(datos.videoIntro, 'La intro');
 
     // Las preguntas que ya existian conservan su id y el de sus opciones: una
     // partida en curso sigue valiendo despues de corregir un texto.
     const previas = new Map(historia.preguntas.map((pregunta) => [pregunta.id, pregunta]));
     historia.nombre = datos.nombre;
     historia.videoIntro = videoIntro;
-    historia.preguntas = datos.preguntas.map((pregunta) => this.normalizar(pregunta, previas));
+    historia.preguntas = datos.preguntas.map((pregunta, indice) => this.normalizar(pregunta, indice, previas));
     return this.historiasRepo.save(historia);
   }
 
   private normalizar(
     pregunta: PreguntaHistoriaDto,
+    indice: number,
     previas: Map<string, PreguntaRunner>,
   ): PreguntaRunner {
     const previa = pregunta.id ? previas.get(pregunta.id) : undefined;
@@ -125,40 +106,23 @@ export class HistoriasService {
       texto: pregunta.texto,
       respuestaCorrecta: pregunta.respuestaCorrecta,
       respuestaIncorrecta: pregunta.respuestaIncorrecta,
-      videoBueno: pregunta.videoBueno || null,
-      videoMalo: pregunta.videoMalo || null,
+      videoBueno: this.link(pregunta.videoBueno, `El video de acierto de la pregunta ${indice + 1}`),
+      videoMalo: this.link(pregunta.videoMalo, `El video de error de la pregunta ${indice + 1}`),
       opcionCorrectaId: previa?.opcionCorrectaId ?? randomUUID(),
       opcionIncorrectaId: previa?.opcionIncorrectaId ?? randomUUID(),
     };
   }
 
-  private videosDe(historia: Historia): string[] {
-    return [
-      historia.videoIntro,
-      ...historia.preguntas.flatMap((pregunta) => [pregunta.videoBueno, pregunta.videoMalo]),
-    ].filter((ruta): ruta is string => !!ruta);
-  }
-
-  private async validarVideos(rutas: (string | null | undefined)[]): Promise<void> {
-    for (const ruta of new Set(rutas.filter((r): r is string => !!r))) {
-      if (!(await this.archivos.existe(ruta, [CARPETA_VIDEOS]))) {
-        throw new BadRequestException(`El video ${ruta} no esta en el servidor. Vuelve a subirlo.`);
-      }
+  /** Vacio = sin video. Un link que no es de YouTube ni de Drive se rechaza. */
+  private link(texto: string | null | undefined, que: string): string | null {
+    if (!texto || !texto.trim()) return null;
+    const video = leerLinkVideo(texto);
+    if (!video) {
+      throw new BadRequestException(
+        `${que} no es un link de YouTube ni de Google Drive. Copia el link de "Compartir" del video.`,
+      );
     }
-  }
-
-  /** Borra los videos subidos que ya ninguna historia usa. */
-  private async limpiarHuerfanos(rutas: string[]): Promise<void> {
-    for (const ruta of new Set(rutas)) {
-      if (!PATRON_ARCHIVO_SUBIDO.test(ruta)) continue;
-      const enUso = await this.historiasRepo
-        .createQueryBuilder('historia')
-        .where('historia.videoIntro = :ruta', { ruta })
-        .orWhere('historia.preguntas @> :bueno::jsonb', { bueno: JSON.stringify([{ videoBueno: ruta }]) })
-        .orWhere('historia.preguntas @> :malo::jsonb', { malo: JSON.stringify([{ videoMalo: ruta }]) })
-        .getCount();
-      if (enUso === 0) await this.archivos.eliminarImagen(ruta);
-    }
+    return linkCanonico(video);
   }
 
   /** El catalogo base solo lo toca el superadmin. */

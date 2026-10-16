@@ -4,8 +4,7 @@ import { randomBytes } from 'crypto';
 import { mkdir, readdir, stat, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { ConfiguracionApp } from '../configuracion/configuracion';
-import { BASE_PUBLICA_ARCHIVOS, CARPETA_VIDEOS } from './archivos.constantes';
-import { leerMp4 } from './validar-mp4';
+import { BASE_PUBLICA_ARCHIVOS } from './archivos.constantes';
 
 /**
  * Guarda en disco las imagenes que sube el docente.
@@ -25,18 +24,6 @@ const TIPOS_PERMITIDOS: Record<string, string> = {
 const MAXIMO_BYTES = 3 * 1024 * 1024;
 
 const PATRON_DATA_URL = /^data:([a-z/+-]+);base64,([A-Za-z0-9+/=\s]+)$/;
-
-/**
- * Limites de los videos del Runner Narrativo. Diez segundos en 720p caben de
- * sobra en 10 MB; lo que pase de eso es casi siempre un video de celular sin
- * comprimir, que el estudiante tendria que descargar entero en cada partida.
- */
-export const LIMITES_VIDEO = {
-  maximoSegundos: 10,
-  maximoBytes: 10 * 1024 * 1024,
-  /** Margen para el redondeo de los editores: un "10 s" suele medir 10,03. */
-  toleranciaSegundos: 0.25,
-};
 
 @Injectable()
 export class ArchivosService {
@@ -74,50 +61,6 @@ export class ArchivosService {
     await mkdir(join(this.raiz, carpeta), { recursive: true });
     await writeFile(join(this.raiz, carpeta, nombre), contenido);
     return `${BASE_PUBLICA_ARCHIVOS}/${carpeta}/${nombre}`;
-  }
-
-  /**
-   * Guarda un video del Runner Narrativo. Solo MP4 con video H.264, que es lo
-   * unico que reproducen todos los navegadores (el HEVC de los iPhone, por
-   * ejemplo, no se ve en Chrome ni en Firefox de Windows).
-   */
-  async guardarVideo(contenido: Buffer): Promise<string> {
-    const megas = LIMITES_VIDEO.maximoBytes / (1024 * 1024);
-    if (!Buffer.isBuffer(contenido) || contenido.length === 0) {
-      throw new BadRequestException('No llego ningun video. Sube un archivo MP4.');
-    }
-    if (contenido.length > LIMITES_VIDEO.maximoBytes) {
-      throw new BadRequestException(`El video pesa mas de ${megas} MB. Exportalo en 720p para que pese menos.`);
-    }
-
-    const video = leerMp4(contenido);
-    if (!video) {
-      throw new BadRequestException('El archivo no es un MP4 valido.');
-    }
-    if (video.marca === 'qt  ') {
-      throw new BadRequestException('Es un video .mov de QuickTime. Exportalo como MP4 (H.264).');
-    }
-    if (video.codec === 'hvc1' || video.codec === 'hev1') {
-      throw new BadRequestException(
-        'El video esta en HEVC (H.265), que muchos navegadores no reproducen. Exportalo en H.264.',
-      );
-    }
-    if (video.codec !== 'avc1' && video.codec !== 'avc3') {
-      throw new BadRequestException('El video tiene que estar en H.264 (el MP4 mas comun).');
-    }
-    if (video.duracionSegundos <= 0) {
-      throw new BadRequestException('No se pudo leer la duracion del video. Vuelve a exportarlo como MP4.');
-    }
-    if (video.duracionSegundos > LIMITES_VIDEO.maximoSegundos + LIMITES_VIDEO.toleranciaSegundos) {
-      throw new BadRequestException(
-        `El video dura ${video.duracionSegundos.toFixed(1)} s; el maximo es ${LIMITES_VIDEO.maximoSegundos} s.`,
-      );
-    }
-
-    const nombre = `${randomBytes(8).toString('hex')}.mp4`;
-    await mkdir(join(this.raiz, CARPETA_VIDEOS), { recursive: true });
-    await writeFile(join(this.raiz, CARPETA_VIDEOS, nombre), contenido);
-    return `${BASE_PUBLICA_ARCHIVOS}/${CARPETA_VIDEOS}/${nombre}`;
   }
 
   /**

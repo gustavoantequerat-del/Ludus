@@ -34,15 +34,15 @@ export class PreguntaHistoriaDto {
   @MaxLength(160)
   respuestaIncorrecta: string;
 
-  /** Ruta que devolvio la subida de video. null o vacio: sin video. */
+  /** Link de YouTube o de Google Drive. null o vacio: sin video. */
   @IsOptional()
   @IsString()
-  @MaxLength(300)
+  @MaxLength(500)
   videoBueno?: string | null;
 
   @IsOptional()
   @IsString()
-  @MaxLength(300)
+  @MaxLength(500)
   videoMalo?: string | null;
 }
 
@@ -54,7 +54,7 @@ export class GuardarHistoriaDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(300)
+  @MaxLength(500)
   videoIntro?: string | null;
 
   @IsArray()

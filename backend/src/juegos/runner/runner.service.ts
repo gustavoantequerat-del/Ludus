@@ -6,6 +6,7 @@ import { ResultadosService } from '../../resultados/resultados.service';
 import { CLAVE_RUNNER } from '../catalogo-nuevos';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { RespuestaRunnerDto } from './dto/historia.dto';
+import { leerLinkVideo } from './videos-externos';
 
 function mezclar<T>(lista: T[]): T[] {
   const copia = [...lista];
@@ -19,7 +20,7 @@ function mezclar<T>(lista: T[]): T[] {
 /**
  * Partida del Runner Narrativo. La historia sale sin decir cual opcion es la
  * buena; cada respuesta se verifica aqui y recien ahi se entrega el video que
- * corresponde. La nota tambien se calcula aqui.
+ * corresponde, como { fuente: youtube | drive, id }. La nota tambien se calcula aqui.
  */
 @Injectable()
 export class RunnerService {
@@ -51,7 +52,7 @@ export class RunnerService {
       instrucciones: configuracion.instrucciones,
       historia: {
         nombre: historia.nombre,
-        videoIntro: historia.videoIntro,
+        videoIntro: leerLinkVideo(historia.videoIntro),
         preguntas: historia.preguntas.map((pregunta) => ({
           id: pregunta.id,
           texto: pregunta.texto,
@@ -69,7 +70,7 @@ export class RunnerService {
     const { historia } = await this.historiaDelModulo(quien, moduloId);
     const pregunta = this.pregunta(historia, respuesta.preguntaId);
     const correcta = this.esCorrecta(pregunta, respuesta.opcionId);
-    return { correcta, video: correcta ? pregunta.videoBueno : pregunta.videoMalo };
+    return { correcta, video: leerLinkVideo(correcta ? pregunta.videoBueno : pregunta.videoMalo) };
   }
 
   /**

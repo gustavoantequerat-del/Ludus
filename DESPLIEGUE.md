@@ -104,7 +104,7 @@ de Node.
 https://ludus.tu-dominio.com
   └── Caddy (80 y 443, certificado automatico)
         ├── /api/*       -> Node en localhost:3000 (PM2 lo mantiene vivo)
-        ├── /archivos/*  -> Node (imagenes y videos de los juegos)
+        ├── /archivos/*  -> Node (imagenes de los juegos)
         └── todo lo demas -> frontend/dist (la SPA de Vue)
 ```
 
@@ -222,7 +222,7 @@ sudo tee -a /etc/caddy/Caddyfile > /dev/null <<'FIN'
 
 ludus.tu-dominio.com {
     encode gzip
-    # Los videos del Runner pesan hasta 10 MB; las imagenes viajan en base64 (6 MB).
+    # Las imagenes viajan en base64 (hasta 6 MB) y el Excel de usuarios pesa hasta 2 MB.
     request_body {
         max_size 12MB
     }
@@ -255,9 +255,10 @@ Al recargar, Caddy pide solo el certificado de Let's Encrypt para el dominio
 nuevo (unos segundos; el DNS del paso 2.1 tiene que estar apuntando ya). Si
 algo falla: `sudo journalctl -u caddy -n 30 --no-pager`.
 
-> **Si ya tenias Ludus desplegado** con un `request_body` de 7MB, subelo a
-> **12MB**: con 7MB, Caddy corta la subida de cualquier video de mas de 7 MB
-> antes de que llegue al servidor, y el docente ve un error generico.
+> Los videos del Runner ya no se suben a Ludus (son links de YouTube o Drive),
+> asi que el tope de 12MB sobra para todo; si ya lo tenias asi, no hace falta
+> cambiarlo. Los MP4 que hubieran quedado en `backend/archivos/videos/` no los
+> usa nada y se pueden borrar.
 
 ### 2.7 Actualizar a una version nueva
 
@@ -353,7 +354,8 @@ direccion vieja: hay que **volver a exportarlos**.
 - [ ] El sitio abre con candado y el login funciona (sin errores de
       "Mixed Content" en la consola del navegador)
 - [ ] En Lightsail el puerto 3000 **no** esta abierto en el firewall
-- [ ] `request_body` del `Caddyfile` en 12MB (sube un video de prueba de 9-10 MB)
+- [ ] `request_body` del `Caddyfile` en 12MB
+- [ ] Una historia del Runner con un video de YouTube avanza sola, y una con Drive muestra "Continuar"
 - [ ] La pantalla *Paquetes SCORM* no muestra la advertencia amarilla
 - [ ] Un paquete recien exportado abre y guarda nota desde el LMS
 - [ ] Las claves de la semilla cambiadas, o la semilla no ejecutada

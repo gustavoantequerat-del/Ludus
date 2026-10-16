@@ -92,14 +92,15 @@ backend/src/
 ├── rutas/                            CRUD rutas + su relacion ordenada con cursos existentes
 │   ├── ruta.entidad.ts
 │   └── ruta-curso.entidad.ts        tabla puente ruta<->curso con orden
-├── archivos/                          Guarda y sirve imagenes y videos (validar-mp4.ts lee duracion y codec)
+├── archivos/                          Guarda y sirve las imagenes de los juegos (los videos no: son links)
 ├── juegos/                            Catalogo fijo de plantillas + configuracion por modulo
 │   ├── juego.entidad.ts             catalogo (semilla/migracion, no CRUD); tipo: evaluacion | ludico
 │   ├── configuracion-juego.entidad.ts  parametros genericos + ajustes (jsonb) propios de cada juego
 │   ├── acceso-modulo.service.ts     quien ve/configura el juego de un modulo (lo usan todos los juegos)
 │   ├── catalogo-nuevos.ts           datos de catalogo de Memorama, Mahjong y Runner (migracion y semilla)
 │   ├── fichas/                      Memorama y Mahjong: mazos (iconos, ficha, fondo) y su partida
-│   ├── runner/                      Runner Narrativo: historias en video, partida y calificacion
+│   ├── runner/                      Runner Narrativo: historias con links de video, partida y calificacion
+│   │   └── videos-externos.ts        reconoce y normaliza links de YouTube y Google Drive
 │   └── mesa-cumplimiento/           el juego jugable, con todo su contenido adentro
 │       ├── caso-cumplimiento.entidad.ts
 │       ├── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
@@ -146,15 +147,17 @@ frontend/src/
 │   ├── partidas.ts                 Registrar el intento de un juego ludico, formato de tiempo
 │   ├── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
 │   ├── opciones.ts                  Pide una vez al backend los ids publicos de Google
+│   ├── videos.ts                    Links de YouTube/Drive (igual que el backend), iframe y API de YouTube
 │   ├── analitica.ts                 Google Analytics 4 opcional: vistas por ruta, user_id sin datos personales
 │   └── google.ts                    Boton "Continuar con Google" (Google Identity Services)
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
 │   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
-│   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoVideo)
+│   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoLinkVideo)
 │   ├── configuracion/              Parametros propios de cada juego al configurar un modulo
 │   ├── usuarios/                    ImportarUsuarios: modal de alta masiva por Excel (plantilla, vista previa, confirmar)
 │   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo)
+│       ├── ReproductorVideo.vue      video de YouTube (API, avanza solo) o de Drive (iframe + "Continuar")
 │       └── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
@@ -366,12 +369,10 @@ PATCH|DELETE /juegos/mazos/:id                  no se borra si un modulo lo usa
 GET      /juegos/memorama/partida/:moduloId     mazo, rondas, pares por ronda y ms de volteo
 GET      /juegos/mahjong/partida/:moduloId      mazo y tamano del tablero
 
-GET      /juegos/runner-narrativo/videos/limites   { formato, maximoSegundos, maximoMegas }
-POST     /juegos/runner-narrativo/videos           cuerpo = el MP4 crudo (Content-Type: video/mp4) -> { ruta }
-GET|POST /juegos/runner-narrativo/historias
+GET|POST /juegos/runner-narrativo/historias      los videos son links de YouTube o Drive; un link de otro sitio -> 400
 PUT|DELETE /juegos/runner-narrativo/historias/:id  PUT reemplaza la historia entera, con sus preguntas en orden
 GET      /juegos/runner-narrativo/partida/:moduloId           historia sin respuestas ni videos de reaccion
-POST     /juegos/runner-narrativo/partida/:moduloId/verificar { preguntaId, opcionId } -> { correcta, video }
+POST     /juegos/runner-narrativo/partida/:moduloId/verificar { preguntaId, opcionId } -> { correcta, video: { fuente, id } | null }
 POST     /juegos/runner-narrativo/partida/:moduloId/terminar  { respuestas } -> nota (solo estudiante)
 
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
@@ -671,7 +672,9 @@ imagen, cada juego dibuja la suya.
 ### 6.3.4 Runner Narrativo (evaluacion)
 
 Una historia en video que avanza pregunta por pregunta. No hay personaje
-programado: **el docente sube los videos** y arma la cadena.
+programado: el docente arma la cadena con **links a sus videos en YouTube o
+Google Drive**. Ludus no guarda ni sirve video: el almacenamiento y el
+streaming quedan del lado de Google.
 
 ```
 Intro ──> Pregunta 1 ──acierta──> video bueno ──> Pregunta 2 ──> ... ──> video bueno final ──> gana
@@ -683,20 +686,31 @@ Intro ──> Pregunta 1 ──acierta──> video bueno ──> Pregunta 2 ─
   azar.
 - La historia puede ser tan larga como se quiera (hasta 100 preguntas); el
   orden de la lista es el orden de juego.
-- **Videos: MP4 (H.264), maximo 10 segundos y 10 MB cada uno.** El editor lo
-  revisa antes de subir y el servidor lo vuelve a revisar leyendo el propio
-  archivo (`archivos/validar-mp4.ts`): duracion, codec y que no sea un `.mov`.
-  HEVC (el formato de los iPhone) se rechaza porque Chrome y Firefox en
-  Windows no lo reproducen.
+- **Videos por link** (`juegos/runner/videos-externos.ts`). Se aceptan los
+  links de YouTube (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`) y de Drive
+  (`/file/d/ID/...`, `open?id=`). Se guardan normalizados
+  (`https://www.youtube.com/watch?v=ID` o `https://drive.google.com/file/d/ID/view`)
+  y al jugar se entregan como `{ fuente: 'youtube' | 'drive', id }`. Un link
+  de otro sitio se rechaza al guardar. El editor dice de que servicio es cada
+  link y deja probar el video ahi mismo.
+- **YouTube avanza solo; Drive con "Continuar".** Con YouTube se usa su API
+  de iframe, que avisa cuando el video termina. El reproductor de Drive es un
+  iframe cerrado que no avisa nada, asi que debajo aparece "Continuar". Si la
+  API de YouTube no carga (bloqueador de anuncios, red), el video se muestra
+  en un iframe simple con "Continuar": la partida nunca queda trabada.
+- **Lo que Ludus ya no puede revisar**: la duracion del video y si el link es
+  publico. En Drive el archivo tiene que estar compartido como "Cualquier
+  persona con el enlace" (y una institucion con Google Workspace puede tener
+  bloqueado compartir hacia afuera); en YouTube, como "No listado" o publico.
+  Drive ademas limita un archivo que se reproduce muchas veces seguidas.
 - **Nada se puede adivinar mirando la red**: la partida llega sin decir cual
   opcion es la buena (las opciones tienen ids al azar) y sin los videos de
   reaccion. Cada respuesta se verifica en el servidor, que recien ahi entrega
   el video que corresponde. La nota tambien se calcula alla: cuenta las
   respuestas buenas, en orden, hasta el primer error. Puntaje = parte de la
   historia recorrida (1 de 2 = 50, nota 5.0).
-- Si a una pregunta le falta un video, o el navegador no lo puede reproducir,
-  se muestra un cartel ("Correcto!" / "Incorrecto") unos segundos y la
-  historia sigue.
+- Si a una pregunta le falta el link, se muestra un cartel ("Correcto!" /
+  "Incorrecto") unos segundos y la historia sigue.
 
 ### 6.3.5 En SCORM
 
@@ -715,16 +729,17 @@ dentro del LMS con las mismas reglas:
   `POST /scorm/publico/:token/runner/verificar` y termina con
   `.../runner/terminar`: la nota sale de Ludus y el LMS recibe `passed` (60 o
   mas) o `failed`.
-- Las imagenes y los videos se siguen sirviendo desde Ludus: el paquete solo
-  lleva el codigo, asi que un mazo o una historia editados despues de exportar
+- Las imagenes se siguen sirviendo desde Ludus y los videos desde YouTube o
+  Drive (`juego-runner.js` hace lo mismo que `ReproductorVideo.vue`): el
+  paquete solo lleva el codigo, asi que un mazo o una historia editados despues de exportar
   se ven en el LMS sin volver a exportar.
 - El Mahjong del paquete es una copia en JavaScript simple de
   `mahjong/tablero.ts`: si cambian las reglas, hay que cambiar los dos.
 
 ### 6.3.6 Sobrantes
 
-Las imagenes o videos que se suben y nunca se guardan en un mazo o historia
-(por ejemplo, se cancela el editor) quedan en el disco. Ocupan poco; no hay
+Las imagenes que se suben y nunca se guardan en un mazo (por ejemplo, se
+cancela el editor) quedan en el disco. Ocupan poco; no hay
 limpieza automatica de esos sobrantes.
 
 ## 6.4 Alta masiva, accesos y Google

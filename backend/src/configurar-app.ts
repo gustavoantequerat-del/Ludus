@@ -12,13 +12,6 @@ import { crearErrorValidacion } from './comun/validacion/errores-validacion';
 /** Tope del cuerpo JSON: las imagenes de personajes viajan en base64. */
 const LIMITE_CUERPO = '6mb';
 
-/**
- * Tope de un video del Runner Narrativo. Un poco mas que el limite real
- * (LIMITES_VIDEO) para que un video apenas pasado reciba el mensaje claro del
- * servicio y no el error generico de "cuerpo demasiado grande".
- */
-const LIMITE_VIDEO = '11mb';
-
 /** Tope del Excel de importacion masiva de usuarios. */
 const LIMITE_EXCEL = '2mb';
 
@@ -34,7 +27,6 @@ export function configurarApp(app: INestApplication): void {
 
   app.enableCors();
   app.use(express.json({ limit: LIMITE_CUERPO }));
-  app.use(express.raw({ type: 'video/mp4', limit: LIMITE_VIDEO }));
   app.use(express.raw({ type: TIPO_XLSX, limit: LIMITE_EXCEL }));
 
   // Imagenes del juego: se sirven crudas en /archivos, fuera del prefijo /api.

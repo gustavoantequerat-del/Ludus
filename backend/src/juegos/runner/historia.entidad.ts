@@ -22,18 +22,18 @@ export interface PreguntaRunner {
   texto: string;
   respuestaCorrecta: string;
   respuestaIncorrecta: string;
-  /** Video si acierta: al terminar llega la siguiente pregunta. */
+  /** Link (YouTube o Drive) del video si acierta: despues llega la siguiente pregunta. */
   videoBueno: string | null;
-  /** Video si falla: al terminar, la partida se acaba. */
+  /** Link del video si falla: despues la partida se acaba. */
   videoMalo: string | null;
   opcionCorrectaId: string;
   opcionIncorrectaId: string;
 }
 
 /**
- * Historia del Runner Narrativo: una intro en video y una cadena de preguntas
- * en el orden en que se juegan. Las preguntas viven en la misma fila (jsonb):
- * siempre se leen y se editan juntas, con su orden.
+ * Historia del Runner Narrativo: una intro en video (link de YouTube o Drive)
+ * y una cadena de preguntas en el orden en que se juegan. Las preguntas viven
+ * en la misma fila (jsonb): siempre se leen y se editan juntas, con su orden.
  */
 @Entity('historias')
 export class Historia {
@@ -43,7 +43,7 @@ export class Historia {
   @Column({ length: 140 })
   nombre: string;
 
-  @Column({ name: 'video_intro', type: 'varchar', length: 300, nullable: true })
+  @Column({ name: 'video_intro', type: 'varchar', length: 500, nullable: true })
   videoIntro: string | null;
 
   @Column({ type: 'jsonb', default: () => "'[]'" })

@@ -9,26 +9,12 @@ import { HistoriasService } from './historias.service';
 import { GuardarHistoriaDto } from './dto/historia.dto';
 import { CLAVE_RUNNER } from '../catalogo-nuevos';
 
-/* Contenido del Runner Narrativo: historias y sus videos. */
+/* Contenido del Runner Narrativo: historias con sus links de video. */
 @Controller(`juegos/${CLAVE_RUNNER}`)
 @UseGuards(JwtGuardia, RolesGuardia)
 @Roles(Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE)
 export class HistoriasController {
   constructor(private readonly historiasService: HistoriasService) {}
-
-  @Get('videos/limites')
-  limites() {
-    return this.historiasService.limites();
-  }
-
-  /**
-   * El video llega crudo en el cuerpo (Content-Type: video/mp4), sin
-   * multipart: el navegador manda el archivo tal cual con un solo fetch.
-   */
-  @Post('videos')
-  subirVideo(@Body() contenido: Buffer) {
-    return this.historiasService.subirVideo(contenido);
-  }
 
   @Get('historias')
   listar(@UsuarioActual() quien: UsuarioAutenticado) {

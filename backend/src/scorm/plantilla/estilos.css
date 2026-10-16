@@ -902,10 +902,36 @@ body {
 .runnerVideo {
   position: absolute;
   inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  z-index: 2;
+}
+
+.runnerMarco {
+  flex: 1;
+  min-height: 0;
+}
+
+.runnerMarco iframe {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background: #000;
+  border: 0;
+}
+
+.runnerVideoPie {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #130b26;
+}
+
+.runnerVideoAyuda {
+  margin-right: auto;
+  font-size: 12px;
+  color: #d6cde6;
 }
 
 .runnerLienzo {
@@ -922,11 +948,6 @@ body {
 .runnerLienzoTexto {
   font-size: clamp(18px, 3vw, 26px);
   color: #ffffff;
-}
-
-.runnerLienzoNota {
-  font-size: 12px;
-  color: #d6cde6;
 }
 
 .runnerCapa {
