@@ -81,6 +81,8 @@ export function identificarUsuario(usuario: UsuarioAutenticado | null) {
 }
 
 /** Evento recomendado de GA4 para el inicio de sesion. */
-export function registrarIngreso(metodo: 'clave' | 'google') {
-  enviar('event', 'login', { method: metodo });
+export function registrarIngreso(metodo: 'clave' | 'google' | 'registro') {
+  // GA4 tiene un evento propio para las cuentas nuevas.
+  if (metodo === 'registro') enviar('event', 'sign_up', { method: 'codigo_institucion' });
+  else enviar('event', 'login', { method: metodo });
 }

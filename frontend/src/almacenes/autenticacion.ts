@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import type { UsuarioAutenticado } from '@/tipos';
-import { autenticacionServicio } from '@/servicios/autenticacion.servicio';
+import { autenticacionServicio, type DatosRegistro } from '@/servicios/autenticacion.servicio';
 import { identificarUsuario, registrarIngreso } from '@/utilidades/analitica';
 
 const LLAVE_TOKEN = 'ludus-token';
@@ -34,6 +34,13 @@ export const useAlmacenAutenticacion = defineStore('autenticacion', {
       const respuesta = await autenticacionServicio.ingresar(correo, clave);
       this.guardarSesion(respuesta.tokenAcceso, respuesta.usuario);
       registrarIngreso('clave');
+    },
+    /** Registro de estudiante con codigo de institucion; devuelve el nombre de la institucion. */
+    async registrar(datos: DatosRegistro): Promise<string> {
+      const respuesta = await autenticacionServicio.registrar(datos);
+      this.guardarSesion(respuesta.tokenAcceso, respuesta.usuario);
+      registrarIngreso('registro');
+      return respuesta.institucion;
     },
     async ingresarConGoogle(credencial: string) {
       const respuesta = await autenticacionServicio.ingresarConGoogle(credencial);

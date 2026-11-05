@@ -129,6 +129,26 @@ export class UsuariosService {
     return this.usuariosRepo.findOneOrFail({ where: { id: guardado.id } });
   }
 
+  /**
+   * Registro publico: el estudiante crea su propia cuenta en la institucion
+   * del codigo. Siempre como estudiante; los demas roles los da un admin.
+   */
+  async registrarEstudiante(datos: { nombre: string; correo: string; clave: string; institucionId: string }): Promise<Usuario> {
+    if (await this.buscarPorCorreo(datos.correo)) {
+      throw new ConflictException('Ya existe una cuenta con ese correo. Ingresa con tu contrasena.');
+    }
+    const guardado = await this.usuariosRepo.save(
+      this.usuariosRepo.create({
+        nombre: datos.nombre,
+        correo: datos.correo,
+        claveHash: await bcrypt.hash(datos.clave, RONDAS_SAL),
+        rol: Rol.ESTUDIANTE,
+        institucionId: datos.institucionId,
+      }),
+    );
+    return this.usuariosRepo.findOneOrFail({ where: { id: guardado.id } });
+  }
+
   async actualizar(
     quien: UsuarioAutenticado,
     id: string,

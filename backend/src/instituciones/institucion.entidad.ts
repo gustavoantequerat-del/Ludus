@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -9,6 +10,7 @@ import {
 import { Usuario } from '../usuarios/usuario.entidad';
 import { Curso } from '../cursos/curso.entidad';
 import { Ruta } from '../rutas/ruta.entidad';
+import { generarCodigo } from './codigo-registro';
 
 @Entity('instituciones')
 export class Institucion {
@@ -23,6 +25,19 @@ export class Institucion {
 
   @Column({ type: 'boolean', default: true })
   activa: boolean;
+
+  /**
+   * Codigo para que los estudiantes nuevos se registren solos en esta
+   * institucion. No se manda en las respuestas normales (select: false): solo
+   * lo ven el superadmin y el admin de la institucion, en su propio endpoint.
+   */
+  @Column({ name: 'codigo_registro', type: 'varchar', length: 12, unique: true, select: false })
+  codigoRegistro: string;
+
+  @BeforeInsert()
+  asignarCodigo() {
+    this.codigoRegistro ??= generarCodigo();
+  }
 
   @OneToMany(() => Usuario, (usuario) => usuario.institucion)
   usuarios: Usuario[];

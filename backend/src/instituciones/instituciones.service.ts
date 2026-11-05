@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Institucion } from './institucion.entidad';
@@ -7,6 +7,8 @@ import { Curso } from '../cursos/curso.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { CrearInstitucionDto } from './dto/crear-institucion.dto';
 import { ActualizarInstitucionDto } from './dto/actualizar-institucion.dto';
+import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
+import { generarCodigo, mostrarCodigo, normalizarCodigo } from './codigo-registro';
 
 export type InstitucionListada = Institucion & {
   totalDocentes: number;
@@ -101,5 +103,40 @@ export class InstitucionesService {
   async eliminar(id: string): Promise<void> {
     const institucion = await this.obtener(id);
     await this.institucionesRepo.remove(institucion);
+  }
+
+  /* ---------------- Codigo de registro de estudiantes ---------------- */
+
+  /** El superadmin ve el de cualquiera; el admin de institucion, solo el de la suya. */
+  async codigoRegistro(quien: UsuarioAutenticado, id: string) {
+    this.verificarAdminDe(quien, id);
+    const institucion = await this.institucionesRepo
+      .createQueryBuilder('institucion')
+      .addSelect('institucion.codigoRegistro')
+      .where('institucion.id = :id', { id })
+      .getOne();
+    if (!institucion) throw new NotFoundException('Institucion no encontrada');
+    return { institucionId: institucion.id, nombre: institucion.nombre, codigo: mostrarCodigo(institucion.codigoRegistro) };
+  }
+
+  /** Codigo nuevo: el anterior deja de servir (por ejemplo, si se filtro). */
+  async renovarCodigo(quien: UsuarioAutenticado, id: string) {
+    this.verificarAdminDe(quien, id);
+    await this.obtener(id);
+    await this.institucionesRepo.update(id, { codigoRegistro: generarCodigo() });
+    return this.codigoRegistro(quien, id);
+  }
+
+  /** La institucion activa de un codigo, o null. */
+  async porCodigo(texto: string): Promise<Institucion | null> {
+    const codigo = normalizarCodigo(texto);
+    if (!codigo) return null;
+    return this.institucionesRepo.findOne({ where: { codigoRegistro: codigo, activa: true } });
+  }
+
+  private verificarAdminDe(quien: UsuarioAutenticado, id: string) {
+    if (quien.rol === Rol.SUPERADMIN) return;
+    if (quien.rol === Rol.ADMIN_INSTITUCION && quien.institucionId === id) return;
+    throw new ForbiddenException('Solo el admin de la institucion ve su codigo de registro');
   }
 }

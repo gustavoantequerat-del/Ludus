@@ -15,6 +15,8 @@ import { Rol } from '../comun/enums/rol.enum';
 import { InstitucionesService } from './instituciones.service';
 import { CrearInstitucionDto } from './dto/crear-institucion.dto';
 import { ActualizarInstitucionDto } from './dto/actualizar-institucion.dto';
+import { UsuarioActual } from '../comun/decoradores/usuario-actual.decorador';
+import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 
 @Controller('instituciones')
 @UseGuards(JwtGuardia, RolesGuardia)
@@ -25,6 +27,19 @@ export class InstitucionesController {
   @Get()
   listar() {
     return this.institucionesService.listar();
+  }
+
+  /** Codigo para que los estudiantes nuevos se registren en la institucion. */
+  @Get(':id/codigo-registro')
+  @Roles(Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION)
+  codigoRegistro(@UsuarioActual() quien: UsuarioAutenticado, @Param('id') id: string) {
+    return this.institucionesService.codigoRegistro(quien, id);
+  }
+
+  @Post(':id/codigo-registro')
+  @Roles(Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION)
+  renovarCodigo(@UsuarioActual() quien: UsuarioAutenticado, @Param('id') id: string) {
+    return this.institucionesService.renovarCodigo(quien, id);
   }
 
   @Get(':id')

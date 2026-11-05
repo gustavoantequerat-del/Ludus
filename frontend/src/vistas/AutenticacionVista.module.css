@@ -85,3 +85,43 @@
   justify-content: center;
   min-height: 44px;
 }
+
+.registro {
+  margin: 0;
+  font: 500 12.5px/1.5 var(--fuente-texto);
+  color: var(--apagado);
+  text-align: center;
+}
+
+.registro a {
+  color: var(--secundario);
+  font-weight: 700;
+}
+
+.tarjeta {
+  animation: tarjeta-entra 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.logo {
+  animation: logo-flota 4s ease-in-out infinite;
+}
+
+@keyframes tarjeta-entra {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@keyframes logo-flota {
+  50% {
+    transform: translateY(-3px) rotate(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta,
+  .logo {
+    animation: none;
+  }
+}

@@ -7,7 +7,19 @@ export interface DatosInstitucion {
   activa?: boolean;
 }
 
+export interface CodigoRegistro {
+  institucionId: string;
+  nombre: string;
+  codigo: string;
+}
+
 export const institucionesServicio = {
+  codigoRegistro(id: string) {
+    return cliente.get<CodigoRegistro>(`/instituciones/${id}/codigo-registro`).then((r) => r.data);
+  },
+  renovarCodigo(id: string) {
+    return cliente.post<CodigoRegistro>(`/instituciones/${id}/codigo-registro`).then((r) => r.data);
+  },
   listar() {
     return cliente.get<Institucion[]>('/instituciones').then((r) => r.data);
   },

@@ -83,6 +83,10 @@ onMounted(async () => {
           <div :class="estilos.separador"><span>o</span></div>
           <div ref="contenedorGoogle" :class="estilos.botonGoogle" />
         </template>
+        <p :class="estilos.registro">
+          Eres estudiante nuevo?
+          <RouterLink :to="{ name: 'landing' }">Crea tu cuenta con el codigo de tu institucion</RouterLink>
+        </p>
         <p :class="estilos.ayuda">
           Usuarios de ejemplo (clave "ludus123"): elena@ludus.io (superadmin),
           marta@nexum.edu.mx (admin), javier@nexum.edu.mx (docente),

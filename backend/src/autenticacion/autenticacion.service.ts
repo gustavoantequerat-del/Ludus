@@ -1,4 +1,7 @@
 import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -15,15 +18,21 @@ import { ConfiguracionApp } from '../configuracion/configuracion';
 import { IngresarDto } from './dto/ingresar.dto';
 import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto';
 import { CambiarClaveDto } from './dto/cambiar-clave.dto';
+import { RegistrarDto } from './dto/registrar.dto';
+import { InstitucionesService } from '../instituciones/instituciones.service';
+import { LimiteIntentos } from './limite-intentos';
 
 @Injectable()
 export class AutenticacionService {
   private readonly clienteGoogle = new OAuth2Client();
+  /** Codigos de registro equivocados: 10 por IP cada 15 minutos. */
+  private readonly codigosFallidos = new LimiteIntentos(10, 15 * 60_000);
 
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly jwtService: JwtService,
     private readonly accesosService: AccesosService,
+    private readonly institucionesService: InstitucionesService,
     private readonly config: ConfigService<ConfiguracionApp, true>,
   ) {}
 
@@ -65,9 +74,37 @@ export class AutenticacionService {
   }
 
   /**
+   * Registro de un estudiante nuevo desde la landing. El codigo dice a que
+   * institucion entra; sin un codigo valido no hay registro libre. Deja la
+   * sesion iniciada.
+   */
+  async registrar(datos: RegistrarDto, origen: OrigenAcceso) {
+    if (this.codigosFallidos.bloqueado(origen.ip)) {
+      throw new HttpException(
+        'Demasiados codigos equivocados. Espera unos minutos y vuelve a intentarlo.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    const institucion = await this.institucionesService.porCodigo(datos.codigo);
+    if (!institucion) {
+      this.codigosFallidos.fallo(origen.ip);
+      throw new BadRequestException('Ese codigo de institucion no existe o ya no es valido. Pideselo a tu docente.');
+    }
+    const usuario = await this.usuariosService.registrarEstudiante({
+      nombre: datos.nombre,
+      correo: datos.correo,
+      clave: datos.clave,
+      institucionId: institucion.id,
+    });
+    await this.accesosService.registrar(usuario.id, origen);
+    return { ...this.construirSesion(usuario), institucion: institucion.nombre };
+  }
+
+  /**
    * Inicio de sesion con Google. Google solo confirma de quien es el correo;
    * la cuenta tiene que existir en Ludus (la crea un admin o la importacion
-   * masiva). No hay registro libre: cualquiera tiene una cuenta de Google.
+   * masiva, o el estudiante con el codigo de su institucion). No hay registro
+   * libre con Google: cualquiera tiene una cuenta de Google.
    */
   async ingresarConGoogle(credencial: string, origen: OrigenAcceso) {
     const clientId = this.config.get('google', { infer: true }).clientId;

@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { AutenticacionService } from './autenticacion.service';
 import { IngresarDto } from './dto/ingresar.dto';
 import { IngresarGoogleDto } from './dto/ingresar-google.dto';
+import { RegistrarDto } from './dto/registrar.dto';
 import { origenDePeticion } from '../accesos/origen-acceso';
 import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto';
 import { CambiarClaveDto } from './dto/cambiar-clave.dto';
@@ -17,6 +18,12 @@ export class AutenticacionController {
   @Post('ingresar')
   ingresar(@Body() datos: IngresarDto, @Req() peticion: Request) {
     return this.autenticacionService.ingresar(datos, origenDePeticion(peticion, 'clave'));
+  }
+
+  /** Publico: un estudiante nuevo crea su cuenta con el codigo de su institucion. */
+  @Post('registro')
+  registrar(@Body() datos: RegistrarDto, @Req() peticion: Request) {
+    return this.autenticacionService.registrar(datos, origenDePeticion(peticion, 'clave'));
   }
 
   @Post('google')

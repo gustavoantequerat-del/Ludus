@@ -9,6 +9,7 @@ import BotonIcono from '@/componentes/base/BotonIcono.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoSelector from '@/componentes/base/CampoSelector.vue';
+import CodigoRegistro from '@/componentes/instituciones/CodigoRegistro.vue';
 import { institucionesServicio, type DatosInstitucion } from '@/servicios/instituciones.servicio';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import type { Institucion } from '@/tipos';
@@ -19,7 +20,7 @@ const instituciones = ref<Institucion[]>([]);
 const busqueda = ref('');
 const cargando = ref(true);
 
-const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
+const modalAbierto = ref<'formulario' | 'eliminar' | 'codigo' | null>(null);
 const edicion = ref<Institucion | null>(null);
 const form = ref<DatosInstitucion>({ nombre: '', dominio: '', activa: true });
 
@@ -49,6 +50,10 @@ function abrirEditar(institucion: Institucion) {
   edicion.value = institucion;
   form.value = { nombre: institucion.nombre, dominio: institucion.dominio, activa: institucion.activa };
   modalAbierto.value = 'formulario';
+}
+function abrirCodigo(institucion: Institucion) {
+  edicion.value = institucion;
+  modalAbierto.value = 'codigo';
 }
 function abrirEliminar(institucion: Institucion) {
   edicion.value = institucion;
@@ -103,6 +108,7 @@ onMounted(cargar);
         <Insignia :tono="item.activa ? 'ok' : 'neutro'">{{ item.activa ? 'Activa' : 'Inactiva' }}</Insignia>
       </div>
       <div style="flex: none; display: flex; gap: 6px; margin-left: auto">
+        <BotonIcono icono="key-round" titulo="Codigo de registro" @click="abrirCodigo(item)" />
         <BotonIcono icono="pencil" titulo="Editar" @click="abrirEditar(item)" />
         <BotonIcono icono="trash-2" titulo="Eliminar" peligro @click="abrirEliminar(item)" />
       </div>
@@ -126,6 +132,18 @@ onMounted(cargar);
       :opciones="[{ valor: 'activa', texto: 'Activa' }, { valor: 'inactiva', texto: 'Inactiva' }]"
       @update:model-value="(v) => (form.activa = v === 'activa')"
     />
+  </Modal>
+
+  <Modal
+    v-if="modalAbierto === 'codigo' && edicion"
+    titulo="Codigo de registro"
+    :descripcion="`Los estudiantes nuevos de ${edicion.nombre} se registran con este codigo.`"
+    icono="key-round"
+    etiqueta-confirmar="Listo"
+    @cerrar="cerrarModal"
+    @confirmar="cerrarModal"
+  >
+    <CodigoRegistro :institucion-id="edicion.id" />
   </Modal>
 
   <Modal

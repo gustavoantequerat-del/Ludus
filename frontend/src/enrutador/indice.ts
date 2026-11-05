@@ -8,6 +8,12 @@ const STAFF: Rol[] = ['superadmin', 'admin_institucion', 'docente'];
 
 const rutas: RouteRecordRaw[] = [
   {
+    path: '/bienvenida',
+    name: 'landing',
+    component: () => import('@/vistas/LandingVista.vue'),
+    meta: { publica: true },
+  },
+  {
     path: '/ingresar',
     name: 'ingresar',
     component: () => import('@/vistas/AutenticacionVista.vue'),
@@ -159,7 +165,8 @@ enrutador.beforeEach((hacia) => {
     return true;
   }
   if (!almacen.estaAutenticado) {
-    return { name: 'ingresar' };
+    // Quien llega a la raiz sin sesion ve la landing; a cualquier otra pagina, el ingreso.
+    return hacia.name === 'panel' ? { name: 'landing', query: hacia.query } : { name: 'ingresar' };
   }
   const rolesPermitidos = hacia.meta.roles as Rol[] | undefined;
   if (rolesPermitidos && !rolesPermitidos.includes(almacen.usuario!.rol)) {

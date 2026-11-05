@@ -12,7 +12,21 @@ export interface OpcionesPublicas {
   googleAnalyticsId: string | null;
 }
 
+export interface DatosRegistro {
+  nombre: string;
+  correo: string;
+  clave: string;
+  /** Codigo de registro de la institucion (ABCD-EFGH). */
+  codigo: string;
+}
+
 export const autenticacionServicio = {
+  /** Publico: un estudiante nuevo crea su cuenta y queda con la sesion iniciada. */
+  registrar(datos: DatosRegistro) {
+    return cliente
+      .post<RespuestaIngreso & { institucion: string }>('/autenticacion/registro', datos)
+      .then((r) => r.data);
+  },
   opciones() {
     return cliente.get<OpcionesPublicas>('/autenticacion/opciones').then((r) => r.data);
   },

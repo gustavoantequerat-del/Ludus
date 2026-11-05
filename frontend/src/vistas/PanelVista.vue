@@ -6,6 +6,7 @@ import Encabezado from '@/componentes/base/Encabezado.vue';
 import TarjetaKpi from '@/componentes/base/TarjetaKpi.vue';
 import Boton from '@/componentes/base/Boton.vue';
 import Icono from '@/componentes/base/Icono.vue';
+import CodigoRegistro from '@/componentes/instituciones/CodigoRegistro.vue';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { panelServicio } from '@/servicios/panel.servicio';
 import { solicitudesServicio } from '@/servicios/solicitudes.servicio';
@@ -123,6 +124,14 @@ onMounted(cargar);
             <Boton variante="secundario" @click="resolver(s, 'rechazada')">Rechazar</Boton>
           </div>
         </div>
+      </div>
+
+      <div v-if="rol === 'admin_institucion' && almacen.usuario?.institucionId" :class="estilos.panel">
+        <div :class="estilos.panelCabecera">
+          <Icono nombre="key-round" :tamano="18" />
+          <h3 :class="estilos.panelTitulo">Registro de estudiantes</h3>
+        </div>
+        <CodigoRegistro :institucion-id="almacen.usuario.institucionId" />
       </div>
 
       <div v-if="rol === 'estudiante'" :class="estilos.panel">
