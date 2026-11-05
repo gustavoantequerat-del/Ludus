@@ -6,17 +6,24 @@ import Boton from '@/componentes/base/Boton.vue';
 import TarjetaEntidad from '@/componentes/base/TarjetaEntidad.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
+import CampoSelector from '@/componentes/base/CampoSelector.vue';
 import { cursosServicio, type DatosCurso } from '@/servicios/cursos.servicio';
+import { institucionesServicio } from '@/servicios/instituciones.servicio';
+import { usuariosServicio } from '@/servicios/usuarios.servicio';
+import { mensajeDeError } from '@/utilidades/errores';
 import { solicitudesServicio } from '@/servicios/solicitudes.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
-import type { Curso } from '@/tipos';
+import type { Curso, Institucion, Usuario } from '@/tipos';
 
 const enrutador = useRouter();
 const almacen = useAlmacenAutenticacion();
 const { notificar } = usarNotificaciones();
 
 const esEstudiante = computed(() => almacen.usuario?.rol === 'estudiante');
+const esSuperadmin = computed(() => almacen.usuario?.rol === 'superadmin');
+/** El docente siempre es el dueno de lo que crea; superadmin y admin eligen docente. */
+const eligeDocente = computed(() => esSuperadmin.value || almacen.usuario?.rol === 'admin_institucion');
 const titulo = computed(() => (esEstudiante.value || almacen.usuario?.rol === 'docente' ? 'Mis cursos' : 'Cursos'));
 
 const PALETA = [
@@ -34,6 +41,31 @@ const modalAbierto = ref<'formulario' | 'eliminar' | 'solicitarSalida' | null>(n
 const edicion = ref<Curso | null>(null);
 const form = ref<DatosCurso>({ nombre: '', descripcion: '' });
 const cursoSalida = ref<Curso | null>(null);
+const instituciones = ref<Institucion[]>([]);
+const docentes = ref<Usuario[]>([]);
+const SIN_DOCENTE = 'ninguno';
+
+/** Docentes activos de la institucion elegida (el superadmin elige institucion primero). */
+const opcionesDocente = computed(() => {
+  const institucionId = esSuperadmin.value ? form.value.institucionId : almacen.usuario?.institucionId;
+  return [
+    { valor: SIN_DOCENTE, texto: 'Sin docente' },
+    ...docentes.value
+      .filter((d) => d.activo && d.institucionId === institucionId)
+      .map((d) => ({ valor: d.id, texto: d.nombre })),
+  ];
+});
+
+/** Instituciones y docentes solo hacen falta para el formulario: se piden al abrirlo. */
+async function cargarOpciones() {
+  if (!eligeDocente.value || docentes.value.length) return;
+  const [listaInstituciones, listaDocentes] = await Promise.all([
+    esSuperadmin.value ? institucionesServicio.listar() : Promise.resolve([]),
+    usuariosServicio.listar('docente'),
+  ]);
+  instituciones.value = listaInstituciones;
+  docentes.value = listaDocentes;
+}
 
 async function cargar() {
   cargando.value = true;
@@ -44,15 +76,33 @@ async function cargar() {
 function abrirCurso(curso: Curso) {
   enrutador.push({ name: 'curso-detalle', params: { id: curso.id } });
 }
-function abrirCrear() {
+async function abrirCrear() {
   edicion.value = null;
-  form.value = { nombre: '', descripcion: '' };
+  await cargarOpciones();
+  form.value = { nombre: '', descripcion: '', institucionId: instituciones.value[0]?.id, docenteId: null };
   modalAbierto.value = 'formulario';
 }
-function abrirEditar(curso: Curso) {
+async function abrirEditar(curso: Curso) {
   edicion.value = curso;
-  form.value = { nombre: curso.nombre, descripcion: curso.descripcion };
+  await cargarOpciones();
+  form.value = {
+    nombre: curso.nombre,
+    descripcion: curso.descripcion,
+    institucionId: curso.institucionId,
+    docenteId: curso.docenteId,
+  };
   modalAbierto.value = 'formulario';
+}
+function elegirInstitucion(id: string) {
+  form.value.institucionId = id;
+  // El docente tiene que ser de la institucion del curso.
+  form.value.docenteId = null;
+}
+function datosFormulario(): DatosCurso {
+  const datos: DatosCurso = { nombre: form.value.nombre, descripcion: form.value.descripcion };
+  if (esSuperadmin.value && !edicion.value) datos.institucionId = form.value.institucionId;
+  if (eligeDocente.value) datos.docenteId = form.value.docenteId ?? null;
+  return datos;
 }
 function abrirEliminar(curso: Curso) {
   edicion.value = curso;
@@ -68,20 +118,26 @@ function cerrarModal() {
   cursoSalida.value = null;
 }
 async function confirmar() {
-  if (modalAbierto.value === 'formulario') {
-    if (edicion.value) {
-      await cursosServicio.actualizar(edicion.value.id, form.value);
-      notificar('Cambios guardados');
-    } else {
-      await cursosServicio.crear(form.value);
-      notificar('Registro creado');
+  try {
+    if (modalAbierto.value === 'formulario') {
+      if (edicion.value) {
+        await cursosServicio.actualizar(edicion.value.id, datosFormulario());
+        notificar('Cambios guardados');
+      } else {
+        await cursosServicio.crear(datosFormulario());
+        notificar('Curso creado');
+      }
+    } else if (modalAbierto.value === 'eliminar' && edicion.value) {
+      await cursosServicio.eliminar(edicion.value.id);
+      notificar('Eliminado');
+    } else if (modalAbierto.value === 'solicitarSalida' && cursoSalida.value) {
+      await solicitudesServicio.crear('salida', { cursoId: cursoSalida.value.id });
+      notificar('Solicitud enviada');
     }
-  } else if (modalAbierto.value === 'eliminar' && edicion.value) {
-    await cursosServicio.eliminar(edicion.value.id);
-    notificar('Eliminado');
-  } else if (modalAbierto.value === 'solicitarSalida' && cursoSalida.value) {
-    await solicitudesServicio.crear('salida', { cursoId: cursoSalida.value.id });
-    notificar('Solicitud enviada');
+  } catch (fallo) {
+    // El modal sigue abierto para corregir.
+    notificar(mensajeDeError(fallo));
+    return;
   }
   cerrarModal();
   await cargar();
@@ -143,6 +199,20 @@ onMounted(cargar);
   >
     <CampoTexto v-model="form.nombre" etiqueta="Nombre del curso" marcador="Matematicas Basicas" />
     <CampoTexto v-model="form.descripcion as string" etiqueta="Descripcion" tipo="area" marcador="De que trata el curso" />
+    <CampoSelector
+      v-if="esSuperadmin && !edicion"
+      :model-value="form.institucionId ?? ''"
+      etiqueta="Institucion"
+      :opciones="instituciones.map((i) => ({ valor: i.id, texto: i.nombre }))"
+      @update:model-value="elegirInstitucion"
+    />
+    <CampoSelector
+      v-if="eligeDocente"
+      :model-value="form.docenteId ?? SIN_DOCENTE"
+      etiqueta="Docente"
+      :opciones="opcionesDocente"
+      @update:model-value="(v) => (form.docenteId = v === SIN_DOCENTE ? null : v)"
+    />
   </Modal>
 
   <Modal

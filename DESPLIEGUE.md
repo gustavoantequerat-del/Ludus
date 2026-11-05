@@ -278,6 +278,19 @@ corrieron no se repiten.
 
 ---
 
+### 2.8 Si nadie puede entrar como superadmin
+
+Desde el servidor, sin borrar nada (ver ESTRUCTURA.md, 5.2):
+
+```bash
+cd ~/ludus/backend
+npm run superadmin:crear -- tu-correo@dominio.com "Nombre Apellido"
+```
+
+Muestra una clave temporal; entra con ella y cambiala en "Mi perfil".
+
+---
+
 ## 3. cPanel (alternativa, con limites)
 
 Funciona solo si el hosting cumple **las dos** condiciones:

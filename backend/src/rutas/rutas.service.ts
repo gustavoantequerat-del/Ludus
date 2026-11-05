@@ -71,7 +71,7 @@ export class RutasService {
     const institucionId =
       quien.rol === Rol.SUPERADMIN ? datos.institucionId : quien.institucionId;
     if (!institucionId) {
-      throw new BadRequestException('Debes indicar la institucion de la ruta');
+      throw new BadRequestException('Elige la institucion de la ruta');
     }
     const ruta = this.rutasRepo.create({
       nombre: datos.nombre,

@@ -5,7 +5,7 @@ export interface DatosCurso {
   nombre: string;
   descripcion?: string;
   institucionId?: string;
-  docenteId?: string;
+  docenteId?: string | null;
 }
 
 export interface DatosModulo {

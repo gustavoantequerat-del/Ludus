@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import estilos from './UsuariosVista.module.css';
 import Encabezado from '@/componentes/base/Encabezado.vue';
 import Boton from '@/componentes/base/Boton.vue';
 import Tabla from '@/componentes/base/Tabla.vue';
@@ -16,6 +17,7 @@ import { institucionesServicio } from '@/servicios/instituciones.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import { etiquetaRol } from '@/utilidades/texto';
+import { mensajeDeError } from '@/utilidades/errores';
 import type { Institucion, Rol, Usuario } from '@/tipos';
 
 const ruta = useRoute();
@@ -42,8 +44,19 @@ const titulo = computed(() => {
 });
 
 const rolesCreables = computed<Rol[]>(() =>
-  almacen.usuario?.rol === 'superadmin' ? ['admin_institucion', 'docente', 'estudiante'] : ['docente', 'estudiante'],
+  almacen.usuario?.rol === 'superadmin'
+    ? // Superadmin al final: el primero es el rol por defecto de un usuario nuevo.
+      ['admin_institucion', 'docente', 'estudiante', 'superadmin']
+    : ['docente', 'estudiante'],
 );
+
+/**
+ * Cuentas que no se borran ni se desactivan ni cambian de rol (el backend
+ * tambien lo bloquea): cualquier superadmin y la propia cuenta.
+ */
+function protegida(usuario: Usuario) {
+  return usuario.rol === 'superadmin' || usuario.id === almacen.usuario?.sub;
+}
 
 const columnas = computed(() => [
   { etiqueta: 'Nombre', flex: 1.9 },
@@ -105,18 +118,29 @@ function cerrarModal() {
 }
 
 async function confirmar() {
-  if (modalAbierto.value === 'formulario') {
-    if (edicion.value) {
-      const { clave, ...resto } = form.value;
-      await usuariosServicio.actualizar(edicion.value.id, resto);
-      notificar('Cambios guardados');
-    } else {
-      await usuariosServicio.crear(form.value);
-      notificar('Registro creado');
+  try {
+    if (modalAbierto.value === 'formulario') {
+      const datos = { ...form.value };
+      // Un superadmin es global: no lleva institucion.
+      if (datos.rol === 'superadmin') delete datos.institucionId;
+      if (edicion.value) {
+        const { clave, rol, activo, ...resto } = datos;
+        // De una cuenta protegida solo cambian nombre y correo.
+        const cambios = protegida(edicion.value) ? resto : { ...resto, rol, activo };
+        await usuariosServicio.actualizar(edicion.value.id, cambios);
+        notificar('Cambios guardados');
+      } else {
+        await usuariosServicio.crear(datos);
+        notificar('Registro creado');
+      }
+    } else if (modalAbierto.value === 'eliminar' && edicion.value) {
+      await usuariosServicio.eliminar(edicion.value.id);
+      notificar('Eliminado');
     }
-  } else if (modalAbierto.value === 'eliminar' && edicion.value) {
-    await usuariosServicio.eliminar(edicion.value.id);
-    notificar('Eliminado');
+  } catch (fallo) {
+    // El modal sigue abierto para corregir.
+    notificar(mensajeDeError(fallo));
+    return;
   }
   cerrarModal();
   await cargar();
@@ -146,6 +170,7 @@ onMounted(cargar);
         etiqueta=""
         :opciones="[
           { valor: 'todos', texto: 'Todos' },
+          { valor: 'superadmin', texto: 'Superadmin' },
           { valor: 'admin_institucion', texto: 'Admin institucion' },
           { valor: 'docente', texto: 'Docente' },
           { valor: 'estudiante', texto: 'Estudiante' },
@@ -169,7 +194,13 @@ onMounted(cargar);
       <div style="flex: none; display: flex; gap: 6px; margin-left: auto">
         <template v-if="!soloLectura">
           <BotonIcono icono="pencil" titulo="Editar" @click="abrirEditar(item)" />
-          <BotonIcono icono="trash-2" titulo="Eliminar" peligro @click="abrirEliminar(item)" />
+          <BotonIcono
+            v-if="!protegida(item)"
+            icono="trash-2"
+            titulo="Eliminar"
+            peligro
+            @click="abrirEliminar(item)"
+          />
         </template>
       </div>
     </template>
@@ -194,20 +225,24 @@ onMounted(cargar);
       marcador="Minimo 6 caracteres"
       @update:model-value="(v) => (form.clave = v)"
     />
+    <p v-if="edicion && protegida(edicion)" :class="estilos.nota">
+      {{ edicion.rol === 'superadmin' ? 'A un superadministrador' : 'A tu propia cuenta' }} no se le puede cambiar el rol, desactivar
+      ni eliminar.
+    </p>
     <CampoSelector
-      v-if="!filtroRolFijo"
+      v-if="!filtroRolFijo && !(edicion && protegida(edicion))"
       v-model="form.rol"
       etiqueta="Rol"
       :opciones="rolesCreables.map((r) => ({ valor: r, texto: etiquetaRol(r) }))"
     />
     <CampoSelector
-      v-if="almacen.usuario?.rol === 'superadmin'"
+      v-if="almacen.usuario?.rol === 'superadmin' && form.rol !== 'superadmin'"
       v-model="form.institucionId as string"
       etiqueta="Institucion"
       :opciones="instituciones.map((i) => ({ valor: i.id, texto: i.nombre }))"
     />
     <CampoSelector
-      v-if="edicion"
+      v-if="edicion && !protegida(edicion)"
       :model-value="form.activo ? 'activo' : 'inactivo'"
       etiqueta="Estado"
       :opciones="[{ valor: 'activo', texto: 'Activo' }, { valor: 'inactivo', texto: 'Inactivo' }]"

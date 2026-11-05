@@ -1,0 +1,5 @@
+.nota {
+  margin: 0;
+  font: 500 12px/1.5 var(--fuente-texto);
+  color: var(--apagado);
+}

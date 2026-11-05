@@ -320,6 +320,32 @@ Dos detalles de implementacion que conviene conocer antes de tocar esto:
   sesion el usuario queda en `null` un instante antes de que el enrutador
   redirija, y sin esa guarda la vista se volveria a renderizar sin sesion.
 
+### 5.2 Cuentas protegidas y recuperar el superadmin
+
+Para que nadie se quede afuera, el backend (`UsuariosService`) bloquea:
+
+- **Eliminar a un superadministrador**, incluido uno mismo.
+- Quitarle el rol o **desactivar** a un superadministrador.
+- Que cualquier usuario se elimine, se desactive o se cambie el rol a si mismo.
+
+La pantalla de usuarios no muestra la papelera en esas cuentas y al editarlas
+solo deja cambiar nombre y correo. El superadmin puede crear otros
+superadmins desde *Usuarios > Nuevo usuario* (rol "Superadministrador", sin
+institucion).
+
+Si aun asi no queda ningun superadmin con acceso (por ejemplo, una cuenta
+borrada antes de este bloqueo, o una clave olvidada), en el servidor:
+
+```bash
+cd ~/ludus/backend
+npm run superadmin:crear -- tu-correo@dominio.com "Nombre Apellido"
+```
+
+Usa el mismo `.env` que el backend (la misma base). Si el correo no existe lo
+crea como superadmin; si existe, lo convierte en superadmin, lo reactiva y le
+pone una clave nueva. La clave temporal se muestra una sola vez y se cambia
+en "Mi perfil". No toca ningun otro dato.
+
 ## 6. API (resumen)
 
 Todo bajo el prefijo `/api`. Autenticacion con `Authorization: Bearer
@@ -337,14 +363,14 @@ PATCH  /autenticacion/clave             { claveActual, claveNueva } -> 204
 GET|POST /instituciones                 superadmin
 GET|PATCH|DELETE /instituciones/:id     superadmin
 
-GET|POST /usuarios                      alcance segun rol; ?rol= filtra
+GET|POST /usuarios                      alcance segun rol; ?rol= filtra; un superadmin crea superadmins
 GET      /usuarios/plantilla            .xlsx de ejemplo para la importacion (superadmin/admin)
 POST     /usuarios/importar             cuerpo = el .xlsx crudo; sin ?confirmar=true solo devuelve la vista previa
 GET|PATCH|DELETE /usuarios/:id
 
 GET      /accesos?dias=30               inicios de sesion + resumen (superadmin todos, admin su institucion)
 
-GET|POST /cursos                        alcance segun rol
+GET|POST /cursos                        alcance segun rol; superadmin indica institucionId; docenteId debe ser docente de esa institucion
 GET      /cursos/explorar               estudiante: cursos de su institucion en los que no esta
 GET|PATCH|DELETE /cursos/:id
 POST|PATCH|DELETE /cursos/:id/modulos[/:moduloId]

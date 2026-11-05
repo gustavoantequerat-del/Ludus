@@ -6,10 +6,13 @@ import Boton from '@/componentes/base/Boton.vue';
 import TarjetaEntidad from '@/componentes/base/TarjetaEntidad.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
+import CampoSelector from '@/componentes/base/CampoSelector.vue';
 import { rutasServicio, type DatosRuta } from '@/servicios/rutas.servicio';
+import { institucionesServicio } from '@/servicios/instituciones.servicio';
+import { mensajeDeError } from '@/utilidades/errores';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
-import type { Ruta } from '@/tipos';
+import type { Institucion, Ruta } from '@/tipos';
 
 const enrutador = useRouter();
 const almacen = useAlmacenAutenticacion();
@@ -30,6 +33,8 @@ const cargando = ref(true);
 const modalAbierto = ref<'formulario' | 'eliminar' | null>(null);
 const edicion = ref<Ruta | null>(null);
 const form = ref<DatosRuta>({ nombre: '', descripcion: '' });
+const esSuperadmin = computed(() => almacen.usuario?.rol === 'superadmin');
+const instituciones = ref<Institucion[]>([]);
 
 async function cargar() {
   cargando.value = true;
@@ -40,9 +45,10 @@ async function cargar() {
 function abrirRuta(ruta: Ruta) {
   enrutador.push({ name: 'ruta-detalle', params: { id: ruta.id } });
 }
-function abrirCrear() {
+async function abrirCrear() {
   edicion.value = null;
-  form.value = { nombre: '', descripcion: '' };
+  if (esSuperadmin.value && !instituciones.value.length) instituciones.value = await institucionesServicio.listar();
+  form.value = { nombre: '', descripcion: '', institucionId: esSuperadmin.value ? instituciones.value[0]?.id : undefined };
   modalAbierto.value = 'formulario';
 }
 function abrirEditar(ruta: Ruta) {
@@ -59,17 +65,22 @@ function cerrarModal() {
   edicion.value = null;
 }
 async function confirmar() {
-  if (modalAbierto.value === 'formulario') {
-    if (edicion.value) {
-      await rutasServicio.actualizar(edicion.value.id, form.value);
-      notificar('Cambios guardados');
-    } else {
-      await rutasServicio.crear(form.value);
-      notificar('Registro creado');
+  try {
+    if (modalAbierto.value === 'formulario') {
+      if (edicion.value) {
+        await rutasServicio.actualizar(edicion.value.id, { nombre: form.value.nombre, descripcion: form.value.descripcion });
+        notificar('Cambios guardados');
+      } else {
+        await rutasServicio.crear(form.value);
+        notificar('Ruta creada');
+      }
+    } else if (modalAbierto.value === 'eliminar' && edicion.value) {
+      await rutasServicio.eliminar(edicion.value.id);
+      notificar('Eliminado');
     }
-  } else if (modalAbierto.value === 'eliminar' && edicion.value) {
-    await rutasServicio.eliminar(edicion.value.id);
-    notificar('Eliminado');
+  } catch (fallo) {
+    notificar(mensajeDeError(fallo));
+    return;
   }
   cerrarModal();
   await cargar();
@@ -124,6 +135,13 @@ onMounted(cargar);
   >
     <CampoTexto v-model="form.nombre" etiqueta="Nombre de la ruta" marcador="Matematicas Iniciales" />
     <CampoTexto v-model="form.descripcion as string" etiqueta="Descripcion" tipo="area" marcador="Que recorrido cubre" />
+    <CampoSelector
+      v-if="esSuperadmin && !edicion"
+      :model-value="form.institucionId ?? ''"
+      etiqueta="Institucion"
+      :opciones="instituciones.map((i) => ({ valor: i.id, texto: i.nombre }))"
+      @update:model-value="(v) => (form.institucionId = v)"
+    />
   </Modal>
 
   <Modal

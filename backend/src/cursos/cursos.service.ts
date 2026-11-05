@@ -9,6 +9,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { Curso } from './curso.entidad';
 import { ModuloCurso } from './modulo-curso.entidad';
 import { Inscripcion } from '../inscripciones/inscripcion.entidad';
+import { Usuario } from '../usuarios/usuario.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { CrearCursoDto } from './dto/crear-curso.dto';
@@ -27,6 +28,8 @@ export class CursosService {
     private readonly modulosRepo: Repository<ModuloCurso>,
     @InjectRepository(Inscripcion)
     private readonly inscripcionesRepo: Repository<Inscripcion>,
+    @InjectRepository(Usuario)
+    private readonly usuariosRepo: Repository<Usuario>,
   ) {}
 
   async listar(quien: UsuarioAutenticado): Promise<CursoListado[]> {
@@ -88,9 +91,10 @@ export class CursosService {
     const institucionId =
       quien.rol === Rol.SUPERADMIN ? datos.institucionId : quien.institucionId;
     if (!institucionId) {
-      throw new BadRequestException('Debes indicar la institucion del curso');
+      throw new BadRequestException('Elige la institucion del curso');
     }
     const docenteId = quien.rol === Rol.DOCENTE ? quien.id : datos.docenteId ?? null;
+    if (docenteId && quien.rol !== Rol.DOCENTE) await this.verificarDocente(docenteId, institucionId);
 
     const curso = this.cursosRepo.create({
       nombre: datos.nombre,
@@ -110,9 +114,22 @@ export class CursosService {
     if (datos.nombre !== undefined) curso.nombre = datos.nombre;
     if (datos.descripcion !== undefined) curso.descripcion = datos.descripcion;
     if (datos.docenteId !== undefined && quien.rol !== Rol.DOCENTE) {
-      curso.docenteId = datos.docenteId;
+      // null quita el docente; un id tiene que ser un docente de la institucion del curso.
+      if (datos.docenteId) await this.verificarDocente(datos.docenteId, curso.institucionId);
+      curso.docenteId = datos.docenteId ?? null;
     }
     return this.cursosRepo.save(curso);
+  }
+
+  /** El docente asignado existe, es docente, esta activo y es de la institucion del curso. */
+  private async verificarDocente(docenteId: string, institucionId: string): Promise<void> {
+    const docente = await this.usuariosRepo.findOne({ where: { id: docenteId } });
+    if (!docente || docente.rol !== Rol.DOCENTE || !docente.activo) {
+      throw new BadRequestException('El docente elegido no existe o no esta activo');
+    }
+    if (docente.institucionId !== institucionId) {
+      throw new BadRequestException('El docente elegido es de otra institucion');
+    }
   }
 
   async eliminar(quien: UsuarioAutenticado, id: string): Promise<void> {

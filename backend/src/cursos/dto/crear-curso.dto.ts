@@ -15,8 +15,8 @@ export class CrearCursoDto {
   @IsUUID()
   institucionId?: string;
 
-  /** Docente asignado. Si quien crea es docente, se usa su propio id. */
+  /** Docente asignado (null = sin docente). Si quien crea es docente, se usa su propio id. */
   @IsOptional()
   @IsUUID()
-  docenteId?: string;
+  docenteId?: string | null;
 }

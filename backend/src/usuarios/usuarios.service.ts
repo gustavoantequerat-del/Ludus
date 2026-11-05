@@ -136,13 +136,38 @@ export class UsuariosService {
   ): Promise<Usuario> {
     const usuario = await this.obtener(quien, id);
     if (datos.rol) this.verificarRolPermitido(quien, datos.rol);
+    this.protegerCuentasClave(quien, usuario, datos);
     Object.assign(usuario, datos);
+    // Un superadmin es global: no queda atado a una institucion.
+    if (usuario.rol === Rol.SUPERADMIN) usuario.institucionId = null;
     return this.usuariosRepo.save(usuario);
   }
 
   async eliminar(quien: UsuarioAutenticado, id: string): Promise<void> {
     const usuario = await this.obtener(quien, id);
+    if (usuario.rol === Rol.SUPERADMIN) {
+      throw new ForbiddenException('Un superadministrador no se puede eliminar');
+    }
+    if (usuario.id === quien.id) {
+      throw new ForbiddenException('No puedes eliminar tu propia cuenta');
+    }
     await this.usuariosRepo.remove(usuario);
+  }
+
+  /**
+   * Para no quedarse afuera: a un superadmin no se le quita el rol ni se lo
+   * desactiva, y nadie se quita su propio rol ni se desactiva a si mismo.
+   * (Si hace falta recuperar el acceso: npm run superadmin:crear.)
+   */
+  private protegerCuentasClave(quien: UsuarioAutenticado, usuario: Usuario, datos: ActualizarUsuarioDto): void {
+    const cambiaRol = datos.rol !== undefined && datos.rol !== usuario.rol;
+    const desactiva = datos.activo === false && usuario.activo;
+    if (usuario.rol === Rol.SUPERADMIN && (cambiaRol || desactiva)) {
+      throw new ForbiddenException('A un superadministrador no se le puede quitar el rol ni desactivar');
+    }
+    if (usuario.id === quien.id && (cambiaRol || desactiva)) {
+      throw new ForbiddenException('No puedes cambiar tu propio rol ni desactivar tu cuenta');
+    }
   }
 
   private resolverInstitucionParaCreacion(
