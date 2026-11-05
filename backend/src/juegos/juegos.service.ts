@@ -16,7 +16,8 @@ import { FONDO_MESA } from '../archivos/archivos.constantes';
 import { AccesoModuloService } from './acceso-modulo.service';
 import { FichasService } from './fichas/fichas.service';
 import { RunnerService } from './runner/runner.service';
-import { CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from './catalogo-nuevos';
+import { CLAVE_AJEDREZ, CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from './catalogo-nuevos';
+import { AjedrezService } from './ajedrez/ajedrez.service';
 
 export const CLAVE_MESA_CUMPLIMIENTO = 'mesa-cumplimiento';
 
@@ -34,6 +35,7 @@ export class JuegosService {
     private readonly acceso: AccesoModuloService,
     private readonly fichas: FichasService,
     private readonly runner: RunnerService,
+    private readonly ajedrez: AjedrezService,
   ) {}
 
   /* ---------------------------------------------------------------- *
@@ -151,6 +153,9 @@ export class JuegosService {
     }
     if (juego.clave === CLAVE_RUNNER) {
       return this.runner.validarAjustes(quien, ajustes);
+    }
+    if (juego.clave === CLAVE_AJEDREZ) {
+      return this.ajedrez.validarAjustes(quien, ajustes);
     }
     return Promise.resolve({});
   }

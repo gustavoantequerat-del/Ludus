@@ -11,6 +11,7 @@ import MesaCumplimiento from '@/componentes/juegos/MesaCumplimiento.vue';
 import Memorama from '@/componentes/juegos/Memorama.vue';
 import Mahjong from '@/componentes/juegos/Mahjong.vue';
 import RunnerNarrativo from '@/componentes/juegos/RunnerNarrativo.vue';
+import Ajedrez from '@/componentes/juegos/Ajedrez.vue';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import type { ConfiguracionJuego, Curso, FinDePartida, ModuloCurso } from '@/tipos';
 
@@ -24,6 +25,7 @@ const JUEGOS = {
   memorama: Memorama,
   mahjong: Mahjong,
   'runner-narrativo': RunnerNarrativo,
+  ajedrez: Ajedrez,
 };
 const componenteJuego = computed(() => {
   const clave = configuracion.value?.juego.clave ?? '';

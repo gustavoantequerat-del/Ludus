@@ -405,3 +405,74 @@ export interface EventoActividad {
   institucion: string;
   cuando: string;
 }
+
+/* --- Ajedrez de Preguntas --- */
+
+export interface PreguntaBancoAjedrez {
+  id?: string;
+  texto: string;
+  /** Exactamente cuatro textos. */
+  opciones: string[];
+  /** Posicion (0 a 3) de la correcta en `opciones`. */
+  correcta: number;
+  dificil: boolean;
+}
+
+/** Como la devuelve el servidor: opciones con id y la correcta por id. */
+export interface PreguntaGuardadaAjedrez {
+  id: string;
+  texto: string;
+  opciones: { id: string; texto: string }[];
+  correctaId: string;
+  dificil: boolean;
+}
+
+export interface BancoAjedrez {
+  id: string;
+  nombre: string;
+  minutos: number;
+  minimoPreguntas: number;
+  preguntas: PreguntaGuardadaAjedrez[];
+  institucionId: string | null;
+}
+
+export interface PartidaAjedrez {
+  partidaId: string;
+  juego: { clave: string; nombre: string };
+  titulo: string;
+  instrucciones: string;
+  minutos: number;
+  minimoPreguntas: number;
+  totalPreguntas: number;
+}
+
+export type ModoPreguntaAjedrez = 'normal' | 'rey' | 'critica' | 'examen';
+export type DesenlaceAjedrez = 'victoria' | 'derrota' | 'tablas' | 'tiempo' | 'rendicion';
+
+export interface PreguntaAjedrezEnJuego {
+  preguntaId: string;
+  texto: string;
+  opciones: { id: string; texto: string }[];
+  modo: ModoPreguntaAjedrez;
+}
+
+export interface RespuestaAjedrez {
+  correcta: boolean;
+  modo: ModoPreguntaAjedrez;
+  respondidas: number;
+  correctas: number;
+  faltanExamen: number;
+}
+
+export interface CierreAjedrez {
+  examen: boolean;
+  desenlace: DesenlaceAjedrez | null;
+  respondidas: number;
+  /** Solo en modo examen: cuantas preguntas faltan para poder calificar. */
+  faltan?: number;
+  correctas?: number;
+  enExamen?: number;
+  puntaje?: number | null;
+  nota?: string | null;
+  intento?: number | null;
+}

@@ -356,6 +356,7 @@ direccion vieja: hay que **volver a exportarlos**.
 - [ ] En Lightsail el puerto 3000 **no** esta abierto en el firewall
 - [ ] `request_body` del `Caddyfile` en 12MB
 - [ ] Una historia del Runner con un video de YouTube avanza sola, y una con Drive muestra "Continuar"
+- [ ] Un modulo con el Ajedrez de Preguntas: al chocar dos piezas sale la pregunta y al terminar se registra la nota
 - [ ] La pantalla *Paquetes SCORM* no muestra la advertencia amarilla
 - [ ] Un paquete recien exportado abre y guarda nota desde el LMS
 - [ ] Las claves de la semilla cambiadas, o la semilla no ejecutada

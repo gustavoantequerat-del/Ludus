@@ -1040,3 +1040,240 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Ajedrez de Preguntas --- */
+
+.ajedrezPortada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ajedrezReglas {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--apagado);
+}
+
+.ajedrezMesa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ajedrezMensaje {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ajedrezZona {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  align-self: center;
+}
+
+.ajedrezTablero {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--linea-2);
+  user-select: none;
+}
+
+.ajedrezCasilla {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 6%;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.ajedrezCasilla svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+  filter: drop-shadow(0 1.5px 1px rgba(0, 0, 0, 0.35));
+}
+
+.ajedrezClara {
+  background: #e9dcfb;
+}
+
+.ajedrezOscura {
+  background: #8a6bbf;
+}
+
+.ajedrezUltima {
+  box-shadow: inset 0 0 0 100px rgba(255, 214, 102, 0.38);
+}
+
+.ajedrezSeleccion {
+  box-shadow: inset 0 0 0 100px rgba(0, 229, 255, 0.4);
+}
+
+.ajedrezJaque {
+  box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.55);
+}
+
+.ajedrezDestino::after,
+.ajedrezDestinoCaptura::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.ajedrezDestino::after {
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(22, 13, 45, 0.35);
+}
+
+.ajedrezDestinoCaptura::after {
+  inset: 5%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 138, 0, 0.85);
+}
+
+.piezaBlanca {
+  fill: #fbf8ff;
+  stroke: #1d1230;
+}
+
+.piezaNegra {
+  fill: #2a1c45;
+  stroke: #eee7fb;
+}
+
+.piezaDetalle {
+  fill: none;
+}
+
+.piezaBlanca .piezaOjo {
+  fill: #1d1230;
+  stroke: none;
+}
+
+.piezaNegra .piezaOjo {
+  fill: #eee7fb;
+  stroke: none;
+}
+
+.ajedrezVelo {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(8, 4, 16, 0.65);
+  overflow: auto;
+}
+
+.ajedrezExamen .ajedrezVelo {
+  position: static;
+  background: none;
+  padding: 0;
+}
+
+.ajedrezExamen .ajedrezTablero {
+  display: none;
+}
+
+.ajedrezTarjeta {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-2);
+}
+
+.ajedrezContexto {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secundario);
+}
+
+.ajedrezPregunta {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.ajedrezOpciones {
+  display: grid;
+  gap: 8px;
+}
+
+.ajedrezOpcion {
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--linea-2);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font: 600 13px var(--fuente);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ajedrezOpcion:hover:not(:disabled) {
+  border-color: var(--primario);
+}
+
+.ajedrezResultado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.ajedrezBien {
+  background: var(--exito-suave);
+  color: var(--exito);
+}
+
+.ajedrezMal {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.ajedrezResultado span {
+  flex: 1;
+  min-width: 160px;
+}
+
+.ajedrezAcciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ajedrezPie {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -11,6 +11,7 @@ import CampoRango from '@/componentes/base/CampoRango.vue';
 import CampoInterruptor from '@/componentes/base/CampoInterruptor.vue';
 import AjustesFichas from '@/componentes/configuracion/AjustesFichas.vue';
 import AjustesRunner from '@/componentes/configuracion/AjustesRunner.vue';
+import AjustesAjedrez from '@/componentes/configuracion/AjustesAjedrez.vue';
 import { juegosServicio, type DatosConfiguracionJuego } from '@/servicios/juegos.servicio';
 import { cursosServicio } from '@/servicios/cursos.servicio';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
@@ -23,7 +24,7 @@ const enrutador = useRouter();
 const { notificar } = usarNotificaciones();
 
 /** Juegos con parametros propios; la Mesa de Cumplimiento usa los comunes (tiempo, casos, intentos). */
-const JUEGOS_CON_AJUSTES = ['memorama', 'mahjong', 'runner-narrativo'];
+const JUEGOS_CON_AJUSTES = ['memorama', 'mahjong', 'runner-narrativo', 'ajedrez'];
 
 const catalogo = ref<Juego[]>([]);
 const nombreModulo = ref('');
@@ -181,6 +182,7 @@ onMounted(cargar);
         :juego-clave="clave"
       />
       <AjustesRunner v-else-if="clave === 'runner-narrativo'" v-model:ajustes="ajustes" />
+      <AjustesAjedrez v-else-if="clave === 'ajedrez'" v-model:ajustes="ajustes" />
 
       <template v-if="usaGenericos">
         <CampoSelector

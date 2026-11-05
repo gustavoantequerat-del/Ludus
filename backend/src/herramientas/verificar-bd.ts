@@ -35,6 +35,8 @@ const TABLAS_ESPERADAS = [
   'mazos',
   'historias',
   'accesos',
+  'bancos_ajedrez',
+  'partidas_ajedrez',
 ];
 
 function titulo(texto: string) {

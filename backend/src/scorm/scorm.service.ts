@@ -28,6 +28,9 @@ import { Decision } from '../juegos/mesa-cumplimiento/casos';
 import { CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from '../juegos/catalogo-nuevos';
 import { FichasService } from '../juegos/fichas/fichas.service';
 import { RunnerService } from '../juegos/runner/runner.service';
+import { AjedrezService } from '../juegos/ajedrez/ajedrez.service';
+import { Desenlace, ModoPregunta } from '../juegos/ajedrez/partida-ajedrez.entidad';
+import { ResponderPreguntaDto } from '../juegos/ajedrez/dto/partida-ajedrez.dto';
 import { RespuestaRunnerDto } from '../juegos/runner/dto/historia.dto';
 import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
 import { RegistrarResultadoScormDto } from './dto/registrar-resultado-scorm.dto';
@@ -44,6 +47,8 @@ const ARCHIVOS_PLANTILLA = [
   'juego-memorama.js',
   'juego-mahjong.js',
   'juego-runner.js',
+  'ajedrez-motor.js',
+  'juego-ajedrez.js',
 ];
 
 @Injectable()
@@ -63,6 +68,7 @@ export class ScormService {
     private readonly juegosService: JuegosService,
     private readonly fichasService: FichasService,
     private readonly runnerService: RunnerService,
+    private readonly ajedrezService: AjedrezService,
   ) {}
 
   /* ---------------------------------------------------------------- *
@@ -95,6 +101,34 @@ export class ScormService {
     const paquete = await this.paqueteActivo(token);
     const modulo = await this.moduloCompleto(paquete.moduloId);
     const datos = await this.runnerService.terminar(quien, paquete.moduloId, respuestas);
+    return { ...datos, califica: modulo.califica, puntajeMaximo: 100 };
+  }
+
+  /* Ajedrez de Preguntas: el servidor da y corrige las preguntas, y califica. */
+  async iniciarAjedrez(token: string, quien: UsuarioAutenticado) {
+    const paquete = await this.paqueteActivo(token);
+    return this.ajedrezService.iniciar(quien, paquete.moduloId);
+  }
+
+  async preguntaAjedrez(
+    token: string,
+    quien: UsuarioAutenticado,
+    partidaId: string,
+    modo: Exclude<ModoPregunta, 'examen'>,
+  ) {
+    const paquete = await this.paqueteActivo(token);
+    return this.ajedrezService.pedirPregunta(quien, paquete.moduloId, partidaId, modo);
+  }
+
+  async responderAjedrez(token: string, quien: UsuarioAutenticado, partidaId: string, datos: ResponderPreguntaDto) {
+    const paquete = await this.paqueteActivo(token);
+    return this.ajedrezService.responder(quien, paquete.moduloId, partidaId, datos);
+  }
+
+  async terminarAjedrez(token: string, quien: UsuarioAutenticado, partidaId: string, desenlace: Desenlace) {
+    const paquete = await this.paqueteActivo(token);
+    const modulo = await this.moduloCompleto(paquete.moduloId);
+    const datos = await this.ajedrezService.terminar(quien, paquete.moduloId, partidaId, desenlace);
     return { ...datos, califica: modulo.califica, puntajeMaximo: 100 };
   }
 

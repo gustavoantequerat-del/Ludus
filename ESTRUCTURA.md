@@ -20,10 +20,10 @@ Decisiones de alcance tomadas junto con quien pidio la implementacion:
   viene del usuario autenticado, no hay forma de "cambiar de rol" en la UI.
 - **Solo juegos programados.** El prototipo dejo la mecanica de juego fuera
   a proposito e inventaba seis plantillas de maqueta. Hoy el catalogo tiene
-  solo los cuatro juegos con mecanica real: **Mesa de Cumplimiento**
-  (contenido del curso de Cripto Compliance, ver 6.2), el **Runner
-  Narrativo** (historias en video, ver 6.3.4) y los ludicos **Memorama** y
-  **Mahjong** (ver 6.3). Las maquetas (Viborita Numerica, Torre de Bloques,
+  solo los juegos con mecanica real: **Mesa de Cumplimiento** (contenido
+  del curso de Cripto Compliance, ver 6.2), el **Runner Narrativo**
+  (historias en video, ver 6.3.4), el **Ajedrez de Preguntas** (ver 6.5) y
+  los ludicos **Memorama** y **Mahjong** (ver 6.3). Las maquetas (Viborita Numerica, Torre de Bloques,
   Burbujas, Ordena la Secuencia y Laberinto) se quitaron con la migracion
   `QuitarJuegosMaqueta`: los modulos que las usaban quedan "sin juego" hasta
   que el docente les asigne uno. El sector de cada juego (evaluacion o
@@ -101,6 +101,8 @@ backend/src/
 │   ├── fichas/                      Memorama y Mahjong: mazos (iconos, ficha, fondo) y su partida
 │   ├── runner/                      Runner Narrativo: historias con links de video, partida y calificacion
 │   │   └── videos-externos.ts        reconoce y normaliza links de YouTube y Google Drive
+│   ├── ajedrez/                     Ajedrez de Preguntas: bancos de preguntas, partida (preguntas y nota en el servidor)
+│   │   └── banco-base.ts             banco de ejemplo que carga la migracion
 │   └── mesa-cumplimiento/           el juego jugable, con todo su contenido adentro
 │       ├── caso-cumplimiento.entidad.ts
 │       ├── casos.ts                  catalogo base que carga la migracion (semilla, no banco vivo)
@@ -148,17 +150,21 @@ frontend/src/
 │   ├── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
 │   ├── opciones.ts                  Pide una vez al backend los ids publicos de Google
 │   ├── videos.ts                    Links de YouTube/Drive (igual que el backend), iframe y API de YouTube
+│   ├── ajedrez/motor.ts             Reglas del ajedrez con capturas que pueden fallar (sin Vue: se compila para SCORM)
+│   ├── ajedrez/bot.ts               Bot intermedio: alfa-beta a 3 jugadas, material y posicion
+│   ├── ajedrez/scorm-entrada.ts     Entrada de `npm run ajedrez:scorm` (genera ajedrez-motor.js del paquete)
 │   ├── analitica.ts                 Google Analytics 4 opcional: vistas por ruta, user_id sin datos personales
 │   └── google.ts                    Boton "Continuar con Google" (Google Identity Services)
 ├── componentes/
 │   ├── base/                     Piezas de UI genericas y reutilizables (Boton, Modal, Tabla, ...)
 │   ├── diseno/                    Layout de la aplicacion (BarraSuperior, BarraLateral, EsqueletoApp)
-│   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoLinkVideo)
+│   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoLinkVideo, EditorAjedrez)
 │   ├── configuracion/              Parametros propios de cada juego al configurar un modulo
 │   ├── usuarios/                    ImportarUsuarios: modal de alta masiva por Excel (plantilla, vista previa, confirmar)
-│   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo)
+│   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo, Ajedrez)
 │       ├── ReproductorVideo.vue      video de YouTube (API, avanza solo) o de Drive (iframe + "Continuar")
-│       └── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
+│       ├── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
+│       └── ajedrez/                  Tablero, PiezaAjedrez (6 figuras SVG propias) y TarjetaPregunta
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
 
@@ -204,6 +210,10 @@ institucion 1───* historia (intro y preguntas en video del Runner Narrativ
 configuracion_juego.ajustes ──> mazo o historia (por id, dentro del jsonb)
 
 usuario 1───* acceso (cada inicio de sesion: metodo clave/google/scorm, IP, navegador)
+
+institucion 1───* banco_ajedrez (preguntas de 4 opciones, minutos, minimo X; null = catalogo base)
+usuario(estudiante) 1───* partida_ajedrez (preguntas que dio el servidor y como se respondieron)
+configuracion_juego.ajustes ──> banco_ajedrez (por id, dentro del jsonb)
 ```
 
 Puntos que vale la pena aclarar:
@@ -224,7 +234,8 @@ Puntos que vale la pena aclarar:
   permiso solo las **seleccionan y configuran** por modulo. Cada plantilla es
   de uno de dos **sectores** (`juego.tipo`):
   - **evaluacion**: mide lo aprendido en el curso y puede calificar (Mesa de
-    Cumplimiento y Runner Narrativo). Su puntaje lo calcula el servidor.
+    Cumplimiento, Runner Narrativo y Ajedrez de Preguntas). Su puntaje lo
+    calcula el servidor.
   - **ludico**: para jugar sin saber el tema; **nunca califica** (Memorama y
     Mahjong). Al configurar un juego ludico el modulo queda con
     `califica = false` aunque antes calificara.
@@ -375,6 +386,13 @@ GET      /juegos/runner-narrativo/partida/:moduloId           historia sin respu
 POST     /juegos/runner-narrativo/partida/:moduloId/verificar { preguntaId, opcionId } -> { correcta, video: { fuente, id } | null }
 POST     /juegos/runner-narrativo/partida/:moduloId/terminar  { respuestas } -> nota (solo estudiante)
 
+GET|POST /juegos/ajedrez/bancos                 bancos de preguntas (superadmin/admin/docente)
+PUT|DELETE /juegos/ajedrez/bancos/:id           PUT reemplaza el banco; no se borra si un modulo lo usa
+POST     /juegos/ajedrez/partida/:moduloId                         empieza una partida (solo estudiante)
+POST     /juegos/ajedrez/partida/:moduloId/:partidaId/pregunta     { modo: normal | rey | critica } -> pregunta sin la correcta
+POST     /juegos/ajedrez/partida/:moduloId/:partidaId/responder    { preguntaId, opcionId } -> { correcta, respondidas, correctas }
+POST     /juegos/ajedrez/partida/:moduloId/:partidaId/terminar     { desenlace } -> modo examen (faltan N) o la nota
+
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
 GET|PUT  /rutas/:rutaId/inscripciones
 
@@ -397,6 +415,7 @@ POST     /scorm/publico/:token/ingresar   login del estudiante desde el LMS
 GET      /scorm/publico/:token/partida   partida del juego del modulo (Mesa, Memorama, Mahjong o Runner)
 POST     /scorm/publico/:token/runner/verificar  { preguntaId, opcionId } -> { correcta, video }
 POST     /scorm/publico/:token/runner/terminar   { respuestas } -> nota + lo que se reporta al LMS
+POST     /scorm/publico/:token/ajedrez[/:partidaId/pregunta|responder|terminar]  lo mismo que la partida de Ludus
 POST     /scorm/publico/:token/resultado  guarda el intento de un juego ludico (requiere el token del login)
 ```
 
@@ -802,6 +821,68 @@ frontend las pide a `GET /autenticacion/opciones` al arrancar.
 
 Los pasos para crear el client id y la propiedad de Analytics estan en
 **GOOGLE.md**.
+
+## 6.5 Ajedrez de Preguntas (evaluacion)
+
+Ajedrez normal contra un bot (el estudiante juega con blancas), con una
+diferencia: **toda captura se decide con una pregunta** de cuatro opciones.
+Si el estudiante acierta, su pieza sobrevive; si falla, la que muere es la
+suya, haya atacado o defendido.
+
+| Choque | Pregunta | Si acierta | Si falla |
+|---|---|---|---|
+| Pieza del estudiante captura | cualquiera del banco | captura | pierde su pieza; la otra se queda |
+| Pieza del bot captura | cualquiera del banco | su pieza sobrevive, cae la del bot | pierde su pieza |
+| **Rey del estudiante** captura | dificil (critica, con aviso; se puede elegir otra jugada) | captura | **su rey cae: pierde la partida** |
+| **Rey del bot** captura | dificil | el rey del bot cae: **gana** | pierde su pieza |
+
+Si el docente no marco preguntas dificiles, en esos casos sale cualquiera.
+
+**Fin de la partida y nota.** Termina por mate (en cualquier sentido), por
+tiempo (si el banco tiene minutos), por tablas (ahogado o solo reyes, o rey y
+una pieza menor), por rendicion o por un rey caido. En todos los casos la
+**nota es la parte de preguntas respondidas bien** (4 de 6 = 67, nota 6.7):
+ganarle al bot solo termina la partida, y la dificultad del bot no decide
+nada. Si salieron menos de **X** preguntas (minimo del banco, 5 por defecto),
+la partida pasa a **modo examen**: preguntas sueltas hasta completar X, y la
+nota sale de todas.
+
+**El servidor manda en todo lo que define la nota.** El tablero y el bot
+corren en el navegador, pero cada pregunta la elige el servidor (primero las
+que no salieron en la partida; cuando se agotan, se repiten sin repetir la
+anterior), la corrige sin revelar la correcta (las preguntas se repiten) y
+lleva el tiempo (con 15 s de gracia). Tras fallar una critica no da mas
+preguntas de juego. La nota se calcula con lo registrado en
+`partidas_ajedrez`; una pregunta pedida y nunca respondida no cuenta. El
+puntaje enviado por el navegador (`POST /resultados`) no se acepta para este
+juego.
+
+**Reglas del motor** (`utilidades/ajedrez/motor.ts`): enroque, captura al
+paso, coronacion a dama (siempre a dama, para no frenar el juego), jaque,
+mate y ahogado. Esta verificado con "perft" contra posiciones de referencia
+del ajedrez (inicial a 4 jugadas = 197.281 posiciones, Kiwipete a 3 =
+97.862). Una captura fallida puede dejar en jaque al rey de quien ataco; como
+aqui nadie captura reyes, quien quedo en jaque lo resuelve en su turno.
+
+**Bot** (`utilidades/ajedrez/bot.ts`): minimax con poda alfa-beta a 3
+jugadas, material y tablas de posicion; elige al azar entre las jugadas casi
+igual de buenas. Juega como si sus capturas siempre salieran bien. Tarda
+entre 0,1 y 0,4 s por jugada.
+
+**Editor** (Editor > Ajedrez de Preguntas > Bancos de preguntas): cada banco
+tiene sus preguntas (texto, cuatro opciones, la correcta y la marca de
+dificil), los minutos de la partida (0 = sin limite) y el minimo X. Un banco
+se puede guardar a medio armar; para elegirlo en un modulo necesita al menos
+10 preguntas y al menos X. La migracion carga un banco de ejemplo en el
+catalogo base.
+
+**Piezas**: seis figuras SVG propias (`PiezaAjedrez.vue`), las mismas para
+los dos bandos; el color lo pone el CSS. No hay imagenes que descargar.
+
+**SCORM**: el paquete trae `ajedrez-motor.js` (generado desde `motor.ts` y
+`bot.ts` con `npm run ajedrez:scorm` en `frontend/`: no se edita a mano) y
+`juego-ajedrez.js`. Si se cambian las reglas o el bot, hay que regenerar ese
+archivo. La nota sale de Ludus y el LMS recibe `passed` o `failed`.
 
 ## 7. Simplificaciones deliberadas (KISS)
 

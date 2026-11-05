@@ -22,6 +22,12 @@ import { HistoriasService } from './runner/historias.service';
 import { HistoriasController } from './runner/historias.controller';
 import { RunnerService } from './runner/runner.service';
 import { RunnerController } from './runner/runner.controller';
+import { BancoAjedrez } from './ajedrez/banco-ajedrez.entidad';
+import { PartidaAjedrez } from './ajedrez/partida-ajedrez.entidad';
+import { BancosAjedrezService } from './ajedrez/bancos-ajedrez.service';
+import { BancosAjedrezController } from './ajedrez/bancos-ajedrez.controller';
+import { AjedrezService } from './ajedrez/ajedrez.service';
+import { AjedrezController } from './ajedrez/ajedrez.controller';
 
 @Module({
   imports: [
@@ -33,6 +39,8 @@ import { RunnerController } from './runner/runner.controller';
       Personaje,
       Mazo,
       Historia,
+      BancoAjedrez,
+      PartidaAjedrez,
     ]),
     ResultadosModule,
   ],
@@ -45,6 +53,8 @@ import { RunnerController } from './runner/runner.controller';
     FichasService,
     HistoriasService,
     RunnerService,
+    BancosAjedrezService,
+    AjedrezService,
   ],
   controllers: [
     JuegosController,
@@ -53,7 +63,9 @@ import { RunnerController } from './runner/runner.controller';
     FichasController,
     HistoriasController,
     RunnerController,
+    BancosAjedrezController,
+    AjedrezController,
   ],
-  exports: [JuegosService, MesaCumplimientoService, FichasService, RunnerService],
+  exports: [JuegosService, MesaCumplimientoService, FichasService, RunnerService, AjedrezService],
 })
 export class JuegosModule {}

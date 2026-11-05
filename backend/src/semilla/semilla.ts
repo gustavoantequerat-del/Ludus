@@ -15,7 +15,7 @@ import { Inscripcion } from '../inscripciones/inscripcion.entidad';
 import { Solicitud, TipoSolicitud, EstadoSolicitud } from '../solicitudes/solicitud.entidad';
 import { Resultado } from '../resultados/resultado.entidad';
 import { Rol } from '../comun/enums/rol.enum';
-import { JUEGO_MAHJONG, JUEGO_MEMORAMA, JUEGO_RUNNER } from '../juegos/catalogo-nuevos';
+import { JUEGO_AJEDREZ, JUEGO_MAHJONG, JUEGO_MEMORAMA, JUEGO_RUNNER } from '../juegos/catalogo-nuevos';
 
 cargarEnv();
 
@@ -42,6 +42,7 @@ const CATALOGO_JUEGOS = [
   },
   JUEGO_MAHJONG,
   JUEGO_RUNNER,
+  JUEGO_AJEDREZ,
 ];
 
 async function sembrar() {

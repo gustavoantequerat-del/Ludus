@@ -1,0 +1,93 @@
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  /* Filas fijas: si no, una fila sin piezas se encoge. */
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--linea-2);
+  box-shadow: var(--sombra);
+  user-select: none;
+}
+
+.bloqueado {
+  cursor: progress;
+}
+
+.casilla {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 6%;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.casilla:disabled {
+  cursor: inherit;
+}
+
+/* Colores fijos: el tablero se ve igual en el tema claro y en el oscuro. */
+.clara {
+  background: #e9dcfb;
+}
+
+.oscura {
+  background: #8a6bbf;
+}
+
+.ultima {
+  box-shadow: inset 0 0 0 100px rgba(255, 214, 102, 0.38);
+}
+
+.seleccionada {
+  box-shadow: inset 0 0 0 100px rgba(0, 229, 255, 0.4);
+}
+
+.jaque {
+  box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.55);
+}
+
+/* Destino libre: un punto. Destino con captura: un aro (ahi sale una pregunta). */
+.destino::after,
+.destinoCaptura::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.destino::after {
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(22, 13, 45, 0.35);
+}
+
+.destinoCaptura::after {
+  inset: 5%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 138, 0, 0.85);
+}
+
+.coordFila,
+.coordColumna {
+  position: absolute;
+  font: 700 10px var(--fuente-texto);
+  color: rgba(22, 13, 45, 0.6);
+  pointer-events: none;
+}
+
+.coordFila {
+  top: 3px;
+  left: 4px;
+}
+
+.coordColumna {
+  right: 4px;
+  bottom: 2px;
+}

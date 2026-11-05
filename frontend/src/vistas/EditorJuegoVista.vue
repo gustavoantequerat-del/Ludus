@@ -14,6 +14,7 @@ import EditorCasos from '@/componentes/editor/EditorCasos.vue';
 import EditorPersonajes from '@/componentes/editor/EditorPersonajes.vue';
 import EditorMazos from '@/componentes/editor/EditorMazos.vue';
 import EditorHistorias from '@/componentes/editor/EditorHistorias.vue';
+import EditorAjedrez from '@/componentes/editor/EditorAjedrez.vue';
 import { juegosServicio } from '@/servicios/juegos.servicio';
 import type { Juego } from '@/tipos';
 
@@ -29,6 +30,7 @@ const PESTANAS_POR_JUEGO: Record<string, { id: string; etiqueta: string; icono: 
   memorama: [{ id: 'mazos', etiqueta: 'Mazos', icono: 'layout-grid' }],
   mahjong: [{ id: 'mazos', etiqueta: 'Mazos', icono: 'layers' }],
   'runner-narrativo': [{ id: 'historias', etiqueta: 'Historias', icono: 'clapperboard' }],
+  ajedrez: [{ id: 'bancos', etiqueta: 'Bancos de preguntas', icono: 'list-checks' }],
 };
 
 const juego = ref<Juego | null>(null);
@@ -78,5 +80,6 @@ onMounted(async () => {
       :juego-clave="clave"
     />
     <EditorHistorias v-else-if="pestanaActiva === 'historias'" />
+    <EditorAjedrez v-else-if="pestanaActiva === 'bancos'" />
   </template>
 </template>

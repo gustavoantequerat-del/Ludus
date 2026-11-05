@@ -25,6 +25,7 @@ import { IngresarDto } from '../autenticacion/dto/ingresar.dto';
 import { origenDePeticion } from '../accesos/origen-acceso';
 import { TerminarPartidaDto, VerificarCasoDto } from '../juegos/dto/partida.dto';
 import { RespuestaRunnerDto, TerminarRunnerDto } from '../juegos/runner/dto/historia.dto';
+import { PedirPreguntaDto, ResponderPreguntaDto, TerminarAjedrezDto } from '../juegos/ajedrez/dto/partida-ajedrez.dto';
 
 const PUEDE_EXPORTAR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 
@@ -120,6 +121,46 @@ export class ScormController {
     @Body() datos: TerminarPartidaDto,
   ) {
     return this.scormService.terminarPartida(token, quien, datos.respuestas);
+  }
+
+  /* Ajedrez de Preguntas: las preguntas y la nota salen de Ludus. */
+  @Post('publico/:token/ajedrez')
+  @UseGuards(JwtGuardia)
+  iniciarAjedrez(@Param('token') token: string, @UsuarioActual() quien: UsuarioAutenticado) {
+    return this.scormService.iniciarAjedrez(token, quien);
+  }
+
+  @Post('publico/:token/ajedrez/:partidaId/pregunta')
+  @UseGuards(JwtGuardia)
+  preguntaAjedrez(
+    @Param('token') token: string,
+    @Param('partidaId') partidaId: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: PedirPreguntaDto,
+  ) {
+    return this.scormService.preguntaAjedrez(token, quien, partidaId, datos.modo);
+  }
+
+  @Post('publico/:token/ajedrez/:partidaId/responder')
+  @UseGuards(JwtGuardia)
+  responderAjedrez(
+    @Param('token') token: string,
+    @Param('partidaId') partidaId: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: ResponderPreguntaDto,
+  ) {
+    return this.scormService.responderAjedrez(token, quien, partidaId, datos);
+  }
+
+  @Post('publico/:token/ajedrez/:partidaId/terminar')
+  @UseGuards(JwtGuardia)
+  terminarAjedrez(
+    @Param('token') token: string,
+    @Param('partidaId') partidaId: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: TerminarAjedrezDto,
+  ) {
+    return this.scormService.terminarAjedrez(token, quien, partidaId, datos.desenlace);
   }
 
   /* Runner Narrativo: cada respuesta se verifica aqui y la nota sale de aqui. */

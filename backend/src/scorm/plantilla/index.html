@@ -219,6 +219,55 @@
           </div>
         </section>
 
+        <!-- Ajedrez de Preguntas (evaluacion): ajedrez-motor.js + juego-ajedrez.js -->
+        <section class="pantalla oculto" id="pantalla-ajedrez">
+          <div class="tarjeta tarjetaAncha">
+            <div class="filaSuperior">
+              <div class="textosJuego">
+                <h1 class="titulo" id="ajedrez-titulo"></h1>
+              </div>
+              <span class="chipEstudiante" id="ajedrez-estudiante"></span>
+            </div>
+
+            <div id="ajedrez-portada" class="ajedrezPortada">
+              <p class="subtitulo" id="ajedrez-instrucciones"></p>
+              <ul class="ajedrezReglas" id="ajedrez-reglas"></ul>
+              <button class="boton botonPrimario" type="button" id="ajedrez-comenzar">Comenzar</button>
+            </div>
+
+            <div id="ajedrez-mesa" class="ajedrezMesa oculto">
+              <div class="chips">
+                <span class="chip chipCian oculto" id="ajedrez-tiempo"></span>
+                <span class="chip" id="ajedrez-marcador"></span>
+                <span class="chip" id="ajedrez-minimo"></span>
+              </div>
+              <p class="ajedrezMensaje" id="ajedrez-mensaje"></p>
+              <div class="ajedrezZona">
+                <div class="ajedrezTablero" id="ajedrez-tablero"></div>
+                <div class="ajedrezVelo oculto" id="ajedrez-velo">
+                  <div class="ajedrezTarjeta" id="ajedrez-tarjeta">
+                    <span class="ajedrezContexto" id="ajedrez-contexto"></span>
+                    <p class="aviso avisoError oculto" id="ajedrez-aviso"></p>
+                    <strong class="ajedrezPregunta" id="ajedrez-pregunta"></strong>
+                    <div class="ajedrezOpciones" id="ajedrez-opciones"></div>
+                    <div class="ajedrezResultado oculto" id="ajedrez-resultado">
+                      <span id="ajedrez-resultado-texto"></span>
+                      <button class="boton botonPrimario" type="button" id="ajedrez-continuar">Continuar</button>
+                    </div>
+                    <div class="ajedrezAcciones oculto" id="ajedrez-critica">
+                      <button class="boton botonSecundario" type="button" id="ajedrez-cancelar">Elegir otra jugada</button>
+                      <button class="boton botonPrimario" type="button" id="ajedrez-aceptar">Responder</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="ajedrezPie">
+                <button class="boton botonSecundario" type="button" id="ajedrez-rendirse">Rendirse</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Repaso de la partida -->
         <section class="pantalla oculto" id="pantalla-repaso">
           <div class="tarjeta tarjetaAncha">
@@ -261,5 +310,7 @@
     <script src="juego-memorama.js"></script>
     <script src="juego-mahjong.js"></script>
     <script src="juego-runner.js"></script>
+    <script src="ajedrez-motor.js"></script>
+    <script src="juego-ajedrez.js"></script>
   </body>
 </html>

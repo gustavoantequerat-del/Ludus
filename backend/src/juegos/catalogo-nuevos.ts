@@ -7,6 +7,7 @@
 export const CLAVE_MEMORAMA = 'memorama';
 export const CLAVE_MAHJONG = 'mahjong';
 export const CLAVE_RUNNER = 'runner-narrativo';
+export const CLAVE_AJEDREZ = 'ajedrez';
 
 export const JUEGO_MEMORAMA = {
   clave: CLAVE_MEMORAMA,
@@ -43,6 +44,19 @@ export const JUEGO_RUNNER = {
   descripcion:
     'Mira la intro y responde cada pregunta. Si aciertas, la historia sigue con su video y llega la siguiente pregunta; si fallas, ves lo que pasa y la partida termina.',
   parametros: ['Historia', 'Preguntas', 'Videos'],
+  jugable: true,
+  tipo: 'evaluacion' as const,
+};
+
+export const JUEGO_AJEDREZ = {
+  clave: CLAVE_AJEDREZ,
+  nombre: 'Ajedrez de Preguntas',
+  categoria: 'Estrategia',
+  icono: 'crown',
+  eslogan: 'Cada captura se gana respondiendo bien.',
+  descripcion:
+    'Ajedrez contra un bot. Cuando dos piezas chocan sale una pregunta con cuatro opciones: si aciertas, tu pieza sobrevive; si fallas, la comida es la tuya, sin importar quien ataco. La nota sale de las preguntas respondidas bien.',
+  parametros: ['Preguntas', 'Tiempo', 'Minimo'],
   jugable: true,
   tipo: 'evaluacion' as const,
 };

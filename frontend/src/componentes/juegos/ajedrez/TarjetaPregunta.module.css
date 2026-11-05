@@ -1,0 +1,110 @@
+.tarjeta {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-3);
+  box-shadow: var(--sombra);
+}
+
+.contexto {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 12px var(--fuente-texto);
+  color: var(--secundario);
+}
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  font: 600 12.5px/1.45 var(--fuente-texto);
+}
+
+.avisoCritico {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.texto {
+  margin: 0;
+  font: 700 18px/1.4 var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--linea-5);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font: 600 13.5px var(--fuente-texto);
+  text-align: left;
+  cursor: pointer;
+}
+
+.opcion:hover:not(:disabled) {
+  border-color: var(--primario-borde);
+  background: var(--primario-suave-3);
+}
+
+.opcion:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.letra {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--primario-suave);
+  color: var(--tinta-primaria-suave);
+  font: 700 12px var(--fuente-titulos);
+}
+
+.resultado {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.bien {
+  background: var(--exito-suave);
+  color: var(--exito);
+}
+
+.mal {
+  background: var(--error-suave);
+  color: var(--error);
+}
+
+.resultadoTexto {
+  flex: 1;
+  min-width: 180px;
+  font: 700 14px/1.4 var(--fuente-texto);
+}
