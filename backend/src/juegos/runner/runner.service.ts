@@ -7,15 +7,7 @@ import { CLAVE_RUNNER } from '../catalogo-nuevos';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { RespuestaRunnerDto } from './dto/historia.dto';
 import { leerLinkVideo } from './videos-externos';
-
-function mezclar<T>(lista: T[]): T[] {
-  const copia = [...lista];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copia[i], copia[j]] = [copia[j], copia[i]];
-  }
-  return copia;
-}
+import { mezclar } from '../../comun/utilidades/azar';
 
 /**
  * Partida del Runner Narrativo. La historia sale sin decir cual opcion es la

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { CampoExpediente, CasoCumplimiento, Decision } from './caso-cumplimiento.entidad';
 import { CAMPOS_EXPEDIENTE, ETIQUETAS_DECISION, ETIQUETAS_EXPEDIENTE } from './casos';
+import { mezclar } from '../../comun/utilidades/azar';
 
 /** Lo que ve el jugador: el expediente sin la respuesta. */
 export interface CasoPublico {
@@ -62,7 +63,7 @@ export class MesaCumplimientoService {
       throw new BadRequestException('No hay casos cargados para este juego');
     }
 
-    const barajado = [...casos].sort(() => Math.random() - 0.5);
+    const barajado = mezclar(casos);
     const total = Math.min(Math.max(cantidad, 1), casos.length);
     return barajado.slice(0, total).map((caso) => this.aPublico(caso));
   }

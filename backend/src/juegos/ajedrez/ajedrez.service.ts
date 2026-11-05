@@ -16,22 +16,10 @@ import { CLAVE_AJEDREZ } from '../catalogo-nuevos';
 import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { ResponderPreguntaDto } from './dto/partida-ajedrez.dto';
+import { alAzar, mezclar } from '../../comun/utilidades/azar';
 
 /** Margen sobre el tiempo de la partida para la latencia y el reloj del navegador. */
 const GRACIA_TIEMPO_MS = 15_000;
-
-function mezclar<T>(lista: T[]): T[] {
-  const copia = [...lista];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copia[i], copia[j]] = [copia[j], copia[i]];
-  }
-  return copia;
-}
-
-function alAzar<T>(lista: T[]): T {
-  return lista[Math.floor(Math.random() * lista.length)];
-}
 
 /**
  * Partida del Ajedrez de Preguntas.
