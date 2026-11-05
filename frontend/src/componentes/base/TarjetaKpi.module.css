@@ -42,3 +42,30 @@
   font: 600 27px/1 var(--fuente-titulos);
   letter-spacing: -1px;
 }
+
+.tarjeta {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  animation: kpi-entra 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.2) backwards;
+  animation-delay: calc(var(--orden, 0) * 0.06s);
+}
+
+.tarjeta:hover {
+  transform: translateY(-3px);
+  border-color: var(--primario-borde-3);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+}
+
+.icono {
+  transition: transform 0.3s ease;
+}
+
+.tarjeta:hover .icono {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+@keyframes kpi-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+}

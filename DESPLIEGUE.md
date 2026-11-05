@@ -276,6 +276,15 @@ ejemplo `exceljs` y `google-auth-library`); si no, no hace dano.
 `migracion:ejecutar` aplica solo las migraciones que falten; las que ya
 corrieron no se repiten.
 
+> **Version con landing y registro de estudiantes**: trae la migracion
+> `CodigoRegistro`, que le da un codigo de registro a cada institucion que ya
+> exista (no toca nada mas). Despues de actualizar, cada admin ve el codigo de
+> su institucion en su dashboard y el superadmin en Instituciones (boton de la
+> llave). La pagina publica queda en `https://tu-dominio/bienvenida` (y en
+> `/` para quien no tiene sesion); no hace falta tocar Caddy porque ya manda
+> cualquier ruta al `index.html`. El bot del ajedrez ahora corre en un archivo
+> aparte (`assets/bot.worker-*.js`) que Caddy sirve como cualquier otro.
+
 ---
 
 ### 2.8 Si nadie puede entrar como superadmin

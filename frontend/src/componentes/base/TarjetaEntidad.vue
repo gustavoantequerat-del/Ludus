@@ -31,7 +31,7 @@ const emit = defineEmits<{ abrir: [] }>();
 
 <template>
   <div :class="estilos.tarjeta">
-    <div :class="estilos.cabecera" :style="{ background: `linear-gradient(135deg, ${colorInicio}, ${colorFin})` }">
+    <div :class="estilos.cabecera" :style="{ backgroundImage: `linear-gradient(135deg, ${colorInicio}, ${colorFin})` }">
       <Icono :nombre="icono" :tamano="30" />
       <span v-if="etiqueta" :class="estilos.etiqueta">{{ etiqueta }}</span>
     </div>

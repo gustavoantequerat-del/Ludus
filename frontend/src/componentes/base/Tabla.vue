@@ -39,7 +39,7 @@ void props;
             >{{ columna.etiqueta }}</span
           >
         </div>
-        <div v-for="(item, indice) in items" :key="indice" :class="estilos.fila">
+        <div v-for="(item, indice) in items" :key="indice" :class="estilos.fila" :style="{ '--orden': Math.min(indice, 12) }">
           <slot name="fila" :item="item" />
         </div>
         <div v-if="items.length === 0" :class="estilos.vacio">

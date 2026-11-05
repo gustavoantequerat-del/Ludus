@@ -82,3 +82,20 @@
   color: var(--apagado);
   font: 500 12.5px var(--fuente-texto);
 }
+
+.fila {
+  transition: background 0.18s ease;
+  animation: fila-entra 0.32s ease-out backwards;
+  animation-delay: calc(var(--orden, 0) * 0.025s);
+}
+
+.fila:hover {
+  background: var(--celda);
+}
+
+@keyframes fila-entra {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}

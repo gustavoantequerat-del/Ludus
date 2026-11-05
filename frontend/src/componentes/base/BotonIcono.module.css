@@ -24,3 +24,17 @@
   background: var(--primario);
   color: #fff;
 }
+
+.boton {
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.boton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--celda);
+  color: var(--tinta);
+}
+
+.boton:active:not(:disabled) {
+  transform: scale(0.92);
+}

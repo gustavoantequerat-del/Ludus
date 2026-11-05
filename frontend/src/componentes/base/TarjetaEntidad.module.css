@@ -180,3 +180,22 @@
   display: grid;
   place-items: center;
 }
+
+.tarjeta {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-4px);
+  border-color: var(--primario-borde-3);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+}
+
+.cabecera {
+  background-size: 140% 140%;
+  transition: background-position 0.6s ease;
+}
+
+.tarjeta:hover .cabecera {
+  background-position: 100% 100%;
+}

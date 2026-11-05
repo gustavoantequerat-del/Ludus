@@ -80,10 +80,13 @@ backend/src/
 │   ├── guardias/                 JwtGuardia (valida token), RolesGuardia (valida @Roles)
 │   ├── filtros/errores-bd.filtro.ts  Errores de PostgreSQL del cliente -> 400/409 (no 500)
 │   ├── validacion/errores-validacion.ts  Mensajes de validacion en espanol
+│   ├── utilidades/azar.ts        mezclar() y alAzar() sin sesgo (crypto.randomInt + Fisher-Yates) para las preguntas
 │   └── tipos/usuario-autenticado.ts
-├── autenticacion/                 Login con clave o con Google, perfil, opciones publicas (ids de Google)
+├── autenticacion/                 Login con clave o con Google, registro de estudiantes con codigo, perfil, opciones publicas
+│   └── limite-intentos.ts           Limite en memoria de codigos equivocados por IP (10 cada 15 min)
 ├── accesos/                        Registro de cada inicio de sesion (quien, cuando, por donde) y su listado
-├── instituciones/                  CRUD instituciones (solo superadmin)
+├── instituciones/                  CRUD instituciones (solo superadmin) y su codigo de registro (superadmin y su admin)
+│   └── codigo-registro.ts           Genera y normaliza el codigo (8 caracteres sin 0/O/1/I/L, se muestra ABCD-EFGH)
 ├── usuarios/                       CRUD usuarios, alcance segun quien consulta
 │   └── importacion/                 Alta masiva desde .xlsx: plantilla, lectura y validacion por fila
 ├── cursos/                          CRUD cursos + submodulos (modulos de un curso)
@@ -133,7 +136,7 @@ frontend/src/
 ├── vite-env.d.ts               Tipos de Vite + modulos *.vue y *.module.css
 ├── estilos/
 │   ├── variables.css           Tokens de diseno (colores, tipografia) en :root, tema claro/oscuro
-│   └── base.css                 Reset minimo de HTML/body/scroll
+│   └── base.css                 Reset minimo de HTML/body/scroll y la regla global de "menos movimiento"
 ├── tipos/index.ts               Interfaces TypeScript que reflejan las entidades del backend
 ├── servicios/                    Un archivo por recurso, llama a la API con axios
 ├── almacenes/autenticacion.ts    Store de Pinia: token, usuario, ingresar(), cerrarSesion()
@@ -147,11 +150,15 @@ frontend/src/
 │   ├── errores.ts                  Saca el mensaje que manda el backend cuando rechaza algo
 │   ├── catalogo.ts                 Los dos sectores del catalogo (evaluacion / ludico)
 │   ├── partidas.ts                 Registrar el intento de un juego ludico, formato de tiempo
-│   ├── azar.ts                      Mezclar una lista (sin dependencias: lo usa la logica del Mahjong)
+│   ├── azar.ts                      Mezclar una lista (Fisher-Yates; lo usan el Memorama y el Mahjong)
 │   ├── opciones.ts                  Pide una vez al backend los ids publicos de Google
 │   ├── videos.ts                    Links de YouTube/Drive (igual que el backend), iframe y API de YouTube
 │   ├── ajedrez/motor.ts             Reglas del ajedrez con capturas que pueden fallar (sin Vue: se compila para SCORM)
-│   ├── ajedrez/bot.ts               Bot intermedio: alfa-beta a 3 jugadas, material y posicion
+│   ├── ajedrez/bot.ts               Bot intermedio: alfa-beta pseudo-legal con profundizacion (hasta 3 jugadas, tope 0,9 s)
+│   ├── ajedrez/bot.worker.ts        El bot en un Web Worker: la pagina no se congela mientras piensa
+│   ├── ajedrez/pensar.ts            Pide la jugada al Worker (y si no hay Worker, la calcula en la pagina)
+│   ├── ajedrez/capturas.ts          Que pregunta sale en cada captura, sus avisos y su resultado (compartido con SCORM)
+│   ├── ajedrez/piezas-animadas.ts   Identidad de cada pieza entre jugadas, para animar deslizamientos y caidas
 │   ├── ajedrez/scorm-entrada.ts     Entrada de `npm run ajedrez:scorm` (genera ajedrez-motor.js del paquete)
 │   ├── analitica.ts                 Google Analytics 4 opcional: vistas por ruta, user_id sin datos personales
 │   └── google.ts                    Boton "Continuar con Google" (Google Identity Services)
@@ -161,6 +168,7 @@ frontend/src/
 │   ├── editor/                     Pestanas del editor de cada juego (Casos, Personajes, Mazos, Historias, CampoLinkVideo, EditorAjedrez)
 │   ├── configuracion/              Parametros propios de cada juego al configurar un modulo
 │   ├── usuarios/                    ImportarUsuarios: modal de alta masiva por Excel (plantilla, vista previa, confirmar)
+│   ├── instituciones/               CodigoRegistro: ver, copiar (codigo o enlace) y renovar el codigo de registro
 │   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo, Ajedrez)
 │       ├── ReproductorVideo.vue      video de YouTube (API, avanza solo) o de Drive (iframe + "Continuar")
 │       ├── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
@@ -273,6 +281,7 @@ Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
 
 | Vista | Ruta | Quien la ve |
 |---|---|---|
+| `LandingVista` | `/bienvenida` (y `/` sin sesion) | publica: que es Ludus, sus juegos y el registro de estudiantes |
 | `AutenticacionVista` | `/ingresar` | publica |
 | `PanelVista` (dashboard) | `/` | todos, contenido distinto por rol |
 | `InstitucionesVista` | `/instituciones` | superadmin |
@@ -383,12 +392,14 @@ Todo bajo el prefijo `/api`. Autenticacion con `Authorization: Bearer
 POST   /autenticacion/ingresar          { correo, clave } -> { tokenAcceso, usuario }
 POST   /autenticacion/google            { credencial: ID token de Google } -> { tokenAcceso, usuario }; 503 si no hay GOOGLE_CLIENT_ID
 GET    /autenticacion/opciones          publico: { googleClientId, googleAnalyticsId } (null si no estan configurados)
+POST   /autenticacion/registro          publico: { nombre, correo, clave, codigo } -> { tokenAcceso, usuario, institucion }; siempre estudiante; 429 tras 10 codigos malos por IP
 GET    /autenticacion/perfil
 PATCH  /autenticacion/perfil            { nombre?, correo? } -> { tokenAcceso, usuario }
 PATCH  /autenticacion/clave             { claveActual, claveNueva } -> 204
 
 GET|POST /instituciones                 superadmin
 GET|PATCH|DELETE /instituciones/:id     superadmin
+GET|POST /instituciones/:id/codigo-registro  superadmin o el admin de esa institucion; POST lo renueva (el anterior deja de servir)
 
 GET|POST /usuarios                      alcance segun rol; ?rol= filtra; un superadmin crea superadmins
 GET      /usuarios/plantilla            .xlsx de ejemplo para la importacion (superadmin/admin)
@@ -888,6 +899,8 @@ suya, haya atacado o defendido.
 | Pieza del bot captura | cualquiera del banco | su pieza sobrevive, cae la del bot | pierde su pieza |
 | **Rey del estudiante** captura | dificil (critica, con aviso; se puede elegir otra jugada) | captura | **su rey cae: pierde la partida** |
 | **Rey del bot** captura | dificil | el rey del bot cae: **gana** | pierde su pieza |
+| Estudiante captura el **rey expuesto** del bot | dificil, con aviso | captura el rey: **gana** | pierde su pieza |
+| El bot captura el **rey expuesto** del estudiante | dificil (critica, con aviso) | su rey sobrevive, cae la pieza del bot | **su rey cae: pierde la partida** |
 
 Si el docente no marco preguntas dificiles, en esos casos sale cualquiera.
 
@@ -914,13 +927,25 @@ juego.
 paso, coronacion a dama (siempre a dama, para no frenar el juego), jaque,
 mate y ahogado. Esta verificado con "perft" contra posiciones de referencia
 del ajedrez (inicial a 4 jugadas = 197.281 posiciones, Kiwipete a 3 =
-97.862). Una captura fallida puede dejar en jaque al rey de quien ataco; como
-aqui nadie captura reyes, quien quedo en jaque lo resuelve en su turno.
+97.862). Una captura fallida puede dejar expuesto al rey de quien ataco (en
+jaque cuando no es su turno). Ese rey **se puede capturar**, con pregunta:
+si el estudiante la acierta contra el rey del bot, gana; si el bot ataca el
+rey del estudiante, es una pregunta critica. En el juego normal un rey nunca
+queda expuesto, y si estas en jaque solo puedes jugar para salir de el.
 
-**Bot** (`utilidades/ajedrez/bot.ts`): minimax con poda alfa-beta a 3
-jugadas, material y tablas de posicion; elige al azar entre las jugadas casi
-igual de buenas. Juega como si sus capturas siempre salieran bien. Tarda
-entre 0,1 y 0,4 s por jugada.
+**Bot** (`utilidades/ajedrez/bot.ts`): negamax con poda alfa-beta sobre
+jugadas pseudo-legales (una jugada ilegal se descubre sola porque el rival
+podria comerse el rey), con profundizacion de a una jugada hasta 3 y un tope
+de 0,9 s; material y tablas de posicion, y elige al azar entre las jugadas
+casi igual de buenas. Juega como si sus capturas siempre salieran bien.
+Tarda unos 15-40 ms por jugada (antes 80-290 ms) y en Ludus piensa en un
+**Web Worker** (`bot.worker.ts`), asi que la pagina nunca se congela.
+
+**Animaciones**: las piezas se deslizan entre casillas, la que cae se
+desvanece girando, la casilla de la captura destella en verde o rojo segun la
+respuesta, el rey en jaque late y la tarjeta de la pregunta entra con un
+rebote, se sacude si fallas y brilla si aciertas. Todo respeta "reducir
+movimiento" del sistema.
 
 **Editor** (Editor > Ajedrez de Preguntas > Bancos de preguntas): cada banco
 tiene sus preguntas (texto, cuatro opciones, la correcta y la marca de
@@ -933,9 +958,53 @@ catalogo base.
 los dos bandos; el color lo pone el CSS. No hay imagenes que descargar.
 
 **SCORM**: el paquete trae `ajedrez-motor.js` (generado desde `motor.ts` y
-`bot.ts` con `npm run ajedrez:scorm` en `frontend/`: no se edita a mano) y
-`juego-ajedrez.js`. Si se cambian las reglas o el bot, hay que regenerar ese
+`bot.ts` y `capturas.ts` con `npm run ajedrez:scorm` en `frontend/`: no se
+edita a mano) y `juego-ajedrez.js`, que usa esas mismas reglas de captura. Si se cambian las reglas o el bot, hay que regenerar ese
 archivo. La nota sale de Ludus y el LMS recibe `passed` o `failed`.
+
+## 6.6 Azar de las preguntas
+
+Cada estudiante (y cada partida) recibe las preguntas en otro orden, y las
+opciones de cada pregunta cambian de lugar cada vez. El azar lo pone el
+servidor con `comun/utilidades/azar.ts` (`crypto.randomInt` + Fisher-Yates):
+todos los ordenes son igual de probables y no se pueden adivinar. Antes la
+Mesa de Cumplimiento barajaba con `sort(() => Math.random() - 0.5)`, que esta
+sesgado (algunos ordenes salian hasta 4 veces mas que otros); ya no se usa en
+ningun lado.
+
+- **Ajedrez**: primero las preguntas que no salieron en la partida, al azar;
+  despues se repiten sin repetir la anterior. Opciones mezcladas cada vez.
+- **Mesa de Cumplimiento**: los casos de la partida, mezclados.
+- **Runner Narrativo**: el orden de las preguntas es la historia (no se
+  mezcla); las dos opciones de cada pregunta si.
+
+## 6.7 Landing y registro de estudiantes
+
+Sin sesion, `/` lleva a la **landing** (`/bienvenida`): que es Ludus, los
+juegos y un formulario para que un **estudiante nuevo** cree su cuenta. Para
+registrarse necesita el **codigo de su institucion** (8 caracteres, por
+ejemplo `GBSE-5J3K`): la cuenta queda como estudiante de esa institucion y
+con la sesion iniciada. No hay registro libre: sin un codigo valido no se
+crea nada, y una institucion inactiva no acepta registros.
+
+- El **admin de la institucion** ve el codigo en su dashboard (panel
+  "Registro de estudiantes"); el **superadmin**, en Instituciones (boton de
+  la llave). Ambos pueden copiar el codigo o un enlace
+  `/bienvenida?codigo=...` que llega con el codigo escrito, y **renovarlo**
+  si se filtro: el anterior deja de servir y las cuentas ya creadas no
+  cambian.
+- El codigo no viaja en ninguna otra respuesta (columna con `select: false`).
+- 10 codigos equivocados desde una IP la bloquean 15 minutos (429).
+- Docentes y admins se siguen dando de alta como antes (un admin o el Excel).
+
+## 6.8 Animaciones de la plataforma
+
+Al cambiar de pagina, sus bloques entran escalonados; los KPI cuentan hasta
+su valor; tarjetas, filas de tabla, botones y menu reaccionan al pasar el
+mouse y al presionar; los avisos entran con un rebote. Todo es CSS en los
+`.module.css` de cada componente (mas `NumeroAnimado.vue`). Una sola regla en
+`base.css` apaga animaciones y transiciones si el sistema pide "reducir
+movimiento".
 
 ## 7. Simplificaciones deliberadas (KISS)
 

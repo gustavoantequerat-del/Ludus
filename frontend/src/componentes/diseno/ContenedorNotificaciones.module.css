@@ -19,3 +19,18 @@
   font: 600 12.5px var(--fuente-texto);
   color: var(--tinta);
 }
+
+.toast {
+  animation: toast-entra 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.35);
+}
+
+@keyframes toast-entra {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 24px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
