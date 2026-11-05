@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 
@@ -16,10 +16,9 @@ const ERRORES_DEL_CLIENTE: Record<string, { estado: number; error: string; mensa
   },
 };
 
+/** Lo usa RegistroErroresFiltro, que ya deja el error en el log. */
 @Catch(QueryFailedError)
 export class ErroresBdFiltro implements ExceptionFilter {
-  private readonly logger = new Logger('BaseDeDatos');
-
   catch(falla: QueryFailedError, host: ArgumentsHost): void {
     const respuesta = host.switchToHttp().getResponse<Response>();
     const codigo = (falla.driverError as { code?: string } | undefined)?.code ?? '';
@@ -32,7 +31,6 @@ export class ErroresBdFiltro implements ExceptionFilter {
       return;
     }
 
-    this.logger.error(falla.message, falla.stack);
     respuesta
       .status(HttpStatus.INTERNAL_SERVER_ERROR)
       .json({ statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Internal server error' });

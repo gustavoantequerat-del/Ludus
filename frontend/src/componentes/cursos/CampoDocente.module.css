@@ -1,0 +1,11 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aviso {
+  margin: 0;
+  font: 500 12px/1.5 var(--fuente-texto);
+  color: var(--alerta);
+}

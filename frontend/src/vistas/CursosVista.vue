@@ -9,12 +9,12 @@ import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoSelector from '@/componentes/base/CampoSelector.vue';
 import { cursosServicio, type DatosCurso } from '@/servicios/cursos.servicio';
 import { institucionesServicio } from '@/servicios/instituciones.servicio';
-import { usuariosServicio } from '@/servicios/usuarios.servicio';
+import CampoDocente from '@/componentes/cursos/CampoDocente.vue';
 import { mensajeDeError } from '@/utilidades/errores';
 import { solicitudesServicio } from '@/servicios/solicitudes.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
-import type { Curso, Institucion, Usuario } from '@/tipos';
+import type { Curso, Institucion } from '@/tipos';
 
 const enrutador = useRouter();
 const almacen = useAlmacenAutenticacion();
@@ -42,29 +42,10 @@ const edicion = ref<Curso | null>(null);
 const form = ref<DatosCurso>({ nombre: '', descripcion: '' });
 const cursoSalida = ref<Curso | null>(null);
 const instituciones = ref<Institucion[]>([]);
-const docentes = ref<Usuario[]>([]);
-const SIN_DOCENTE = 'ninguno';
 
-/** Docentes activos de la institucion elegida (el superadmin elige institucion primero). */
-const opcionesDocente = computed(() => {
-  const institucionId = esSuperadmin.value ? form.value.institucionId : almacen.usuario?.institucionId;
-  return [
-    { valor: SIN_DOCENTE, texto: 'Sin docente' },
-    ...docentes.value
-      .filter((d) => d.activo && d.institucionId === institucionId)
-      .map((d) => ({ valor: d.id, texto: d.nombre })),
-  ];
-});
-
-/** Instituciones y docentes solo hacen falta para el formulario: se piden al abrirlo. */
-async function cargarOpciones() {
-  if (!eligeDocente.value || docentes.value.length) return;
-  const [listaInstituciones, listaDocentes] = await Promise.all([
-    esSuperadmin.value ? institucionesServicio.listar() : Promise.resolve([]),
-    usuariosServicio.listar('docente'),
-  ]);
-  instituciones.value = listaInstituciones;
-  docentes.value = listaDocentes;
+/** Las instituciones solo hacen falta para el formulario del superadmin: se piden al abrirlo. */
+async function cargarInstituciones() {
+  if (esSuperadmin.value && !instituciones.value.length) instituciones.value = await institucionesServicio.listar();
 }
 
 async function cargar() {
@@ -76,15 +57,16 @@ async function cargar() {
 function abrirCurso(curso: Curso) {
   enrutador.push({ name: 'curso-detalle', params: { id: curso.id } });
 }
+
 async function abrirCrear() {
   edicion.value = null;
-  await cargarOpciones();
+  await cargarInstituciones();
   form.value = { nombre: '', descripcion: '', institucionId: instituciones.value[0]?.id, docenteId: null };
   modalAbierto.value = 'formulario';
 }
 async function abrirEditar(curso: Curso) {
   edicion.value = curso;
-  await cargarOpciones();
+  await cargarInstituciones();
   form.value = {
     nombre: curso.nombre,
     descripcion: curso.descripcion,
@@ -206,12 +188,10 @@ onMounted(cargar);
       :opciones="instituciones.map((i) => ({ valor: i.id, texto: i.nombre }))"
       @update:model-value="elegirInstitucion"
     />
-    <CampoSelector
+    <CampoDocente
       v-if="eligeDocente"
-      :model-value="form.docenteId ?? SIN_DOCENTE"
-      etiqueta="Docente"
-      :opciones="opcionesDocente"
-      @update:model-value="(v) => (form.docenteId = v === SIN_DOCENTE ? null : v)"
+      v-model="form.docenteId"
+      :institucion-id="esSuperadmin ? form.institucionId : almacen.usuario?.institucionId"
     />
   </Modal>
 

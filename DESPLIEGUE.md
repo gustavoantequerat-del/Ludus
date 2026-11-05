@@ -291,6 +291,17 @@ Muestra una clave temporal; entra con ella y cambiala en "Mi perfil".
 
 ---
 
+### 2.9 Ver los errores
+
+Cada error queda en el log del backend con quien lo provoco y por que:
+
+```bash
+pm2 logs ludus-api --lines 100            # en vivo
+pm2 logs ludus-api --lines 2000 --nostream | grep Errores   # solo los errores
+```
+
+---
+
 ## 3. cPanel (alternativa, con limites)
 
 Funciona solo si el hosting cumple **las dos** condiciones:

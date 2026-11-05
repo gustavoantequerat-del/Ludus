@@ -1,11 +1,12 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { HttpAdapterHost } from '@nestjs/core';
 import express from 'express';
 import { mkdirSync } from 'fs';
 import { join } from 'path';
 import { ConfiguracionApp } from './configuracion/configuracion';
 import { CARPETAS_ARCHIVOS } from './archivos/archivos.constantes';
-import { ErroresBdFiltro } from './comun/filtros/errores-bd.filtro';
+import { RegistroErroresFiltro } from './comun/filtros/registro-errores.filtro';
 import { TIPO_XLSX } from './usuarios/importacion/excel-usuarios';
 import { crearErrorValidacion } from './comun/validacion/errores-validacion';
 
@@ -50,5 +51,6 @@ export function configurarApp(app: INestApplication): void {
       exceptionFactory: crearErrorValidacion,
     }),
   );
-  app.useGlobalFilters(new ErroresBdFiltro());
+  // Registra cada error en el log y responde (los de PostgreSQL via ErroresBdFiltro).
+  app.useGlobalFilters(new RegistroErroresFiltro(app.get(HttpAdapterHost).httpAdapter));
 }

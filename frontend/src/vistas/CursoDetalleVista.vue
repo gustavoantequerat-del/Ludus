@@ -10,6 +10,7 @@ import Modal from '@/componentes/base/Modal.vue';
 import CampoTexto from '@/componentes/base/CampoTexto.vue';
 import CampoInterruptor from '@/componentes/base/CampoInterruptor.vue';
 import ListaSeleccionable from '@/componentes/base/ListaSeleccionable.vue';
+import CampoDocente from '@/componentes/cursos/CampoDocente.vue';
 import { cursosServicio, type DatosModulo, type DatosCurso } from '@/servicios/cursos.servicio';
 import { scormServicio } from '@/servicios/scorm.servicio';
 import { inscripcionesServicio } from '@/servicios/inscripciones.servicio';
@@ -17,6 +18,7 @@ import { usuariosServicio } from '@/servicios/usuarios.servicio';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { usarNotificaciones } from '@/composables/usarNotificaciones';
 import { iniciales } from '@/utilidades/texto';
+import { mensajeDeError } from '@/utilidades/errores';
 import type { Curso, Inscripcion, ModuloCurso, Usuario } from '@/tipos';
 
 const props = defineProps<{ id: string }>();
@@ -25,6 +27,8 @@ const almacen = useAlmacenAutenticacion();
 const { notificar } = usarNotificaciones();
 
 const esEstudiante = computed(() => almacen.usuario?.rol === 'estudiante');
+/** Superadmin y admin de institucion eligen el docente; el docente no se reasigna el curso. */
+const eligeDocente = computed(() => almacen.usuario?.rol === 'superadmin' || almacen.usuario?.rol === 'admin_institucion');
 
 const curso = ref<Curso | null>(null);
 const inscritos = ref<Inscripcion[]>([]);
@@ -50,7 +54,7 @@ async function cargar() {
 
 function abrirEditarCurso() {
   if (!curso.value) return;
-  formCurso.value = { nombre: curso.value.nombre, descripcion: curso.value.descripcion };
+  formCurso.value = { nombre: curso.value.nombre, descripcion: curso.value.descripcion, docenteId: curso.value.docenteId };
   modalAbierto.value = 'curso';
 }
 function abrirCrearModulo() {
@@ -97,8 +101,21 @@ function cerrarModal() {
 }
 
 async function confirmar() {
+  try {
+    await guardarModal();
+  } catch (fallo) {
+    // El modal sigue abierto para corregir.
+    notificar(mensajeDeError(fallo));
+    return;
+  }
+  cerrarModal();
+  await cargar();
+}
+
+async function guardarModal() {
   if (modalAbierto.value === 'curso') {
-    await cursosServicio.actualizar(props.id, formCurso.value);
+    const { docenteId, ...datos } = formCurso.value;
+    await cursosServicio.actualizar(props.id, eligeDocente.value ? { ...datos, docenteId: docenteId ?? null } : datos);
     notificar('Cambios guardados');
   } else if (modalAbierto.value === 'modulo') {
     if (moduloEdicion.value) {
@@ -115,8 +132,6 @@ async function confirmar() {
     await inscripcionesServicio.asignarACurso(props.id, seleccionAsignar.value);
     notificar(`${seleccionAsignar.value.length} estudiantes asignados`);
   }
-  cerrarModal();
-  await cargar();
 }
 
 async function mover(modulo: ModuloCurso, direccion: 'arriba' | 'abajo') {
@@ -151,6 +166,9 @@ onMounted(cargar);
     <div :class="estilos.columna">
       <div :class="estilos.etiquetas">
         <span :class="estilos.etiqueta"><Icono nombre="user-round-cog" :tamano="13" />Docente: {{ curso.docente?.nombre ?? 'Sin asignar' }}</span>
+        <Boton v-if="eligeDocente" variante="fantasma" icono="user-plus" @click="abrirEditarCurso">
+          {{ curso.docente ? 'Cambiar docente' : 'Asignar docente' }}
+        </Boton>
         <span :class="estilos.etiqueta"><Icono nombre="layers" :tamano="13" />{{ curso.totalModulos }} modulos</span>
         <span :class="estilos.etiqueta"><Icono nombre="users" :tamano="13" />{{ curso.totalEstudiantes }} estudiantes</span>
       </div>
@@ -230,6 +248,7 @@ onMounted(cargar);
   >
     <CampoTexto v-model="formCurso.nombre" etiqueta="Nombre del curso" />
     <CampoTexto v-model="formCurso.descripcion as string" etiqueta="Descripcion" tipo="area" />
+    <CampoDocente v-if="eligeDocente" v-model="formCurso.docenteId" :institucion-id="curso?.institucionId" />
   </Modal>
 
   <Modal

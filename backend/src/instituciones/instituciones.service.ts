@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Institucion } from './institucion.entidad';
@@ -70,9 +70,22 @@ export class InstitucionesService {
     return institucion;
   }
 
-  crear(datos: CrearInstitucionDto): Promise<Institucion> {
+  async crear(datos: CrearInstitucionDto): Promise<Institucion> {
+    await this.verificarDominioLibre(datos.dominio);
     const institucion = this.institucionesRepo.create(datos);
     return this.institucionesRepo.save(institucion);
+  }
+
+  /** El dominio es unico: avisa cual institucion ya lo tiene en vez de un error generico. */
+  private async verificarDominioLibre(dominio: string | undefined, salvoId?: string): Promise<void> {
+    if (!dominio) return;
+    const otra = await this.institucionesRepo
+      .createQueryBuilder('institucion')
+      .where('LOWER(institucion.dominio) = LOWER(:dominio)', { dominio })
+      .getOne();
+    if (otra && otra.id !== salvoId) {
+      throw new ConflictException(`El dominio ${dominio} ya es de la institucion ${otra.nombre}`);
+    }
   }
 
   async actualizar(
@@ -80,6 +93,7 @@ export class InstitucionesService {
     datos: ActualizarInstitucionDto,
   ): Promise<Institucion> {
     const institucion = await this.obtener(id);
+    await this.verificarDominioLibre(datos.dominio, id);
     Object.assign(institucion, datos);
     return this.institucionesRepo.save(institucion);
   }

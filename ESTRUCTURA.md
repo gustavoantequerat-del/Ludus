@@ -262,6 +262,11 @@ Hay exactamente 4 roles (`comun/enums/rol.enum.ts` en el backend):
 | `superadmin` | Todo el sistema. CRUD de instituciones y de cualquier usuario. |
 | `admin_institucion` | Su institucion. CRUD de docentes/estudiantes, cursos y rutas de su institucion; resuelve solicitudes. |
 | `docente` | Sus cursos y rutas de su institucion; configura juegos; solo consulta usuarios. |
+
+El docente de un curso lo elige el superadmin o el admin de la institucion:
+al crear el curso, o despues con **Asignar docente** en el detalle del curso
+(solo docentes activos de la institucion del curso). Un docente que crea un
+curso queda como su docente.
 | `estudiante` | Pide inscripcion/salida, cursa lo que tiene asignado, juega, ve sus resultados. |
 
 Pantallas (una vista de Vue por cada una, ver `frontend/src/vistas/`):
@@ -345,6 +350,28 @@ Usa el mismo `.env` que el backend (la misma base). Si el correo no existe lo
 crea como superadmin; si existe, lo convierte en superadmin, lo reactiva y le
 pone una clave nueva. La clave temporal se muestra una sola vez y se cambia
 en "Mi perfil". No toca ningun otro dato.
+
+### 5.3 Avisos de error y logs
+
+- **En pantalla**: si una accion falla y la vista no lo maneja, aparece el
+  mensaje del servidor ("Ya existe un usuario con ese correo", "El dominio
+  ... ya es de la institucion ...") durante 6 segundos
+  (`utilidades/avisos-de-error.ts`). El detalle queda en la consola del
+  navegador con el prefijo `[Ludus]`. Un 401 no se avisa: es la sesion
+  vencida y se vuelve al login. Los formularios que guardan (usuarios,
+  cursos, rutas, detalle del curso) dejan el modal abierto para corregir.
+- **En el servidor**: `RegistroErroresFiltro` deja una linea por cada
+  peticion que termina en error, con quien la hizo y el motivo:
+
+  ```
+  WARN [Errores] 409 POST /api/usuarios · elena@ludus.io (superadmin) · Ya existe un usuario con ese correo
+  WARN [Errores] 401 POST /api/autenticacion/ingresar · intento con marta@nexum.edu.mx · Correo o contrasena invalidos
+  ERROR [Errores] 500 GET /api/... · ... · <mensaje>  (con la traza completa)
+  ```
+
+  4xx (dato invalido, repetido, sin permiso, clave equivocada) va como WARN;
+  5xx (fallo del servidor) como ERROR con la traza. En los logins fallidos se
+  anota el correo, nunca la clave.
 
 ## 6. API (resumen)
 

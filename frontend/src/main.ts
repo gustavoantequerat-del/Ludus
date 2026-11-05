@@ -7,10 +7,12 @@ import { enrutador } from '@/enrutador/indice';
 import { useAlmacenAutenticacion } from '@/almacenes/autenticacion';
 import { iniciarAnalitica, identificarUsuario, registrarVista } from '@/utilidades/analitica';
 import { opcionesPublicas } from '@/utilidades/opciones';
+import { instalarAvisosDeError } from '@/utilidades/avisos-de-error';
 
 const app = createApp(App);
 app.use(createPinia());
 app.use(enrutador);
+instalarAvisosDeError(app);
 
 // Analytics no frena el arranque: lo que pase antes de saber el id queda en
 // cola y se manda (o se descarta) cuando responde el servidor.
