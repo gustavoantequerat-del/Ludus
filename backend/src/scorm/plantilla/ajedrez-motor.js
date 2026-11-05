@@ -33,6 +33,7 @@
     finalDe: () => finalDe,
     jugadasDesde: () => jugadasDesde,
     jugadasLegales: () => jugadasLegales,
+    jugadasPosibles: () => jugadasPosibles,
     nombreDe: () => nombreDe,
     notacion: () => notacion,
     perft: () => perft,
@@ -155,7 +156,7 @@
   function jugadasPosibles(pos) {
     let jugadas = [], t = pos.tablero, yo = pos.turno, agregar = (desde, hasta, tipo) => {
       let destino = t[hasta];
-      return destino && (destino.color === yo || destino.tipo === "r") ? !1 : (jugadas.push(nueva(desde, hasta, tipo, destino ? destino.tipo : null)), !destino);
+      return destino && destino.color === yo ? !1 : (jugadas.push(nueva(desde, hasta, tipo, destino ? destino.tipo : null)), !destino);
     };
     for (let desde = 0; desde < 64; desde++) {
       let pieza = t[desde];
@@ -173,7 +174,7 @@
         for (let dc of [-1, 1]) {
           if (!dentro(nf, c + dc)) continue;
           let hasta = nf * 8 + c + dc, destino = t[hasta];
-          if (destino && destino.color !== yo && destino.tipo !== "r")
+          if (destino && destino.color !== yo)
             jugadas.push(nueva(desde, hasta, "p", destino.tipo, { promocion: corona ? "d" : null }));
           else if (hasta === pos.alPaso) {
             let capturada = f * 8 + c + dc, victima = t[capturada];
@@ -209,8 +210,8 @@
     }, libres = (cols) => cols.every((col) => !t[filaRey * 8 + col]), seguras = (cols) => cols.every((col) => !casillaAtacada(pos, filaRey * 8 + col, rival)), corto = yo === "b" ? pos.enroques.blancasCorto : pos.enroques.negrasCorto, largo = yo === "b" ? pos.enroques.blancasLargo : pos.enroques.negrasLargo;
     return corto && torre(7) && libres([5, 6]) && seguras([5, 6]) && resultado.push(nueva(desde, filaRey * 8 + 6, "r", null, { enroque: "corto" })), largo && torre(0) && libres([1, 2, 3]) && seguras([2, 3]) && resultado.push(nueva(desde, filaRey * 8 + 2, "r", null, { enroque: "largo" })), resultado;
   }
-  function aplicar(pos, jugada, capturaExitosa = !0) {
-    let tablero = pos.tablero.slice(), enroquesNuevos = __spreadValues({}, pos.enroques), pieza = tablero[jugada.desde], fracaso = jugada.captura !== null && !capturaExitosa;
+  function aplicar(pos, jugada, capturaExitosa2 = !0) {
+    let tablero = pos.tablero.slice(), enroquesNuevos = __spreadValues({}, pos.enroques), pieza = tablero[jugada.desde], fracaso = jugada.captura !== null && !capturaExitosa2;
     if (tablero[jugada.desde] = null, !fracaso && (jugada.casillaCaptura !== null && (tablero[jugada.casillaCaptura] = null), tablero[jugada.hasta] = jugada.promocion ? { tipo: jugada.promocion, color: pieza.color } : pieza, jugada.enroque)) {
       let filaRey = fila(jugada.desde), [origen, destino] = jugada.enroque === "corto" ? [7, 5] : [0, 3];
       tablero[filaRey * 8 + destino] = tablero[filaRey * 8 + origen], tablero[filaRey * 8 + origen] = null;
@@ -254,7 +255,7 @@
   }
 
   // src/utilidades/ajedrez/bot.ts
-  var PROFUNDIDAD_INTERMEDIA = 3, MARGEN_AZAR = 20, MATE = 1e5, VALOR = { p: 100, c: 320, a: 330, t: 500, d: 900, r: 0 }, TABLAS = {
+  var PROFUNDIDAD_INTERMEDIA = 3, TIEMPO_MAXIMO_MS = 900, MARGEN_AZAR = 20, MATE = 1e5, VALOR = { p: 100, c: 320, a: 330, t: 500, d: 900, r: 0 }, TABLAS = {
     p: [
       0,
       0,
@@ -665,33 +666,109 @@
     }), total;
   }
   function ordenar(jugadas) {
-    let puntaje = (j) => (j.captura ? 10 * VALOR[j.captura] - VALOR[j.pieza] : 0) + (j.promocion ? 800 : 0);
+    let puntaje = (j) => (j.captura ? j.captura === "r" ? 1e5 : 10 * VALOR[j.captura] - VALOR[j.pieza] : 0) + (j.promocion ? 800 : 0);
     return jugadas.sort((x, y) => puntaje(y) - puntaje(x));
   }
-  function negamax(pos, profundidad, alfa, beta) {
-    let jugadas = jugadasLegales(pos);
-    if (jugadas.length === 0)
-      return enJaque(pos, pos.turno) ? -MATE - profundidad : 0;
+  function buscar(pos, profundidad, alfa, beta, ply) {
+    if (casillaDelRey(pos, pos.turno) === null) return -MATE + ply;
+    let jugadas = jugadasPosibles(pos);
+    if (jugadas.some((j) => j.captura === "r")) return MATE - ply;
     if (profundidad === 0) return evaluar(pos, pos.turno);
-    let mejor = -1 / 0;
+    let ilegal = -(MATE - ply - 1), mejor = -1 / 0, legales = 0;
     for (let jugada of ordenar(jugadas)) {
-      let valor = -negamax(aplicar(pos, jugada), profundidad - 1, -beta, -alfa);
-      if (valor > mejor && (mejor = valor), valor > alfa && (alfa = valor), alfa >= beta) break;
+      let valor = -buscar(aplicar(pos, jugada), profundidad - 1, -beta, -alfa, ply + 1);
+      if (valor !== ilegal && (legales++, valor > mejor && (mejor = valor), valor > alfa && (alfa = valor), alfa >= beta))
+        break;
     }
-    return mejor;
+    return legales === 0 ? enJaque(pos, pos.turno) ? -MATE + ply : 0 : mejor;
   }
-  function elegirJugada(pos, profundidad = PROFUNDIDAD_INTERMEDIA) {
-    let jugadas = ordenar(jugadasLegales(pos));
-    if (jugadas.length === 0) return null;
-    let valoradas = jugadas.map((jugada) => ({
+  function valorar(pos, jugadas, profundidad) {
+    return jugadas.map((jugada) => ({
       jugada,
       // Ventana completa en la raiz: se necesita el valor real de cada jugada
       // para elegir al azar entre las mejores.
-      valor: -negamax(aplicar(pos, jugada), profundidad - 1, -1 / 0, 1 / 0)
-    })), mejor = Math.max(...valoradas.map((v) => v.valor)), candidatas = valoradas.filter((v) => v.valor >= mejor - MARGEN_AZAR);
+      valor: -buscar(aplicar(pos, jugada), profundidad - 1, -1 / 0, 1 / 0, 1)
+    }));
+  }
+  function elegirJugada(pos, profundidad = PROFUNDIDAD_INTERMEDIA, tiempoMaximoMs = TIEMPO_MAXIMO_MS) {
+    let jugadas = ordenar(jugadasLegales(pos));
+    if (jugadas.length === 0) return null;
+    let alRey = jugadas.find((j) => j.captura === "r");
+    if (alRey) return alRey;
+    let inicio = Date.now(), valoradas = valorar(pos, jugadas, 1);
+    for (let p = 2; p <= profundidad && !((Date.now() - inicio) * 8 > tiempoMaximoMs); p++)
+      valoradas = valorar(pos, jugadas, p);
+    let mejor = Math.max(...valoradas.map((v) => v.valor)), candidatas = valoradas.filter((v) => v.valor >= mejor - MARGEN_AZAR);
     return candidatas[Math.floor(Math.random() * candidatas.length)].jugada;
   }
 
+  // src/utilidades/ajedrez/capturas.ts
+  var capturas_exports = {};
+  __export(capturas_exports, {
+    NOMBRE_PIEZA: () => NOMBRE_PIEZA,
+    capturaExitosa: () => capturaExitosa,
+    describirCaptura: () => describirCaptura,
+    finalPorRey: () => finalPorRey,
+    textoResultado: () => textoResultado
+  });
+  var NOMBRE_PIEZA = {
+    p: "peon",
+    c: "caballo",
+    a: "alfil",
+    t: "torre",
+    d: "dama",
+    r: "rey"
+  };
+  function describirCaptura(jugada, deEstudiante) {
+    var _a, _b;
+    let donde = nombreDe((_a = jugada.casillaCaptura) != null ? _a : jugada.hasta), atacante = NOMBRE_PIEZA[jugada.pieza], atacada = NOMBRE_PIEZA[(_b = jugada.captura) != null ? _b : "p"];
+    if (deEstudiante) {
+      let contexto2 = `Tu ${atacante} ataca su ${atacada} en ${donde}`;
+      return jugada.pieza === "r" ? {
+        jugada,
+        deEstudiante,
+        modo: "critica",
+        contexto: contexto2,
+        confirmar: !0,
+        aviso: "Pregunta critica: si fallas, tu rey cae y pierdes la partida."
+      } : jugada.captura === "r" ? {
+        jugada,
+        deEstudiante,
+        modo: "rey",
+        contexto: contexto2,
+        confirmar: !1,
+        aviso: "Su rey quedo expuesto: si aciertas, lo capturas y ganas la partida."
+      } : { jugada, deEstudiante, modo: "normal", contexto: contexto2, aviso: null, confirmar: !1 };
+    }
+    let contexto = `${jugada.pieza === "r" ? "El rey" : `Su ${atacante}`} ataca tu ${atacada} en ${donde}`;
+    return jugada.captura === "r" ? {
+      jugada,
+      deEstudiante,
+      modo: "critica",
+      contexto,
+      confirmar: !1,
+      aviso: "Tu rey esta en peligro: si fallas, cae y pierdes la partida."
+    } : jugada.pieza === "r" ? {
+      jugada,
+      deEstudiante,
+      modo: "rey",
+      contexto,
+      confirmar: !1,
+      aviso: "Pregunta dificil: si aciertas, el rey enemigo cae y ganas la partida."
+    } : { jugada, deEstudiante, modo: "normal", contexto, aviso: null, confirmar: !1 };
+  }
+  function capturaExitosa(captura, correcta) {
+    return captura.deEstudiante ? correcta : !correcta;
+  }
+  function textoResultado(captura, correcta) {
+    var _a;
+    let j = captura.jugada, atacante = NOMBRE_PIEZA[j.pieza], atacada = NOMBRE_PIEZA[(_a = j.captura) != null ? _a : "p"];
+    return captura.deEstudiante ? !correcta && j.pieza === "r" ? "Incorrecto: tu rey cae y pierdes la partida." : correcta && j.captura === "r" ? "Correcto! Capturas su rey: ganaste la partida." : correcta ? `Correcto! Tu ${atacante} captura su ${atacada}.` : `Incorrecto: pierdes tu ${atacante} y su ${atacada} se queda.` : correcta && j.pieza === "r" ? "Correcto! El rey enemigo cae: ganaste la partida." : !correcta && j.captura === "r" ? "Incorrecto: tu rey cae y pierdes la partida." : correcta ? `Correcto! Tu ${atacada} sobrevive y cae su ${atacante}.` : `Incorrecto: pierdes tu ${atacada}.`;
+  }
+  function finalPorRey(pos) {
+    return casillaDelRey(pos, "b") === null ? "derrota" : casillaDelRey(pos, "n") === null ? "victoria" : null;
+  }
+
   // src/utilidades/ajedrez/scorm-entrada.ts
-  window.LudusAjedrez = __spreadProps(__spreadValues({}, motor_exports), { elegirJugada });
+  window.LudusAjedrez = __spreadProps(__spreadValues(__spreadValues({}, motor_exports), capturas_exports), { elegirJugada });
 })();

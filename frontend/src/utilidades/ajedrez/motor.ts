@@ -10,9 +10,10 @@
  * - fracaso: el atacante desaparece de su casilla y la pieza atacada se queda.
  *
  * Las jugadas legales se calculan como siempre (suponiendo que la captura
- * sale bien). Un fracaso puede dejar al rey de quien ataco en jaque: el rival
- * no se lo puede comer (aqui nadie captura reyes); quien quedo en jaque lo
- * resuelve en su turno, como en cualquier jaque.
+ * sale bien). Un fracaso puede dejar al rey de quien ataco en jaque con el
+ * turno del rival: en ese caso el rival SI puede comerse ese rey (tambien con
+ * pregunta). En una posicion normal de ajedrez eso nunca pasa, asi que las
+ * reglas de siempre no cambian.
  *
  * Este archivo se compila tambien para el paquete SCORM (ajedrez-motor.js),
  * asi que no importa nada del proyecto.
@@ -214,15 +215,18 @@ function nueva(
   };
 }
 
-/** Jugadas posibles sin mirar si dejan al propio rey en jaque. Nunca capturan un rey. */
-function jugadasPosibles(pos: Posicion): Jugada[] {
+/**
+ * Jugadas posibles sin mirar si dejan al propio rey en jaque. Pueden capturar
+ * un rey: solo pasa cuando una captura fallida lo dejo expuesto.
+ */
+export function jugadasPosibles(pos: Posicion): Jugada[] {
   const jugadas: Jugada[] = [];
   const t = pos.tablero;
   const yo = pos.turno;
 
   const agregar = (desde: Casilla, hasta: Casilla, tipo: TipoPieza) => {
     const destino = t[hasta];
-    if (destino && (destino.color === yo || destino.tipo === 'r')) return false;
+    if (destino && destino.color === yo) return false;
     jugadas.push(nueva(desde, hasta, tipo, destino ? destino.tipo : null));
     return !destino;
   };
@@ -250,7 +254,7 @@ function jugadasPosibles(pos: Posicion): Jugada[] {
         if (!dentro(nf, c + dc)) continue;
         const hasta = nf * 8 + c + dc;
         const destino = t[hasta];
-        if (destino && destino.color !== yo && destino.tipo !== 'r') {
+        if (destino && destino.color !== yo) {
           jugadas.push(nueva(desde, hasta, 'p', destino.tipo, { promocion: corona ? 'd' : null }));
         } else if (hasta === pos.alPaso) {
           const capturada = f * 8 + c + dc;

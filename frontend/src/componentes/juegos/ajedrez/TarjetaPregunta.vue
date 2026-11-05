@@ -20,7 +20,13 @@ const LETRAS = ['A', 'B', 'C', 'D'];
 </script>
 
 <template>
-  <div :class="estilos.tarjeta">
+  <div
+    :class="[
+      estilos.tarjeta,
+      pregunta.modo === 'critica' && !resultado ? estilos.tarjetaCritica : '',
+      resultado ? (resultado.correcta ? estilos.tarjetaBien : estilos.tarjetaMal) : '',
+    ]"
+  >
     <span :class="estilos.contexto"><Icono nombre="swords" :tamano="15" />{{ contexto }}</span>
     <p v-if="aviso" :class="[estilos.aviso, pregunta.modo === 'critica' ? estilos.avisoCritico : '']">
       <Icono nombre="shield-alert" :tamano="16" />{{ aviso }}

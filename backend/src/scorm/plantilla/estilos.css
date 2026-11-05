@@ -1277,3 +1277,124 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+/* --- Ajedrez: animaciones --- */
+
+/* La pieza que llega sale de su casilla de origen (el svg ocupa el 88% de la casilla). */
+.ajedrezCasilla svg.ajedrezLlega {
+  position: relative;
+  z-index: 2;
+  animation: ajedrez-llega 0.32s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+@keyframes ajedrez-llega {
+  from {
+    transform: translate(calc(var(--dx) * 113.6%), calc(var(--dy) * 113.6%));
+  }
+}
+
+.ajedrezJaque {
+  animation: ajedrez-latido 1.1s ease-in-out infinite;
+}
+
+@keyframes ajedrez-latido {
+  50% { box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.8); }
+}
+
+.ajedrezDestelloBien::before,
+.ajedrezDestelloMal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ajedrez-destello 0.7s ease-out forwards;
+}
+
+.ajedrezDestelloBien::before {
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.85), transparent 70%);
+}
+
+.ajedrezDestelloMal::before {
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.85), transparent 70%);
+}
+
+@keyframes ajedrez-destello {
+  from { transform: scale(0.3); opacity: 1; }
+  to { transform: scale(1.8); opacity: 0; }
+}
+
+.ajedrezVelo:not(.oculto) {
+  animation: ajedrez-aparece 0.22s ease-out;
+}
+
+.ajedrezVelo:not(.oculto) .ajedrezTarjeta {
+  animation: ajedrez-tarjeta 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+}
+
+.ajedrezVelo .ajedrezTarjeta.ajedrezSacudir {
+  animation: ajedrez-sacudir 0.45s ease-in-out;
+}
+
+.ajedrezVelo .ajedrezTarjeta.ajedrezBrillo {
+  animation: ajedrez-brillo 0.7s ease-out;
+}
+
+.ajedrezOpcion {
+  transition: transform 0.15s;
+}
+
+.ajedrezOpcion:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.ajedrezPiensa::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+  animation: ajedrez-punto 0.9s ease-in-out infinite;
+}
+
+@keyframes ajedrez-aparece {
+  from { opacity: 0; }
+}
+
+@keyframes ajedrez-tarjeta {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+}
+
+@keyframes ajedrez-sacudir {
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes ajedrez-brillo {
+  from { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.9); }
+  to { box-shadow: 0 0 0 16px rgba(52, 211, 153, 0); }
+}
+
+@keyframes ajedrez-punto {
+  50% { opacity: 0.2; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ajedrezCasilla svg.ajedrezLlega,
+  .ajedrezJaque,
+  .ajedrezDestelloBien::before,
+  .ajedrezDestelloMal::before,
+  .ajedrezVelo:not(.oculto),
+  .ajedrezVelo:not(.oculto) .ajedrezTarjeta,
+  .ajedrezVelo .ajedrezTarjeta.ajedrezSacudir,
+  .ajedrezVelo .ajedrezTarjeta.ajedrezBrillo,
+  .ajedrezPiensa::after {
+    animation: none;
+  }
+}

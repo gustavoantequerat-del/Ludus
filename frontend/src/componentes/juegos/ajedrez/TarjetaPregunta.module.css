@@ -108,3 +108,83 @@
   min-width: 180px;
   font: 700 14px/1.4 var(--fuente-texto);
 }
+
+/* --- Animaciones --- */
+
+.tarjeta {
+  animation: tarjeta-entra 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+}
+
+.tarjetaCritica {
+  border-color: var(--error);
+  animation: tarjeta-entra 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.25), borde-critico 1.6s ease-in-out 0.34s infinite;
+}
+
+.tarjetaBien {
+  animation: brillo-bien 0.7s ease-out;
+}
+
+.tarjetaMal {
+  animation: sacudir 0.45s ease-in-out;
+}
+
+.opcion {
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  animation: tarjeta-entra 0.3s ease-out backwards;
+}
+
+.opcion:nth-child(2) { animation-delay: 0.05s; }
+.opcion:nth-child(3) { animation-delay: 0.1s; }
+.opcion:nth-child(4) { animation-delay: 0.15s; }
+
+.opcion:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.opcion:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.resultado {
+  animation: tarjeta-entra 0.3s ease-out;
+}
+
+.resultado > svg {
+  animation: icono-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.6);
+}
+
+@keyframes tarjeta-entra {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+}
+
+@keyframes borde-critico {
+  50% { box-shadow: 0 0 0 4px var(--error-suave), var(--sombra); }
+}
+
+@keyframes brillo-bien {
+  0% { box-shadow: 0 0 0 0 var(--exito), var(--sombra); }
+  100% { box-shadow: 0 0 0 16px transparent, var(--sombra); }
+}
+
+@keyframes sacudir {
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes icono-pop {
+  from { transform: scale(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta,
+  .tarjetaCritica,
+  .tarjetaBien,
+  .tarjetaMal,
+  .opcion,
+  .resultado,
+  .resultado > svg {
+    animation: none;
+  }
+}

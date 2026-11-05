@@ -1,4 +1,5 @@
 .tablero {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   /* Filas fijas: si no, una fila sin piezas se encoge. */
@@ -9,7 +10,7 @@
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--linea-2);
-  box-shadow: var(--sombra);
+  box-shadow: var(--sombra), 0 0 0 6px rgba(168, 85, 247, 0.08);
   user-select: none;
 }
 
@@ -21,15 +22,17 @@
   position: relative;
   min-width: 0;
   min-height: 0;
-  padding: 6%;
   border: 0;
   cursor: pointer;
-  display: grid;
-  place-items: center;
+  transition: box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .casilla:disabled {
   cursor: inherit;
+}
+
+.casilla:not(:disabled):hover {
+  filter: brightness(1.08);
 }
 
 /* Colores fijos: el tablero se ve igual en el tema claro y en el oscuro. */
@@ -50,7 +53,17 @@
 }
 
 .jaque {
-  box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.55);
+  animation: latido-jaque 0.9s ease-in-out infinite;
+}
+
+@keyframes latido-jaque {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.45);
+  }
+  50% {
+    box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.8);
+  }
 }
 
 /* Destino libre: un punto. Destino con captura: un aro (ahi sale una pregunta). */
@@ -59,11 +72,11 @@
   content: '';
   position: absolute;
   pointer-events: none;
+  animation: aparecer-destino 0.2s ease;
 }
 
 .destino::after {
-  width: 28%;
-  height: 28%;
+  inset: 36%;
   border-radius: 50%;
   background: rgba(22, 13, 45, 0.35);
 }
@@ -72,6 +85,21 @@
   inset: 5%;
   border-radius: 50%;
   border: 4px solid rgba(255, 138, 0, 0.85);
+  animation: aparecer-destino 0.2s ease, girar-aro 2.4s linear infinite;
+  border-style: dashed;
+}
+
+@keyframes aparecer-destino {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+@keyframes girar-aro {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .coordFila,
@@ -90,4 +118,102 @@
 .coordColumna {
   right: 4px;
   bottom: 2px;
+}
+
+/* --- Capa de piezas --- */
+
+.capaPiezas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pieza {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 12.5%;
+  padding: 0.75%;
+  transform: translate(calc(var(--x) * 100%), calc(var(--y) * 100%));
+  transition: transform 0.32s cubic-bezier(0.22, 0.8, 0.3, 1.1);
+  will-change: transform;
+}
+
+.piezaElegida > svg {
+  transform: translateY(-6%) scale(1.1);
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
+}
+
+.pieza > svg {
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.piezaCae > svg {
+  animation: caer 0.55s ease-in forwards;
+}
+
+@keyframes caer {
+  0% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+  35% {
+    transform: scale(1.2) rotate(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.2) rotate(35deg) translateY(30%);
+    opacity: 0;
+  }
+}
+
+.destello {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 12.5%;
+  transform: translate(calc(var(--x) * 100%), calc(var(--y) * 100%));
+  border-radius: 50%;
+  animation: destello 0.75s ease-out forwards;
+}
+
+.destelloBien {
+  box-shadow: 0 0 0 0 rgba(94, 242, 196, 0.9);
+  background: radial-gradient(circle, rgba(94, 242, 196, 0.55), transparent 70%);
+}
+
+.destelloMal {
+  box-shadow: 0 0 0 0 rgba(255, 90, 90, 0.9);
+  background: radial-gradient(circle, rgba(255, 90, 90, 0.55), transparent 70%);
+}
+
+@keyframes destello {
+  0% {
+    scale: 0.4;
+    opacity: 1;
+  }
+  100% {
+    scale: 2.4;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pieza,
+  .pieza > svg {
+    transition: none;
+  }
+
+  .jaque,
+  .destinoCaptura::after,
+  .piezaCae > svg,
+  .destello {
+    animation: none;
+  }
+
+  .jaque {
+    box-shadow: inset 0 0 0 100px rgba(255, 70, 70, 0.55);
+  }
 }

@@ -12,7 +12,6 @@
   var M;
   var estado = null;
 
-  var NOMBRE = { p: 'peon', c: 'caballo', a: 'alfil', t: 'torre', d: 'dama', r: 'rey' };
   var TEXTO_DESENLACE = {
     victoria: 'Le ganaste al bot.',
     derrota: 'El bot gano la partida.',
@@ -75,13 +74,24 @@
       boton.className = clase;
       var pieza = estado.pos.tablero[casilla];
       if (pieza) {
+        boton.setAttribute('data-pieza', pieza.color + pieza.tipo + '@' + M.nombreDe(casilla));
+        var animar = estado.animar && estado.animar.hasta === casilla ? estado.animar : null;
         boton.innerHTML =
-          '<svg viewBox="0 0 45 45" class="' + (pieza.color === 'b' ? 'piezaBlanca' : 'piezaNegra') + '">' + FIGURAS[pieza.tipo] + '</svg>';
+          '<svg viewBox="0 0 45 45" class="' + (pieza.color === 'b' ? 'piezaBlanca' : 'piezaNegra') +
+          (animar ? ' ajedrezLlega' : '') + '"' +
+          (animar ? ' style="--dx:' + animar.dx + ';--dy:' + animar.dy + '"' : '') +
+          '>' + FIGURAS[pieza.tipo] + '</svg>';
+      }
+      if (estado.destello && estado.destello.casilla === casilla) {
+        boton.className += estado.destello.correcta ? ' ajedrezDestelloBien' : ' ajedrezDestelloMal';
       }
       boton.disabled = bloqueado();
       boton.addEventListener('click', elegirCasilla.bind(null, casilla));
       tablero.appendChild(boton);
     }
+    // Las animaciones se ven una sola vez: el siguiente repintado no las repite.
+    estado.animar = null;
+    estado.destello = null;
     el('ajedrez-marcador').textContent = estado.correctas + ' de ' + estado.respondidas + ' bien';
   }
 
@@ -103,9 +113,18 @@
     el('ajedrez-mensaje').textContent = texto;
   }
 
-  function mover(jugada, exito) {
+  /* La pieza que llega se dibuja desde su casilla de origen y se desliza (CSS --dx/--dy). */
+  function mover(jugada, exito, destello) {
     estado.pos = M.aplicar(estado.pos, jugada, exito);
     estado.ultima = { desde: jugada.desde, hasta: jugada.hasta };
+    if (!jugada.captura || exito) {
+      estado.animar = {
+        hasta: jugada.hasta,
+        dx: M.columna(jugada.desde) - M.columna(jugada.hasta),
+        dy: M.fila(jugada.desde) - M.fila(jugada.hasta),
+      };
+    }
+    if (destello) estado.destello = { casilla: jugada.casillaCaptura !== null ? jugada.casillaCaptura : jugada.hasta, correcta: destello === 'bien' };
     pintar();
   }
 
@@ -119,24 +138,9 @@
       turnoBot();
       return;
     }
-    var atacado = 'su ' + NOMBRE[jugada.captura] + ' en ' + M.nombreDe(jugada.casillaCaptura);
-    if (jugada.pieza === 'r') {
-      confirmarCritica({
-        jugada: jugada,
-        deEstudiante: true,
-        modo: 'critica',
-        contexto: 'Tu rey ataca ' + atacado,
-        aviso: 'Pregunta critica: si fallas, tu rey cae y pierdes la partida.',
-      });
-      return;
-    }
-    abrirPregunta({
-      jugada: jugada,
-      deEstudiante: true,
-      modo: 'normal',
-      contexto: 'Tu ' + NOMBRE[jugada.pieza] + ' ataca ' + atacado,
-      aviso: null,
-    });
+    var captura = M.describirCaptura(jugada, true);
+    if (captura.confirmar) confirmarCritica(captura);
+    else abrirPregunta(captura);
   }
 
   function confirmarCritica(datos) {
@@ -156,10 +160,12 @@
     if (estado.etapa !== 'jugando' || estado.terminando || revisarFinal()) return;
     estado.piensa = true;
     mensaje('El bot esta pensando...');
+    el('ajedrez-mensaje').classList.add('ajedrezPiensa');
     pintar();
     setTimeout(function () {
       var jugada = M.elegirJugada(estado.pos);
       estado.piensa = false;
+      el('ajedrez-mensaje').classList.remove('ajedrezPiensa');
       if (estado.etapa !== 'jugando' || estado.terminando) return;
       if (!jugada) {
         revisarFinal();
@@ -171,18 +177,15 @@
         revisarFinal();
         return;
       }
-      var esRey = jugada.pieza === 'r';
-      mensaje('El bot ataca: responde para defender tu pieza.');
-      abrirPregunta({
-        jugada: jugada,
-        deEstudiante: false,
-        modo: esRey ? 'rey' : 'normal',
-        contexto:
-          (esRey ? 'El rey' : 'Su ' + NOMBRE[jugada.pieza]) +
-          ' ataca tu ' + NOMBRE[jugada.captura] + ' en ' + M.nombreDe(jugada.casillaCaptura),
-        aviso: esRey ? 'Pregunta dificil: si aciertas, el rey enemigo cae y ganas la partida.' : null,
-      });
-    }, 350);
+      var captura = M.describirCaptura(jugada, false);
+      estado.ultima = { desde: jugada.desde, hasta: jugada.hasta };
+      mensaje(
+        captura.modo === 'critica'
+          ? 'El bot ataca tu rey: responde bien para salvarlo.'
+          : 'El bot ataca: responde para defender tu pieza.',
+      );
+      abrirPregunta(captura);
+    }, 450);
   }
 
   /* ------------------------------------------------------------------ *
@@ -191,6 +194,7 @@
 
   function abrirPregunta(datos) {
     estado.captura = datos;
+    el('ajedrez-tarjeta').classList.remove('ajedrezSacudir', 'ajedrezBrillo');
     mostrar('ajedrez-critica', false);
     pintar();
     C.pedir(ruta('/pregunta'), { metodo: 'POST', cuerpo: { modo: datos.modo } })
@@ -239,6 +243,10 @@
         el('ajedrez-opciones').innerHTML = '';
         el('ajedrez-resultado-texto').textContent = textoResultado(estado.captura, veredicto.correcta);
         el('ajedrez-resultado').className = 'ajedrezResultado ' + (veredicto.correcta ? 'ajedrezBien' : 'ajedrezMal');
+        var tarjeta = el('ajedrez-tarjeta');
+        tarjeta.classList.remove('ajedrezSacudir', 'ajedrezBrillo');
+        void tarjeta.offsetWidth;
+        tarjeta.classList.add(veredicto.correcta ? 'ajedrezBrillo' : 'ajedrezSacudir');
       })
       .catch(function (fallo) {
         C.mostrarError(fallo.message);
@@ -246,18 +254,8 @@
   }
 
   function textoResultado(datos, correcta) {
-    var j = datos.jugada;
-    if (!j) return correcta ? 'Correcto!' : 'Incorrecto.';
-    if (datos.deEstudiante) {
-      if (datos.modo === 'critica' && !correcta) return 'Incorrecto: tu rey cae y pierdes la partida.';
-      return correcta
-        ? 'Correcto! Tu ' + NOMBRE[j.pieza] + ' captura su ' + NOMBRE[j.captura] + '.'
-        : 'Incorrecto: pierdes tu ' + NOMBRE[j.pieza] + ' y su ' + NOMBRE[j.captura] + ' se queda.';
-    }
-    if (datos.modo === 'rey' && correcta) return 'Correcto! El rey enemigo cae: ganaste la partida.';
-    return correcta
-      ? 'Correcto! Tu ' + NOMBRE[j.captura] + ' sobrevive y cae su ' + NOMBRE[j.pieza] + '.'
-      : 'Incorrecto: pierdes tu ' + NOMBRE[j.captura] + '.';
+    if (!datos.jugada) return correcta ? 'Correcto!' : 'Incorrecto.';
+    return M.textoResultado(datos, correcta);
   }
 
   function continuar() {
@@ -273,9 +271,16 @@
       return;
     }
     // Si responde bien, gana su pieza: si ataco, la captura sale; si defendia, el ataque falla.
-    mover(datos.jugada, datos.deEstudiante ? correcta : !correcta);
-    if (datos.modo === 'critica' && !correcta) return terminar('derrota');
-    if (datos.modo === 'rey' && correcta) return terminar('victoria');
+    mover(datos.jugada, M.capturaExitosa(datos, correcta), correcta ? 'bien' : 'mal');
+    // Si cayo un rey, la partida termina (despues de ver la animacion).
+    var porRey = M.finalPorRey(estado.pos);
+    if (porRey) {
+      mensaje(porRey === 'victoria' ? 'Cayo el rey enemigo!' : 'Cayo tu rey.');
+      setTimeout(function () {
+        terminar(porRey);
+      }, 650);
+      return;
+    }
     if (estado.tiempoAgotado) return terminar('tiempo');
     if (datos.deEstudiante) {
       turnoBot();
@@ -391,6 +396,8 @@
           etapa: 'inicio',
           seleccion: null,
           ultima: null,
+          animar: null,
+          destello: null,
           piensa: false,
           captura: null,
           pregunta: null,
@@ -409,7 +416,9 @@
         var reglas = [
           'Juegas con blancas contra el bot. Para terminar, dale jaque mate.',
           'Cada vez que dos piezas chocan sale una pregunta: si aciertas, tu pieza sobrevive; si fallas, la comida es la tuya.',
-          'Si tu rey captura, la pregunta es critica: fallarla te hace perder la partida.',
+          'Valen el enroque, la captura al paso y la coronacion. Si estas en jaque, solo puedes jugar para salir de el.',
+          'Si tu rey captura, o el bot ataca a tu rey, la pregunta es critica: fallarla te hace perder la partida.',
+          'Si una captura fallida deja al rey enemigo expuesto, puedes atacarlo: si aciertas la pregunta, lo capturas y ganas.',
           'Tu nota es la parte de preguntas que respondas bien' +
             (partida.minutos ? '. Tienes ' + partida.minutos + ' minuto(s)' : '') +
             '. Si te salen menos de ' + partida.minimoPreguntas + ', las que falten se responden en modo examen.',

@@ -28,15 +28,22 @@ import {
   enJaque,
   finalDe,
   jugadasDesde,
-  nombreDe,
   notacion,
   posicionInicial,
   type Casilla,
   type Jugada,
   type Posicion,
-  type TipoPieza,
 } from '@/utilidades/ajedrez/motor';
-import { elegirJugada } from '@/utilidades/ajedrez/bot';
+import { pensarJugada } from '@/utilidades/ajedrez/pensar';
+import {
+  capturaExitosa,
+  describirCaptura,
+  finalPorRey,
+  textoResultado,
+  type CapturaEnJuego,
+  type ModoCaptura,
+} from '@/utilidades/ajedrez/capturas';
+import { moverPiezas, piezasDe, type PiezaEnTablero } from '@/utilidades/ajedrez/piezas-animadas';
 import axios from 'axios';
 import type {
   CierreAjedrez,
@@ -51,14 +58,18 @@ const emit = defineEmits<{ terminada: [resultado: FinDePartida] }>();
 
 type Etapa = 'inicio' | 'jugando' | 'examen' | 'final';
 
-const NOMBRE: Record<TipoPieza, string> = {
-  p: 'peon', c: 'caballo', a: 'alfil', t: 'torre', d: 'dama', r: 'rey',
-};
+/** Lo que dura la animacion de una pieza que cae (Tablero.module.css). */
+const DURACION_CAIDA_MS = 650;
+/** Pausa minima del bot: si piensa mas rapido, igual se ve que "piensa". */
+const PAUSA_BOT_MS = 450;
 
 const partida = ref<PartidaAjedrez | null>(null);
 const error = ref('');
 const etapa = ref<Etapa>('inicio');
 const pos = ref<Posicion>(posicionInicial());
+const piezas = ref<PiezaEnTablero[]>(piezasDe(pos.value));
+const caidas = ref<PiezaEnTablero[]>([]);
+const destello = ref<{ casilla: Casilla; correcta: boolean; vuelta: number } | null>(null);
 const seleccion = ref<Casilla | null>(null);
 const ultima = ref<{ desde: Casilla; hasta: Casilla } | null>(null);
 const historial = ref<{ texto: string; marca: '' | 'bien' | 'mal' }[]>([]);
@@ -72,21 +83,22 @@ const confirmarRendicion = ref(false);
 const cierre = ref<CierreAjedrez | null>(null);
 const terminando = ref(false);
 
-/** La captura que espera pregunta (en el tablero o en modo examen). */
-interface Captura {
-  jugada: Jugada | null;
-  deEstudiante: boolean;
-  modo: 'normal' | 'rey' | 'critica';
+/** La pregunta abierta: de una captura en el tablero o del modo examen (sin captura). */
+interface PreguntaAbierta {
+  captura: CapturaEnJuego | null;
+  modo: ModoCaptura;
   contexto: string;
   aviso: string | null;
 }
-const captura = ref<Captura | null>(null);
-/** Antes de una pregunta critica: el estudiante confirma (o elige otra jugada). */
-const confirmarCritica = ref<Captura | null>(null);
+const abierta = ref<PreguntaAbierta | null>(null);
+/** Antes de una pregunta critica propia: el estudiante confirma (o elige otra jugada). */
+const confirmarCritica = ref<CapturaEnJuego | null>(null);
 const pregunta = ref<PreguntaAjedrezEnJuego | null>(null);
 const resultado = ref<{ correcta: boolean; mensaje: string } | null>(null);
 const enviando = ref(false);
 let reloj: ReturnType<typeof setInterval> | null = null;
+let temporizadorCaidas: ReturnType<typeof setTimeout> | null = null;
+let vueltaDestello = 0;
 
 const destinos = computed(() =>
   seleccion.value === null ? [] : jugadasDesde(pos.value, seleccion.value),
@@ -96,7 +108,7 @@ const jaque = computed(() => {
   return enJaque(pos.value, turno) ? casillaDelRey(pos.value, turno) : null;
 });
 const bloqueado = computed(
-  () => etapa.value !== 'jugando' || pos.value.turno !== 'b' || piensa.value || !!captura.value || !!confirmarCritica.value,
+  () => etapa.value !== 'jugando' || pos.value.turno !== 'b' || piensa.value || !!abierta.value || !!confirmarCritica.value,
 );
 const restante = computed(() =>
   partida.value?.minutos ? Math.max(0, partida.value.minutos * 60 - segundos.value) : null,
@@ -116,6 +128,7 @@ const textoDesenlace: Record<DesenlaceAjedrez, string> = {
 async function comenzar() {
   if (!partida.value) return;
   pos.value = posicionInicial();
+  piezas.value = piezasDe(pos.value);
   etapa.value = 'jugando';
   mensaje.value = 'Tu turno: juegas con blancas.';
   reloj = setInterval(() => {
@@ -123,7 +136,7 @@ async function comenzar() {
     if (restante.value === 0 && !tiempoAgotado.value) {
       tiempoAgotado.value = true;
       // Si hay una pregunta abierta, se deja terminar; despues se cierra.
-      if (!captura.value) void terminarPartida('tiempo');
+      if (!abierta.value) void terminarPartida('tiempo');
     }
   }, 1000);
 }
@@ -145,30 +158,22 @@ async function jugarEstudiante(jugada: Jugada) {
     await turnoBot();
     return;
   }
-  const atacado = `su ${NOMBRE[jugada.captura]} en ${nombreDe(jugada.casillaCaptura ?? jugada.hasta)}`;
-  if (jugada.pieza === 'r') {
-    confirmarCritica.value = {
-      jugada,
-      deEstudiante: true,
-      modo: 'critica',
-      contexto: `Tu rey ataca ${atacado}`,
-      aviso: 'Pregunta critica: si fallas, pierdes la partida.',
-    };
+  const captura = describirCaptura(jugada, true);
+  if (captura.confirmar) {
+    confirmarCritica.value = captura;
     return;
   }
-  await abrirPregunta({
-    jugada,
-    deEstudiante: true,
-    modo: 'normal',
-    contexto: `Tu ${NOMBRE[jugada.pieza]} ataca ${atacado}`,
-    aviso: null,
-  });
+  await abrirPregunta(desdeCaptura(captura));
+}
+
+function desdeCaptura(captura: CapturaEnJuego): PreguntaAbierta {
+  return { captura, modo: captura.modo, contexto: captura.contexto, aviso: captura.aviso };
 }
 
 async function aceptarCritica() {
-  const datos = confirmarCritica.value;
+  const captura = confirmarCritica.value;
   confirmarCritica.value = null;
-  if (datos) await abrirPregunta(datos);
+  if (captura) await abrirPregunta(desdeCaptura(captura));
 }
 
 const enJuego = () => etapa.value === 'jugando' && !terminando.value;
@@ -176,10 +181,12 @@ const enJuego = () => etapa.value === 'jugando' && !terminando.value;
 async function turnoBot() {
   if (!enJuego() || revisarFinal()) return;
   piensa.value = true;
-  mensaje.value = 'El bot esta pensando...';
-  // Deja pintar el tablero antes de que el bot ocupe el navegador un momento.
-  await new Promise((resolver) => setTimeout(resolver, 350));
-  const jugada = elegirJugada(pos.value);
+  mensaje.value = 'El bot esta pensando';
+  // El bot piensa en un Web Worker: la pagina no se congela mientras tanto.
+  const [jugada] = await Promise.all([
+    pensarJugada(pos.value),
+    new Promise((resolver) => setTimeout(resolver, PAUSA_BOT_MS)),
+  ]);
   piensa.value = false;
   if (!enJuego()) return;
   if (!jugada) {
@@ -192,27 +199,25 @@ async function turnoBot() {
     revisarFinal();
     return;
   }
-  const tuya = `tu ${NOMBRE[jugada.captura]} en ${nombreDe(jugada.casillaCaptura ?? jugada.hasta)}`;
-  const esRey = jugada.pieza === 'r';
-  mensaje.value = 'El bot ataca: responde para defender tu pieza.';
-  await abrirPregunta({
-    jugada,
-    deEstudiante: false,
-    modo: esRey ? 'rey' : 'normal',
-    contexto: `${esRey ? 'El rey' : `Su ${NOMBRE[jugada.pieza]}`} ataca ${tuya}`,
-    aviso: esRey ? 'Pregunta dificil: si aciertas, el rey enemigo cae y ganas la partida.' : null,
-  });
+  const captura = describirCaptura(jugada, false);
+  // Se marca la jugada del bot antes de la pregunta: se ve que pieza ataca.
+  ultima.value = { desde: jugada.desde, hasta: jugada.hasta };
+  mensaje.value =
+    captura.modo === 'critica'
+      ? 'El bot ataca tu rey: responde bien para salvarlo.'
+      : 'El bot ataca: responde para defender tu pieza.';
+  await abrirPregunta(desdeCaptura(captura));
 }
 
 /** Pide la pregunta al servidor y la muestra sobre el tablero. */
-async function abrirPregunta(datos: Captura) {
+async function abrirPregunta(datos: PreguntaAbierta) {
   if (!partida.value) return;
-  captura.value = datos;
+  abierta.value = datos;
   resultado.value = null;
   try {
     pregunta.value = await ajedrezServicio.pregunta(props.moduloId, partida.value.partidaId, datos.modo);
   } catch (fallo) {
-    captura.value = null;
+    abierta.value = null;
     // 409: el servidor dio el tiempo por terminado.
     if (axios.isAxiosError(fallo) && fallo.response?.status === 409) {
       await terminarPartida('tiempo');
@@ -223,7 +228,7 @@ async function abrirPregunta(datos: Captura) {
 }
 
 async function responder(opcionId: string) {
-  if (!partida.value || !pregunta.value || !captura.value || enviando.value) return;
+  if (!partida.value || !pregunta.value || !abierta.value || enviando.value) return;
   enviando.value = true;
   try {
     const veredicto = await ajedrezServicio.responder(
@@ -234,7 +239,13 @@ async function responder(opcionId: string) {
     );
     respondidas.value = veredicto.respondidas;
     correctas.value = veredicto.correctas;
-    resultado.value = { correcta: veredicto.correcta, mensaje: mensajeResultado(captura.value, veredicto.correcta) };
+    const captura = abierta.value.captura;
+    resultado.value = {
+      correcta: veredicto.correcta,
+      mensaje: captura
+        ? textoResultado(captura, veredicto.correcta)
+        : veredicto.correcta ? 'Correcto!' : 'Incorrecto.',
+    };
   } catch (fallo) {
     error.value = mensajeDeError(fallo, 'No se pudo enviar la respuesta');
   } finally {
@@ -242,53 +253,42 @@ async function responder(opcionId: string) {
   }
 }
 
-function mensajeResultado(datos: Captura, correcta: boolean): string {
-  if (!datos.jugada) return correcta ? 'Correcto!' : 'Incorrecto.';
-  const j = datos.jugada;
-  if (datos.deEstudiante) {
-    if (datos.modo === 'critica' && !correcta) return 'Incorrecto: tu rey cae y pierdes la partida.';
-    return correcta
-      ? `Correcto! Tu ${NOMBRE[j.pieza]} captura su ${NOMBRE[j.captura!]}.`
-      : `Incorrecto: pierdes tu ${NOMBRE[j.pieza]} y su ${NOMBRE[j.captura!]} se queda.`;
-  }
-  if (datos.modo === 'rey' && correcta) return 'Correcto! El rey enemigo cae: ganaste la partida.';
-  return correcta
-    ? `Correcto! Tu ${NOMBRE[j.captura!]} sobrevive y cae su ${NOMBRE[j.pieza]}.`
-    : `Incorrecto: pierdes tu ${NOMBRE[j.captura!]}.`;
-}
-
 /** Despues de ver el resultado: se aplica la captura y sigue la partida. */
 async function continuar() {
-  const datos = captura.value;
+  const datos = abierta.value;
   const veredicto = resultado.value;
-  captura.value = null;
+  abierta.value = null;
   pregunta.value = null;
   resultado.value = null;
   if (!datos || !veredicto) return;
 
-  if (etapa.value === 'examen') {
+  if (etapa.value === 'examen' || !datos.captura) {
     await siguienteExamen();
     return;
   }
 
-  const jugada = datos.jugada!;
-  // Si responde bien, gana su pieza: si ataco, la captura sale; si defendia, el ataque falla.
-  const exito = datos.deEstudiante ? veredicto.correcta : !veredicto.correcta;
-  mover(jugada, exito, veredicto.correcta ? 'bien' : 'mal');
+  const captura = datos.captura;
+  const jugada = captura.jugada;
+  mover(jugada, capturaExitosa(captura, veredicto.correcta), veredicto.correcta ? 'bien' : 'mal');
+  destello.value = {
+    casilla: jugada.casillaCaptura ?? jugada.hasta,
+    correcta: veredicto.correcta,
+    vuelta: ++vueltaDestello,
+  };
 
-  if (datos.modo === 'critica' && !veredicto.correcta) {
-    await terminarPartida('derrota');
-    return;
-  }
-  if (datos.modo === 'rey' && veredicto.correcta) {
-    await terminarPartida('victoria');
+  // Si cayo un rey, la partida termina; se deja ver la animacion antes.
+  const porRey = finalPorRey(pos.value);
+  if (porRey) {
+    mensaje.value = porRey === 'victoria' ? 'Cayo el rey enemigo!' : 'Cayo tu rey.';
+    await esperar(DURACION_CAIDA_MS);
+    await terminarPartida(porRey);
     return;
   }
   if (tiempoAgotado.value) {
     await terminarPartida('tiempo');
     return;
   }
-  if (datos.deEstudiante) {
+  if (captura.deEstudiante) {
     await turnoBot();
   } else {
     mensaje.value = 'Tu turno.';
@@ -296,8 +296,20 @@ async function continuar() {
   }
 }
 
+function esperar(ms: number) {
+  return new Promise((resolver) => setTimeout(resolver, ms));
+}
+
 function mover(jugada: Jugada, exito: boolean, marca: '' | 'bien' | 'mal') {
-  pos.value = aplicar(pos.value, jugada, exito);
+  const nueva = aplicar(pos.value, jugada, exito);
+  const cambio = moverPiezas(piezas.value, jugada, exito, nueva);
+  pos.value = nueva;
+  piezas.value = cambio.piezas;
+  if (cambio.caidas.length) {
+    caidas.value = cambio.caidas;
+    if (temporizadorCaidas) clearTimeout(temporizadorCaidas);
+    temporizadorCaidas = setTimeout(() => (caidas.value = []), DURACION_CAIDA_MS);
+  }
   ultima.value = { desde: jugada.desde, hasta: jugada.hasta };
   historial.value.push({ texto: notacion(jugada) + (jugada.captura && !exito ? ' (fallo)' : ''), marca });
 }
@@ -343,8 +355,7 @@ async function siguienteExamen() {
   }
   const faltan = partida.value.minimoPreguntas - respondidas.value;
   await abrirPregunta({
-    jugada: null,
-    deEstudiante: true,
+    captura: null,
     modo: 'normal',
     contexto: `Modo examen: ${faltan === 1 ? 'falta 1 pregunta' : `faltan ${faltan} preguntas`}`,
     aviso: null,
@@ -368,6 +379,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (reloj) clearInterval(reloj);
+  if (temporizadorCaidas) clearTimeout(temporizadorCaidas);
 });
 </script>
 
@@ -383,7 +395,9 @@ onBeforeUnmount(() => {
       <ul :class="estilos.reglas">
         <li>Juegas con blancas contra el bot. Para terminar, dale jaque mate.</li>
         <li>Cada vez que dos piezas chocan sale una pregunta: si aciertas, tu pieza sobrevive; si fallas, la comida es la tuya, aunque hayas atacado tu.</li>
-        <li>Si tu rey captura, la pregunta es critica: fallarla te hace perder la partida.</li>
+        <li>Valen el enroque, la captura al paso y la coronacion. Si estas en jaque, solo puedes jugar para salir de el.</li>
+        <li>Si tu rey captura, o el bot ataca a tu rey, la pregunta es critica: fallarla te hace perder la partida.</li>
+        <li>Si una captura fallida deja al rey enemigo expuesto, puedes atacarlo: si aciertas la pregunta, lo capturas y ganas.</li>
         <li>
           Tu nota es la parte de preguntas que respondas bien.
           <template v-if="partida.minutos"> Tienes {{ partida.minutos }} minuto(s).</template>
@@ -397,7 +411,9 @@ onBeforeUnmount(() => {
     <div v-else-if="partida && etapa === 'jugando'" :class="estilos.mesa">
       <div :class="estilos.zonaTablero">
         <Tablero
-          :posicion="pos"
+          :piezas="piezas"
+          :caidas="caidas"
+          :destello="destello"
           :seleccion="seleccion"
           :destinos="destinos"
           :ultima="ultima"
@@ -407,7 +423,7 @@ onBeforeUnmount(() => {
         />
 
         <!-- Pregunta sobre el tablero -->
-        <div v-if="confirmarCritica || (captura && pregunta)" :class="estilos.velo">
+        <div v-if="confirmarCritica || (abierta && pregunta)" :class="estilos.velo">
           <div v-if="confirmarCritica" :class="estilos.critica">
             <span :class="estilos.criticaIcono"><Icono nombre="shield-alert" :tamano="26" /></span>
             <h3 :class="estilos.criticaTitulo">Pregunta critica</h3>
@@ -420,10 +436,10 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <TarjetaPregunta
-            v-else-if="captura && pregunta"
+            v-else-if="abierta && pregunta"
             :pregunta="pregunta"
-            :contexto="captura.contexto"
-            :aviso="captura.aviso"
+            :contexto="abierta.contexto"
+            :aviso="abierta.aviso"
             :resultado="resultado"
             :enviando="enviando"
             @responder="responder"
@@ -445,9 +461,13 @@ onBeforeUnmount(() => {
           </span>
         </div>
         <p :class="estilos.mensaje">
-          <Icono v-if="piensa" nombre="loader-circle" :tamano="15" />{{ mensaje }}
+          <Icono v-if="piensa" nombre="cpu" :tamano="15" />{{ mensaje }}<span v-if="piensa" :class="estilos.puntos" aria-hidden="true"><i /><i /><i /></span>
         </p>
-        <p v-if="jaque !== null && pos.turno === 'b'" :class="estilos.alertaJaque">Tu rey esta en jaque.</p>
+        <Transition :enter-from-class="estilos.alertaEntra" :leave-to-class="estilos.alertaEntra">
+          <p v-if="jaque !== null && pos.turno === 'b' && !abierta" :class="estilos.alertaJaque">
+            <Icono nombre="shield-alert" :tamano="15" />Jaque: tu rey esta atacado. Sacalo del jaque.
+          </p>
+        </Transition>
 
         <div :class="estilos.historial">
           <span :class="estilos.historialTitulo">Jugadas</span>
@@ -460,7 +480,7 @@ onBeforeUnmount(() => {
 
         <div :class="estilos.rendirse">
           <template v-if="!confirmarRendicion">
-            <Boton variante="fantasma" icono="flag" :deshabilitado="!!captura" @click="confirmarRendicion = true">
+            <Boton variante="fantasma" icono="flag" :deshabilitado="!!abierta" @click="confirmarRendicion = true">
               Rendirse
             </Boton>
           </template>
@@ -481,9 +501,9 @@ onBeforeUnmount(() => {
         {{ partida.minimoPreguntas }} preguntas: responde las que faltan para calificar.
       </p>
       <TarjetaPregunta
-        v-if="captura && pregunta"
+        v-if="abierta && pregunta"
         :pregunta="pregunta"
-        :contexto="captura.contexto"
+        :contexto="abierta.contexto"
         :resultado="resultado"
         :enviando="enviando"
         @responder="responder"
