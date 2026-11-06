@@ -15,6 +15,7 @@ import { UsuarioActual } from '../comun/decoradores/usuario-actual.decorador';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { CursosService } from './cursos.service';
+import { RankingCursoService } from './ranking-curso.service';
 import { CrearCursoDto } from './dto/crear-curso.dto';
 import { ActualizarCursoDto } from './dto/actualizar-curso.dto';
 import { CrearModuloDto } from './dto/crear-modulo.dto';
@@ -32,7 +33,10 @@ const PUEDE_ESCRIBIR = [Rol.SUPERADMIN, Rol.ADMIN_INSTITUCION, Rol.DOCENTE];
 @Controller('cursos')
 @UseGuards(JwtGuardia, RolesGuardia)
 export class CursosController {
-  constructor(private readonly cursosService: CursosService) {}
+  constructor(
+    private readonly cursosService: CursosService,
+    private readonly rankingService: RankingCursoService,
+  ) {}
 
   @Get()
   @Roles(...TODOS_LOS_ROLES)
@@ -50,6 +54,13 @@ export class CursosController {
   @Roles(...TODOS_LOS_ROLES)
   obtener(@UsuarioActual() quien: UsuarioAutenticado, @Param('id') id: string) {
     return this.cursosService.obtener(quien, id);
+  }
+
+  /** Ranking del curso al momento de consultar (ver ranking-curso.service.ts). */
+  @Get(':id/ranking')
+  @Roles(...TODOS_LOS_ROLES)
+  ranking(@UsuarioActual() quien: UsuarioAutenticado, @Param('id') id: string) {
+    return this.rankingService.ranking(quien, id);
   }
 
   @Post()

@@ -1,0 +1,191 @@
+.error {
+  margin: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--error-suave);
+  color: var(--error);
+  font: 600 13px var(--fuente-texto);
+}
+
+.resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 99px;
+  background: var(--superficie-2);
+  border: 1px solid var(--linea-3);
+  font: 600 12px var(--fuente-texto);
+  color: var(--suave);
+}
+
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  font: 600 13.5px/1.5 var(--fuente-texto);
+}
+
+.avisoBueno {
+  background: var(--exito-suave);
+  color: var(--exito);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+}
+
+.panelTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font: 700 15px var(--fuente-titulos);
+}
+
+.podio {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 18px;
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--apagado);
+  font: 500 13.5px/1.5 var(--fuente-texto);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 13px var(--fuente-texto);
+}
+
+.tabla th {
+  padding: 8px 10px;
+  text-align: left;
+  font: 600 10.5px var(--fuente-texto);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--tenue);
+  border-bottom: 1px solid var(--linea-2);
+}
+
+.tabla td {
+  padding: 10px;
+  border-bottom: 1px solid var(--linea-4);
+  color: var(--tinta);
+}
+
+.tabla tbody tr {
+  animation: fila-entra 0.35s ease-out backwards;
+  animation-delay: calc(var(--orden, 0) * 0.04s + 0.9s);
+  transition: background 0.2s;
+}
+
+.tabla tbody tr:hover {
+  background: var(--celda);
+}
+
+.filaYo td {
+  background: var(--primario-suave);
+  font-weight: 700;
+}
+
+.puesto {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--superficie-3);
+  font: 700 12px var(--fuente-titulos);
+}
+
+.puesto1 {
+  background: #f5c542;
+  color: #1d1230;
+}
+
+.puesto2 {
+  background: #cfd6e4;
+  color: #1d1230;
+}
+
+.puesto3 {
+  background: #e0975a;
+  color: #1d1230;
+}
+
+.tu {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--primario);
+  color: #fff;
+  font: 700 10.5px var(--fuente-texto);
+}
+
+.nota {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.avance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.barra {
+  flex: 1;
+  max-width: 160px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--pista);
+  overflow: hidden;
+}
+
+.relleno {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primario), var(--secundario));
+}
+
+@keyframes fila-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 560px) {
+  .colFecha {
+    display: none;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+}

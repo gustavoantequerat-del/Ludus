@@ -75,6 +75,14 @@ onMounted(cargar);
         Volver al curso
       </Boton>
       <Boton variante="secundario" icono="rotate-ccw" @click="enrutador.go(0)">Jugar de nuevo</Boton>
+      <Boton
+        v-if="modulo?.califica"
+        variante="secundario"
+        icono="trophy"
+        @click="enrutador.push({ name: 'ranking', params: { id: props.cursoId } })"
+      >
+        Ver ranking del curso
+      </Boton>
     </div>
   </template>
 

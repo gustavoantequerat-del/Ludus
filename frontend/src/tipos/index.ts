@@ -476,3 +476,37 @@ export interface CierreAjedrez {
   nota?: string | null;
   intento?: number | null;
 }
+
+/* ---------------- Ranking del curso ---------------- */
+
+export interface FilaRanking {
+  posicion: number;
+  /** Para un estudiante, los que no estan en el podio llegan como "Estudiante N". */
+  nombre: string;
+  nota: number;
+  promedio: number;
+  terminadoEn: string;
+  esYo: boolean;
+}
+
+export interface EnProgresoRanking {
+  estudianteId: string;
+  nombre: string;
+  completados: number;
+  notaParcial: number | null;
+}
+
+export interface RankingCurso {
+  curso: { id: string; nombre: string };
+  totalModulos: number;
+  totalInscritos: number;
+  terminaron: number;
+  calculadoEn: string;
+  vista: 'docente' | 'estudiante';
+  ranking: FilaRanking[];
+  /** Solo en la vista del docente. */
+  enProgreso?: EnProgresoRanking[];
+  /** Solo en la vista del estudiante. */
+  miPosicion?: number | null;
+  miProgreso?: { completados: number; notaParcial: number | null } | null;
+}

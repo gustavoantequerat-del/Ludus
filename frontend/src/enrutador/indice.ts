@@ -63,6 +63,13 @@ const rutas: RouteRecordRaw[] = [
     props: true,
   },
   {
+    path: '/cursos/:id/ranking',
+    name: 'ranking',
+    component: () => import('@/vistas/RankingVista.vue'),
+    meta: { roles: TODOS },
+    props: true,
+  },
+  {
     path: '/rutas',
     name: 'rutas',
     component: () => import('@/vistas/RutasVista.vue'),

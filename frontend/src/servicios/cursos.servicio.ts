@@ -1,5 +1,5 @@
 import { cliente } from './cliente';
-import type { Curso, ModuloCurso } from '@/tipos';
+import type { Curso, ModuloCurso, RankingCurso } from '@/tipos';
 
 export interface DatosCurso {
   nombre: string;
@@ -23,6 +23,9 @@ export const cursosServicio = {
   },
   obtener(id: string) {
     return cliente.get<Curso>(`/cursos/${id}`).then((r) => r.data);
+  },
+  ranking(id: string) {
+    return cliente.get<RankingCurso>(`/cursos/${id}/ranking`).then((r) => r.data);
   },
   crear(datos: DatosCurso) {
     return cliente.post<Curso>('/cursos', datos).then((r) => r.data);

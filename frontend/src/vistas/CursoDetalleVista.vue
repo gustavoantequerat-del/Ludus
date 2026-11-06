@@ -157,6 +157,9 @@ onMounted(cargar);
       miga-de-returno="Cursos"
       @volver="enrutador.push({ name: 'cursos' })"
     >
+      <Boton variante="secundario" icono="trophy" @click="enrutador.push({ name: 'ranking', params: { id: curso.id } })">
+        Ranking
+      </Boton>
       <template v-if="!esEstudiante">
         <Boton variante="secundario" icono="pencil" @click="abrirEditarCurso">Editar curso</Boton>
         <Boton variante="primario" icono="plus" @click="abrirCrearModulo">Nuevo modulo</Boton>
