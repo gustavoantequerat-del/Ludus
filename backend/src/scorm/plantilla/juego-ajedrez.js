@@ -249,6 +249,13 @@
         tarjeta.classList.add(veredicto.correcta ? 'ajedrezBrillo' : 'ajedrezSacudir');
       })
       .catch(function (fallo) {
+        // El reloj termino mientras respondia: esa pregunta no cuenta.
+        if (/tiempo/i.test(fallo.message)) {
+          estado.captura = null;
+          mostrar('ajedrez-velo', false);
+          terminar('tiempo');
+          return;
+        }
         C.mostrarError(fallo.message);
       });
   }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Juego } from './juego.entidad';
@@ -7,10 +7,7 @@ import { ModuloCurso } from '../cursos/modulo-curso.entidad';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { ConfigurarJuegoDto } from './dto/configurar-juego.dto';
 import { ResultadosService } from '../resultados/resultados.service';
-import {
-  MesaCumplimientoService,
-  RespuestaJugador,
-} from './mesa-cumplimiento/mesa-cumplimiento.service';
+import { MesaCumplimientoService } from './mesa-cumplimiento/mesa-cumplimiento.service';
 import { Decision } from './mesa-cumplimiento/casos';
 import { FONDO_MESA } from '../archivos/archivos.constantes';
 import { AccesoModuloService } from './acceso-modulo.service';
@@ -18,6 +15,8 @@ import { FichasService } from './fichas/fichas.service';
 import { RunnerService } from './runner/runner.service';
 import { CLAVE_AJEDREZ, CLAVE_MAHJONG, CLAVE_MEMORAMA, CLAVE_RUNNER } from './catalogo-nuevos';
 import { AjedrezService } from './ajedrez/ajedrez.service';
+import { PartidasJuegoService } from './partidas-juego.service';
+import { IntentosService } from '../resultados/intentos.service';
 
 export const CLAVE_MESA_CUMPLIMIENTO = 'mesa-cumplimiento';
 
@@ -36,6 +35,8 @@ export class JuegosService {
     private readonly fichas: FichasService,
     private readonly runner: RunnerService,
     private readonly ajedrez: AjedrezService,
+    private readonly partidas: PartidasJuegoService,
+    private readonly intentos: IntentosService,
   ) {}
 
   /* ---------------------------------------------------------------- *
@@ -43,9 +44,17 @@ export class JuegosService {
    * ---------------------------------------------------------------- */
 
   /** Expedientes de la partida, sin las respuestas correctas. */
+  /**
+   * Reparte los expedientes y abre la partida en el servidor. Cada decision
+   * queda guardada al verificarla y la nota sale de ahi.
+   */
   async armarPartida(quien: UsuarioAutenticado, moduloId: string) {
     const configuracion = await this.configuracionJugable(quien, moduloId);
+    await this.intentos.exigirDisponible(quien, moduloId, configuracion.intentosPermitidos);
+    const casos = await this.mesaCumplimiento.armarPartida(configuracion.paresContenido, quien.institucionId);
+    const partida = await this.partidas.crear(quien, moduloId, CLAVE_MESA_CUMPLIMIENTO, casos.map((c) => c.id));
     return {
+      partidaId: partida.id,
       juego: { clave: configuracion.juego.clave, nombre: configuracion.juego.nombre },
       titulo: configuracion.titulo,
       instrucciones: configuracion.instrucciones,
@@ -53,26 +62,40 @@ export class JuegosService {
       // El fondo es una convencion de archivo, no un dato configurable: el
       // cliente lo pide y si no existe dibuja su degradado de respaldo.
       escena: { fondo: FONDO_MESA },
-      casos: await this.mesaCumplimiento.armarPartida(
-        configuracion.paresContenido,
-        quien.institucionId,
-      ),
+      casos,
     };
   }
 
-  /** Feedback inmediato tras decidir un caso. */
-  verificarCaso(casoId: string, decision: Decision) {
-    return this.mesaCumplimiento.verificar(casoId, decision);
+  /**
+   * Guarda la decision de un caso (la primera vale; repetir devuelve la misma)
+   * y devuelve su veredicto para mostrarlo apenas el jugador decide.
+   */
+  async verificarCaso(
+    quien: UsuarioAutenticado,
+    moduloId: string | null,
+    partidaId: string | undefined,
+    casoId: string,
+    decision: Decision,
+  ) {
+    const partida = await this.partidas.abierta(quien, partidaId, moduloId ?? (await this.moduloDePartida(partidaId)), CLAVE_MESA_CUMPLIMIENTO);
+    const configuracion = await this.configuracionJugable(quien, partida.moduloId);
+    this.partidas.exigirTiempo(partida, configuracion.tiempoLimiteSegundos);
+    const pregunta = partida.preguntas.find((p) => p.id === casoId);
+    if (!pregunta) throw new BadRequestException('Ese expediente no es de esta partida');
+    const primera = (pregunta.respuesta as Decision | null) ?? decision;
+    const veredicto = await this.mesaCumplimiento.verificar(casoId, primera);
+    await this.partidas.responder(partida, casoId, primera, veredicto.correcta);
+    return veredicto;
   }
 
-  /** Califica en el servidor y registra el intento del estudiante. */
-  async terminarPartida(
-    quien: UsuarioAutenticado,
-    moduloId: string,
-    respuestas: RespuestaJugador[],
-  ) {
+  /** Califica con lo guardado en la partida (lo no decidido cuenta como error) y registra el intento. */
+  async terminarPartida(quien: UsuarioAutenticado, moduloId: string, partidaId: string | undefined) {
     const configuracion = await this.configuracionJugable(quien, moduloId);
-    const calificacion = await this.mesaCumplimiento.calificar(respuestas);
+    const partida = await this.partidas.abierta(quien, partidaId, moduloId, CLAVE_MESA_CUMPLIMIENTO);
+    const calificacion = await this.mesaCumplimiento.calificar(
+      partida.preguntas.map((p) => ({ casoId: p.id, decision: p.respuesta as Decision | null })),
+    );
+    await this.partidas.cerrar(partida);
     const resultado = await this.resultadosService.crear(quien, {
       moduloId,
       puntaje: calificacion.puntaje,
@@ -85,6 +108,12 @@ export class JuegosService {
       nota: resultado.nota,
       puntajeMaximo: configuracion.puntajeMaximo,
     };
+  }
+
+  /** El modulo de una partida (para el verificar de Ludus, que no lleva el modulo en la URL). */
+  private async moduloDePartida(partidaId: string | undefined): Promise<string> {
+    if (!partidaId) return '';
+    return (await this.partidas.moduloDe(partidaId)) ?? '';
   }
 
   private configuracionJugable(

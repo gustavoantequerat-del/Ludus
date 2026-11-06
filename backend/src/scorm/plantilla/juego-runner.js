@@ -174,7 +174,7 @@
 
     C.pedir('/runner/verificar', {
       metodo: 'POST',
-      cuerpo: { preguntaId: pregunta.id, opcionId: opcionId },
+      cuerpo: { partidaId: estado.partidaId, preguntaId: pregunta.id, opcionId: opcionId },
     })
       .then(function (veredicto) {
         estado.respuestas.push({ preguntaId: pregunta.id, opcionId: opcionId });
@@ -196,7 +196,7 @@
   }
 
   function terminar() {
-    C.pedir('/runner/terminar', { metodo: 'POST', cuerpo: { respuestas: estado.respuestas } })
+    C.pedir('/runner/terminar', { metodo: 'POST', cuerpo: { partidaId: estado.partidaId } })
       .then(function (resultado) {
         C.cerrarPartida(
           resultado,
@@ -224,6 +224,7 @@
       .then(function (partida) {
         var historia = partida.historia;
         estado = {
+          partidaId: partida.partidaId,
           historia: historia,
           preguntas: historia.preguntas,
           indice: 0,

@@ -17,6 +17,7 @@ import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { ResponderPreguntaDto } from './dto/partida-ajedrez.dto';
 import { alAzar, mezclar } from '../../comun/utilidades/azar';
+import { IntentosService } from '../../resultados/intentos.service';
 
 /** Margen sobre el tiempo de la partida para la latencia y el reloj del navegador. */
 const GRACIA_TIEMPO_MS = 15_000;
@@ -37,6 +38,7 @@ export class AjedrezService {
     private readonly bancos: BancosAjedrezService,
     private readonly acceso: AccesoModuloService,
     private readonly resultadosService: ResultadosService,
+    private readonly intentos: IntentosService,
   ) {}
 
   /** Al configurar un modulo: el banco existe, es visible y tiene las preguntas minimas. */
@@ -57,6 +59,7 @@ export class AjedrezService {
   async iniciar(quien: UsuarioAutenticado, moduloId: string) {
     this.soloEstudiante(quien);
     const { configuracion, banco } = await this.bancoDelModulo(quien, moduloId);
+    await this.intentos.exigirDisponible(quien, moduloId, configuracion.intentosPermitidos);
     const partida = await this.partidasRepo.save(
       this.partidasRepo.create({
         moduloId,
@@ -132,6 +135,10 @@ export class AjedrezService {
       (p) => p.opcionId === null && p.preguntaId === respuesta.preguntaId,
     );
     if (!pendiente) throw new BadRequestException('Esa pregunta no esta esperando respuesta');
+    // En el tablero el reloj corre tambien para responder; el modo examen no tiene reloj.
+    if (partida.estado === 'jugando' && this.tiempoVencido(partida)) {
+      throw new ConflictException('Se acabo el tiempo de la partida');
+    }
 
     const banco = await this.bancoDePartida(partida);
     const pregunta = banco.preguntas.find((p) => p.id === respuesta.preguntaId);

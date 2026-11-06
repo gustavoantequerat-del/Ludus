@@ -36,6 +36,11 @@ export class UsuariosService {
   }
 
   /** Para el login con Google: el correo de Google puede venir con otras mayusculas. */
+  /** El usuario con su institucion, para validar cada sesion contra la base. */
+  paraSesion(id: string): Promise<Usuario | null> {
+    return this.usuariosRepo.findOne({ where: { id }, relations: ['institucion'] });
+  }
+
   buscarPorCorreo(correo: string): Promise<Usuario | null> {
     return this.usuariosRepo
       .createQueryBuilder('usuario')
@@ -157,6 +162,11 @@ export class UsuariosService {
     const usuario = await this.obtener(quien, id);
     if (datos.rol) this.verificarRolPermitido(quien, datos.rol);
     this.protegerCuentasClave(quien, usuario, datos);
+    this.protegerPares(quien, usuario);
+    // Solo el superadmin mueve a alguien de institucion.
+    if (quien.rol !== Rol.SUPERADMIN && datos.institucionId !== undefined && datos.institucionId !== usuario.institucionId) {
+      throw new ForbiddenException('Solo el superadministrador cambia a un usuario de institucion');
+    }
     Object.assign(usuario, datos);
     // Un superadmin es global: no queda atado a una institucion.
     if (usuario.rol === Rol.SUPERADMIN) usuario.institucionId = null;
@@ -171,6 +181,7 @@ export class UsuariosService {
     if (usuario.id === quien.id) {
       throw new ForbiddenException('No puedes eliminar tu propia cuenta');
     }
+    this.protegerPares(quien, usuario);
     await this.usuariosRepo.remove(usuario);
   }
 
@@ -187,6 +198,13 @@ export class UsuariosService {
     }
     if (usuario.id === quien.id && (cambiaRol || desactiva)) {
       throw new ForbiddenException('No puedes cambiar tu propio rol ni desactivar tu cuenta');
+    }
+  }
+
+  /** Un admin de institucion no edita ni borra a otro admin: eso lo hace el superadmin. */
+  private protegerPares(quien: UsuarioAutenticado, usuario: Usuario): void {
+    if (quien.rol === Rol.ADMIN_INSTITUCION && usuario.rol === Rol.ADMIN_INSTITUCION && usuario.id !== quien.id) {
+      throw new ForbiddenException('Un admin de institucion no puede modificar a otro admin; pideselo al superadministrador');
     }
   }
 

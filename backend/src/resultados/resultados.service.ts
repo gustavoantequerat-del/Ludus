@@ -8,6 +8,7 @@ import { ConfiguracionJuego } from '../juegos/configuracion-juego.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 import { CrearResultadoDto } from './dto/crear-resultado.dto';
+import { IntentosService } from './intentos.service';
 
 @Injectable()
 export class ResultadosService {
@@ -20,6 +21,7 @@ export class ResultadosService {
     private readonly inscripcionesRepo: Repository<Inscripcion>,
     @InjectRepository(ConfiguracionJuego)
     private readonly configuracionesRepo: Repository<ConfiguracionJuego>,
+    private readonly intentos: IntentosService,
   ) {}
 
   /**
@@ -36,6 +38,8 @@ export class ResultadosService {
     if (configuracion.juego.tipo !== 'ludico') {
       throw new BadRequestException('El puntaje de este juego lo calcula Ludus al terminar la partida');
     }
+    // Los ludicos no tienen partida en el servidor: el intento se cuenta aqui.
+    await this.intentos.exigirDisponible(quien, datos.moduloId, configuracion.intentosPermitidos);
     return this.crear(quien, datos);
   }
 
@@ -79,14 +83,15 @@ export class ResultadosService {
     const intentosPrevios = await this.resultadosRepo.count({
       where: { estudianteId: quien.id, moduloId: modulo.id },
     });
-    const puntajeAcotado = Math.min(datos.puntaje, 100);
+    // Todos los juegos puntuan de 0 a 100; lo que venga fuera de rango se acota.
+    const puntajeAcotado = Math.max(0, Math.min(Math.round(datos.puntaje), 100));
     const nota = modulo.califica ? (puntajeAcotado / 10).toFixed(1) : null;
 
     const resultado = this.resultadosRepo.create({
       estudianteId: quien.id,
       moduloId: modulo.id,
       intento: intentosPrevios + 1,
-      puntaje: datos.puntaje,
+      puntaje: puntajeAcotado,
       nota,
     });
     return this.resultadosRepo.save(resultado);

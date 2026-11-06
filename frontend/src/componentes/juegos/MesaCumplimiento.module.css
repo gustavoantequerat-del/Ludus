@@ -500,3 +500,12 @@
   gap: 9px;
   flex-wrap: wrap;
 }
+
+.error {
+  margin: 0 0 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--error-suave);
+  color: var(--error);
+  font: 600 13px var(--fuente-texto);
+}

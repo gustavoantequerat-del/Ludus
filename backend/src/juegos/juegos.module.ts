@@ -28,6 +28,9 @@ import { BancosAjedrezService } from './ajedrez/bancos-ajedrez.service';
 import { BancosAjedrezController } from './ajedrez/bancos-ajedrez.controller';
 import { AjedrezService } from './ajedrez/ajedrez.service';
 import { AjedrezController } from './ajedrez/ajedrez.controller';
+import { PartidaJuego } from './partida-juego.entidad';
+import { PartidasJuegoService } from './partidas-juego.service';
+import { Inscripcion } from '../inscripciones/inscripcion.entidad';
 
 @Module({
   imports: [
@@ -41,6 +44,8 @@ import { AjedrezController } from './ajedrez/ajedrez.controller';
       Historia,
       BancoAjedrez,
       PartidaAjedrez,
+      PartidaJuego,
+      Inscripcion,
     ]),
     ResultadosModule,
   ],
@@ -55,6 +60,7 @@ import { AjedrezController } from './ajedrez/ajedrez.controller';
     RunnerService,
     BancosAjedrezService,
     AjedrezService,
+    PartidasJuegoService,
   ],
   controllers: [
     JuegosController,

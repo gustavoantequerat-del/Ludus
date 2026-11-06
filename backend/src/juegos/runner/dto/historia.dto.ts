@@ -5,6 +5,7 @@ import {
   IsArray,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
   ValidateNested,
@@ -72,13 +73,23 @@ export class RespuestaRunnerDto {
   @IsString()
   @MaxLength(60)
   opcionId: string;
+
+  /** Opcional solo para dar un mensaje claro a paquetes SCORM viejos. */
+  @IsOptional()
+  @IsUUID()
+  partidaId?: string;
 }
 
+/** La nota sale de lo guardado en la partida; `respuestas` se ignora (paquetes viejos). */
 export class TerminarRunnerDto {
+  @IsOptional()
+  @IsUUID()
+  partidaId?: string;
+
+  @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
   @ArrayMaxSize(MAXIMO_PREGUNTAS)
   @ValidateNested({ each: true })
   @Type(() => RespuestaRunnerDto)
-  respuestas: RespuestaRunnerDto[];
+  respuestas?: RespuestaRunnerDto[];
 }

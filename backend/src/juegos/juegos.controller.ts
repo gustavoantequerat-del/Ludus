@@ -38,8 +38,8 @@ export class JuegosController {
   }
 
   @Post('partida/verificar')
-  verificarCaso(@Body() datos: VerificarCasoDto) {
-    return this.juegosService.verificarCaso(datos.casoId, datos.decision);
+  verificarCaso(@UsuarioActual() quien: UsuarioAutenticado, @Body() datos: VerificarCasoDto) {
+    return this.juegosService.verificarCaso(quien, null, datos.partidaId, datos.casoId, datos.decision);
   }
 
   @Post('partida/:moduloId/terminar')
@@ -49,7 +49,7 @@ export class JuegosController {
     @Param('moduloId') moduloId: string,
     @Body() datos: TerminarPartidaDto,
   ) {
-    return this.juegosService.terminarPartida(quien, moduloId, datos.respuestas);
+    return this.juegosService.terminarPartida(quien, moduloId, datos.partidaId);
   }
 
   @Get('modulos/:moduloId/configuracion')

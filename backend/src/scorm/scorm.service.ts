@@ -97,10 +97,10 @@ export class ScormService {
   }
 
   /** Califica la historia y devuelve lo que el lanzador reporta al LMS. */
-  async terminarRunner(token: string, quien: UsuarioAutenticado, respuestas: RespuestaRunnerDto[]) {
+  async terminarRunner(token: string, quien: UsuarioAutenticado, partidaId: string | undefined) {
     const paquete = await this.paqueteActivo(token);
     const modulo = await this.moduloCompleto(paquete.moduloId);
-    const datos = await this.runnerService.terminar(quien, paquete.moduloId, respuestas);
+    const datos = await this.runnerService.terminar(quien, paquete.moduloId, partidaId);
     return { ...datos, califica: modulo.califica, puntajeMaximo: 100 };
   }
 
@@ -132,22 +132,15 @@ export class ScormService {
     return { ...datos, califica: modulo.califica, puntajeMaximo: 100 };
   }
 
-  verificarCaso(casoId: string, decision: Decision) {
-    return this.juegosService.verificarCaso(casoId, decision);
+  async verificarCaso(token: string, quien: UsuarioAutenticado, partidaId: string | undefined, casoId: string, decision: Decision) {
+    const paquete = await this.paqueteActivo(token);
+    return this.juegosService.verificarCaso(quien, paquete.moduloId, partidaId, casoId, decision);
   }
 
-  async terminarPartida(
-    token: string,
-    quien: UsuarioAutenticado,
-    respuestas: RespuestaJugador[],
-  ) {
+  async terminarPartida(token: string, quien: UsuarioAutenticado, partidaId: string | undefined) {
     const paquete = await this.paqueteActivo(token);
     const modulo = await this.moduloCompleto(paquete.moduloId);
-    const datos = await this.juegosService.terminarPartida(
-      quien,
-      paquete.moduloId,
-      respuestas,
-    );
+    const datos = await this.juegosService.terminarPartida(quien, paquete.moduloId, partidaId);
     return { ...datos, califica: modulo.califica };
   }
 

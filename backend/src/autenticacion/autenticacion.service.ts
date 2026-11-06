@@ -68,6 +68,7 @@ export class AutenticacionService {
     if (!claveValida) {
       throw new UnauthorizedException('Correo o contrasena invalidos');
     }
+    await this.exigirInstitucionActiva(usuario.id);
 
     await this.accesosService.registrar(usuario.id, origen);
     return this.construirSesion(usuario);
@@ -128,9 +129,17 @@ export class AutenticacionService {
         `No hay una cuenta activa de Ludus para ${correo}. Pide a tu institucion que te de de alta.`,
       );
     }
+    await this.exigirInstitucionActiva(usuario.id);
 
     await this.accesosService.registrar(usuario.id, origen);
     return this.construirSesion(usuario);
+  }
+
+  private async exigirInstitucionActiva(usuarioId: string) {
+    const completo = await this.usuariosService.paraSesion(usuarioId);
+    if (completo?.institucion && !completo.institucion.activa) {
+      throw new UnauthorizedException('Tu institucion esta desactivada en Ludus.');
+    }
   }
 
   private construirSesion(usuario: Usuario) {

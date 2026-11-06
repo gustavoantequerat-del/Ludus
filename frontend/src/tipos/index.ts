@@ -152,6 +152,8 @@ export interface CasoEditable {
 }
 
 export interface PartidaCumplimiento {
+  /** La partida guardada en el servidor (ahi quedan las decisiones). */
+  partidaId: string;
   juego: { clave: string; nombre: string };
   titulo: string;
   instrucciones: string;
@@ -288,6 +290,7 @@ export interface VideoExterno {
 }
 
 export interface PartidaRunner {
+  partidaId: string;
   juego: { clave: string; nombre: string };
   titulo: string;
   instrucciones: string;

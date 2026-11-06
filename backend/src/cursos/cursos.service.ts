@@ -161,10 +161,20 @@ export class CursosService {
     datos: ActualizarModuloDto,
   ): Promise<ModuloCurso> {
     await this.cursoOAcceso(quien, cursoId, true);
-    const modulo = await this.moduloDelCurso(cursoId, moduloId);
+    const modulo = await this.modulosRepo.findOne({
+      where: { id: moduloId, cursoId },
+      relations: ['configuracionJuego'],
+    });
+    if (!modulo) throw new NotFoundException('Modulo no encontrado');
     if (datos.titulo !== undefined) modulo.titulo = datos.titulo;
     if (datos.descripcion !== undefined) modulo.descripcion = datos.descripcion;
-    if (datos.califica !== undefined) modulo.califica = datos.califica;
+    if (datos.califica !== undefined) {
+      // Un juego ludico registra el puntaje que manda el navegador: no puede dar nota.
+      if (datos.califica && modulo.configuracionJuego?.juego.tipo === 'ludico') {
+        throw new BadRequestException('Este modulo tiene un juego ludico: los ludicos no generan calificacion');
+      }
+      modulo.califica = datos.califica;
+    }
     return this.modulosRepo.save(modulo);
   }
 

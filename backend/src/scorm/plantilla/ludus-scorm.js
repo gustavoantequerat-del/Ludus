@@ -277,7 +277,7 @@
     { decision: 'rechazar', etiqueta: 'Rechazar', ayuda: 'El riesgo no es mitigable' },
   ];
 
-  var mesa = { casos: [], indice: 0, respuestas: [], aciertos: 0, restante: 0, reloj: null };
+  var mesa = { partidaId: null, casos: [], indice: 0, respuestas: [], aciertos: 0, restante: 0, reloj: null };
 
   function etiquetaDecision(decision) {
     for (var i = 0; i < OPCIONES_MESA.length; i++) {
@@ -289,6 +289,8 @@
   function iniciarMesa() {
     pedir('/partida')
       .then(function (datos) {
+        // Las decisiones quedan guardadas en esta partida del servidor.
+        mesa.partidaId = datos.partidaId;
         mesa.casos = datos.casos;
         mesa.indice = 0;
         mesa.respuestas = [];
@@ -420,7 +422,7 @@
     elemento('mesa-decisiones').classList.add('oculto');
     mesa.respuestas.push({ casoId: casoId, decision: decision });
 
-    pedir('/verificar', { metodo: 'POST', cuerpo: { casoId: casoId, decision: decision } })
+    pedir('/verificar', { metodo: 'POST', cuerpo: { partidaId: mesa.partidaId, casoId: casoId, decision: decision } })
       .then(function (veredicto) {
         if (veredicto.correcta) mesa.aciertos += 1;
         pintarIndicadoresMesa();
@@ -440,6 +442,12 @@
           mesa.indice + 1 >= mesa.casos.length ? 'Terminar' : 'Siguiente expediente';
       })
       .catch(function (fallo) {
+        mesa.respuestas.pop();
+        // El servidor dio el tiempo por terminado: se califica lo que hay.
+        if (/tiempo/i.test(fallo.message)) {
+          terminarMesa();
+          return;
+        }
         mostrarError(fallo.message);
       });
   }
@@ -458,7 +466,7 @@
     mesa.reloj = null;
     if (mesa.respuestas.length === 0) return;
 
-    pedir('/partida', { metodo: 'POST', cuerpo: { respuestas: mesa.respuestas } })
+    pedir('/partida', { metodo: 'POST', cuerpo: { partidaId: mesa.partidaId } })
       .then(function (datos) {
         var calificacion = datos.calificacion;
         elemento('repaso-puntaje').textContent = 'Puntaje: ' + calificacion.puntaje;

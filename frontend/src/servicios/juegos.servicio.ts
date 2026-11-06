@@ -44,17 +44,16 @@ export const juegosServicio = {
   armarPartida(moduloId: string) {
     return cliente.get<PartidaCumplimiento>(`/juegos/partida/${moduloId}`).then((r) => r.data);
   },
-  verificarCaso(casoId: string, decision: DecisionCumplimiento) {
+  /** La decision queda guardada en la partida del servidor: la primera es la que vale. */
+  verificarCaso(partidaId: string, casoId: string, decision: DecisionCumplimiento) {
     return cliente
-      .post<VeredictoCaso>('/juegos/partida/verificar', { casoId, decision })
+      .post<VeredictoCaso>('/juegos/partida/verificar', { partidaId, casoId, decision })
       .then((r) => r.data);
   },
-  terminarPartida(
-    moduloId: string,
-    respuestas: { casoId: string; decision: DecisionCumplimiento }[],
-  ) {
+  /** La nota sale de lo que guardo el servidor, no de lo que mande el navegador. */
+  terminarPartida(moduloId: string, partidaId: string) {
     return cliente
-      .post<CalificacionPartida>(`/juegos/partida/${moduloId}/terminar`, { respuestas })
+      .post<CalificacionPartida>(`/juegos/partida/${moduloId}/terminar`, { partidaId })
       .then((r) => r.data);
   },
 
@@ -70,14 +69,14 @@ export const juegosServicio = {
   partidaRunner(moduloId: string) {
     return cliente.get<PartidaRunner>(`${RUNNER}/${moduloId}`).then((r) => r.data);
   },
-  verificarRunner(moduloId: string, preguntaId: string, opcionId: string) {
+  verificarRunner(moduloId: string, partidaId: string, preguntaId: string, opcionId: string) {
     return cliente
-      .post<VeredictoRunner>(`${RUNNER}/${moduloId}/verificar`, { preguntaId, opcionId })
+      .post<VeredictoRunner>(`${RUNNER}/${moduloId}/verificar`, { partidaId, preguntaId, opcionId })
       .then((r) => r.data);
   },
-  terminarRunner(moduloId: string, respuestas: { preguntaId: string; opcionId: string }[]) {
+  terminarRunner(moduloId: string, partidaId: string) {
     return cliente
-      .post<ResultadoRunner>(`${RUNNER}/${moduloId}/terminar`, { respuestas })
+      .post<ResultadoRunner>(`${RUNNER}/${moduloId}/terminar`, { partidaId })
       .then((r) => r.data);
   },
 

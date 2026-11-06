@@ -13,6 +13,7 @@ import Icono from '@/componentes/base/Icono.vue';
 import Boton from '@/componentes/base/Boton.vue';
 import { juegosServicio } from '@/servicios/juegos.servicio';
 import { urlArchivo } from '@/utilidades/archivos';
+import { mensajeDeError } from '@/utilidades/errores';
 import type {
   CalificacionPartida,
   CasoCumplimiento,
@@ -85,8 +86,16 @@ const tiempoEtiqueta = computed(() => {
   return `${minutos}:${segundos}`;
 });
 
+const error = ref('');
+
 async function cargar() {
-  partida.value = await juegosServicio.armarPartida(props.moduloId);
+  try {
+    partida.value = await juegosServicio.armarPartida(props.moduloId);
+  } catch (fallo) {
+    // Por ejemplo: ya uso todos sus intentos.
+    error.value = mensajeDeError(fallo, 'No se pudo preparar la partida');
+    return;
+  }
   segundosRestantes.value = partida.value.tiempoLimiteSegundos;
   temporizador = setInterval(() => {
     segundosRestantes.value -= 1;
@@ -97,7 +106,18 @@ async function cargar() {
 async function decidir(decision: DecisionCumplimiento) {
   if (!casoActual.value || veredicto.value) return;
   respuestas.value.push({ casoId: casoActual.value.id, decision });
-  veredicto.value = await juegosServicio.verificarCaso(casoActual.value.id, decision);
+  try {
+    veredicto.value = await juegosServicio.verificarCaso(partida.value!.partidaId, casoActual.value.id, decision);
+  } catch (fallo) {
+    respuestas.value.pop();
+    // 409: el servidor dio el tiempo por terminado; se califica lo que hay.
+    if ((fallo as { response?: { status?: number } }).response?.status === 409) {
+      void terminar();
+      return;
+    }
+    error.value = mensajeDeError(fallo, 'No se pudo registrar tu decision');
+    return;
+  }
   if (veredicto.value.correcta) aciertos.value += 1;
 }
 
@@ -118,8 +138,10 @@ async function terminar() {
 
   enviando.value = true;
   try {
-    resultado.value = await juegosServicio.terminarPartida(props.moduloId, respuestas.value);
+    resultado.value = await juegosServicio.terminarPartida(props.moduloId, partida.value!.partidaId);
     emit('terminada', resultado.value);
+  } catch (fallo) {
+    error.value = mensajeDeError(fallo, 'No se pudo registrar la partida');
   } finally {
     enviando.value = false;
   }
@@ -139,6 +161,7 @@ onBeforeUnmount(detenerTemporizador);
 </script>
 
 <template>
+  <p v-if="error" :class="estilos.error" role="alert">{{ error }}</p>
   <div v-if="partida" :class="estilos.mesa">
     <!-- Repaso final -->
     <template v-if="resultado">

@@ -8,6 +8,8 @@ import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { RespuestaRunnerDto } from './dto/historia.dto';
 import { leerLinkVideo } from './videos-externos';
 import { mezclar } from '../../comun/utilidades/azar';
+import { PartidasJuegoService } from '../partidas-juego.service';
+import { IntentosService } from '../../resultados/intentos.service';
 
 /**
  * Partida del Runner Narrativo. La historia sale sin decir cual opcion es la
@@ -20,6 +22,8 @@ export class RunnerService {
     private readonly historias: HistoriasService,
     private readonly acceso: AccesoModuloService,
     private readonly resultadosService: ResultadosService,
+    private readonly partidas: PartidasJuegoService,
+    private readonly intentos: IntentosService,
   ) {}
 
   async validarAjustes(
@@ -38,7 +42,10 @@ export class RunnerService {
 
   async armarPartida(quien: UsuarioAutenticado, moduloId: string) {
     const { configuracion, historia } = await this.historiaDelModulo(quien, moduloId);
+    await this.intentos.exigirDisponible(quien, moduloId, configuracion.intentosPermitidos);
+    const partida = await this.partidas.crear(quien, moduloId, CLAVE_RUNNER, historia.preguntas.map((p) => p.id));
     return {
+      partidaId: partida.id,
       juego: { clave: CLAVE_RUNNER, nombre: configuracion.juego.nombre },
       titulo: configuracion.titulo,
       instrucciones: configuracion.instrucciones,
@@ -57,30 +64,49 @@ export class RunnerService {
     };
   }
 
-  /** Si la opcion es la buena, y el video que se ve a continuacion. */
+  /**
+   * Si la opcion es la buena, y el video que se ve a continuacion. Las
+   * preguntas se responden en orden y una sola vez: la historia termina en el
+   * primer error, asi que despues de fallar ya no se puede seguir probando.
+   */
   async verificar(quien: UsuarioAutenticado, moduloId: string, respuesta: RespuestaRunnerDto) {
     const { historia } = await this.historiaDelModulo(quien, moduloId);
+    const partida = await this.partidas.abierta(quien, respuesta.partidaId, moduloId, CLAVE_RUNNER);
     const pregunta = this.pregunta(historia, respuesta.preguntaId);
-    const correcta = this.esCorrecta(pregunta, respuesta.opcionId);
+    const indice = partida.preguntas.findIndex((p) => p.id === pregunta.id);
+    const guardada = partida.preguntas[indice];
+    if (!guardada) throw new BadRequestException('Esa pregunta no es de esta partida');
+
+    if (guardada.respuesta === null) {
+      if (partida.preguntas.some((p) => p.correcta === false)) {
+        throw new BadRequestException('La historia ya termino: fallaste una pregunta anterior');
+      }
+      if (partida.preguntas.slice(0, indice).some((p) => p.respuesta === null)) {
+        throw new BadRequestException('Responde las preguntas en orden');
+      }
+      await this.partidas.responder(partida, pregunta.id, respuesta.opcionId, this.esCorrecta(pregunta, respuesta.opcionId));
+    }
+    // Si ya la habia respondido (por ejemplo, un reintento por mala red), vale la primera.
+    const correcta = guardada.correcta === true;
     return { correcta, video: leerLinkVideo(correcta ? pregunta.videoBueno : pregunta.videoMalo) };
   }
 
   /**
    * Cuenta las respuestas buenas en orden hasta el primer error, que es donde
    * termina la historia. El puntaje es la parte de la historia que se recorrio.
+   * Sale de lo guardado en la partida, no de lo que mande el navegador.
    */
-  async terminar(quien: UsuarioAutenticado, moduloId: string, respuestas: RespuestaRunnerDto[]) {
-    const { historia } = await this.historiaDelModulo(quien, moduloId);
-    const total = historia.preguntas.length;
-
+  async terminar(quien: UsuarioAutenticado, moduloId: string, partidaId: string | undefined) {
+    await this.historiaDelModulo(quien, moduloId);
+    const partida = await this.partidas.abierta(quien, partidaId, moduloId, CLAVE_RUNNER);
+    const total = partida.preguntas.length;
     let correctas = 0;
-    for (const [indice, pregunta] of historia.preguntas.entries()) {
-      const respuesta = respuestas[indice];
-      if (!respuesta || respuesta.preguntaId !== pregunta.id) break;
-      if (!this.esCorrecta(pregunta, respuesta.opcionId)) break;
+    for (const pregunta of partida.preguntas) {
+      if (pregunta.correcta !== true) break;
       correctas += 1;
     }
 
+    await this.partidas.cerrar(partida);
     const puntaje = Math.round((correctas / total) * 100);
     const resultado = await this.resultadosService.crear(quien, { moduloId, puntaje });
     return {

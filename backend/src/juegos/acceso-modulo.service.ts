@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuloCurso } from '../cursos/modulo-curso.entidad';
 import { ConfiguracionJuego } from './configuracion-juego.entidad';
+import { Inscripcion } from '../inscripciones/inscripcion.entidad';
 import { Rol } from '../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../comun/tipos/usuario-autenticado';
 
@@ -22,6 +23,8 @@ export class AccesoModuloService {
     private readonly modulosRepo: Repository<ModuloCurso>,
     @InjectRepository(ConfiguracionJuego)
     private readonly configuracionesRepo: Repository<ConfiguracionJuego>,
+    @InjectRepository(Inscripcion)
+    private readonly inscripcionesRepo: Repository<Inscripcion>,
   ) {}
 
   async modulo(
@@ -54,6 +57,11 @@ export class AccesoModuloService {
     if (requiereEscritura) {
       throw new ForbiddenException('Los estudiantes no pueden configurar juegos');
     }
+    // Un estudiante solo ve y juega los modulos de los cursos donde esta inscrito.
+    const inscrito = await this.inscripcionesRepo.exist({
+      where: { estudianteId: quien.id, cursoId: modulo.cursoId },
+    });
+    if (!inscrito) throw new ForbiddenException('No estas inscrito en el curso de este modulo');
     return modulo;
   }
 

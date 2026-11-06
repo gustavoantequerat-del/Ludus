@@ -51,6 +51,9 @@ export class SolicitudesService {
     if (quien.rol !== Rol.ESTUDIANTE) {
       throw new ForbiddenException('Solo un estudiante puede enviar solicitudes');
     }
+    if (datos.cursoId && datos.rutaId) {
+      throw new BadRequestException('Elige un curso o una ruta, no los dos');
+    }
     const institucionObjetivo = await this.institucionDelObjetivo(datos);
     if (institucionObjetivo !== quien.institucionId) {
       throw new ForbiddenException('El curso o ruta no pertenece a tu institucion');
@@ -66,6 +69,17 @@ export class SolicitudesService {
       throw new BadRequestException('No estas inscrito en ese curso o ruta');
     }
 
+    const repetida = await this.solicitudesRepo.exist({
+      where: {
+        estudianteId: quien.id,
+        tipo: datos.tipo,
+        estado: EstadoSolicitud.PENDIENTE,
+        ...(datos.cursoId ? { cursoId: datos.cursoId } : { rutaId: datos.rutaId }),
+      },
+    });
+    if (repetida) {
+      throw new BadRequestException('Ya tienes una solicitud pendiente para eso: espera a que la resuelvan');
+    }
     const solicitud = this.solicitudesRepo.create({
       estudianteId: quien.id,
       tipo: datos.tipo,
@@ -98,9 +112,16 @@ export class SolicitudesService {
       throw new BadRequestException('La solicitud ya fue resuelta');
     }
 
-    solicitud.estado =
-      estado === 'aprobada' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA;
-    await this.solicitudesRepo.save(solicitud);
+    const nuevo = estado === 'aprobada' ? EstadoSolicitud.APROBADA : EstadoSolicitud.RECHAZADA;
+    // Solo cambia si sigue pendiente: si dos admins la resuelven a la vez, gana uno.
+    const cambio = await this.solicitudesRepo
+      .createQueryBuilder()
+      .update(Solicitud)
+      .set({ estado: nuevo })
+      .where('id = :id AND estado = :pendiente', { id, pendiente: EstadoSolicitud.PENDIENTE })
+      .execute();
+    if (!cambio.affected) throw new BadRequestException('La solicitud ya fue resuelta');
+    solicitud.estado = nuevo;
 
     if (estado === 'aprobada') {
       await this.aplicarSolicitud(solicitud);
@@ -110,12 +131,14 @@ export class SolicitudesService {
 
   private async aplicarSolicitud(solicitud: Solicitud): Promise<void> {
     if (solicitud.tipo === TipoSolicitud.INGRESO) {
-      const inscripcion = this.inscripcionesRepo.create({
-        estudianteId: solicitud.estudianteId,
-        cursoId: solicitud.cursoId,
-        rutaId: solicitud.rutaId,
-      });
-      await this.inscripcionesRepo.save(inscripcion);
+      // Si ya estaba inscrito (lo asigno un docente mientras tanto), no se duplica.
+      await this.inscripcionesRepo
+        .createQueryBuilder()
+        .insert()
+        .into(Inscripcion)
+        .values({ estudianteId: solicitud.estudianteId, cursoId: solicitud.cursoId, rutaId: solicitud.rutaId })
+        .orIgnore()
+        .execute();
     } else {
       // Solo filtra por lo que trae la solicitud: un undefined en el criterio
       // de delete() hace que TypeORM no encuentre la inscripcion.

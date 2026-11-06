@@ -109,8 +109,12 @@ export class ScormController {
 
   @Post('publico/:token/verificar')
   @UseGuards(JwtGuardia)
-  verificarCaso(@Body() datos: VerificarCasoDto) {
-    return this.scormService.verificarCaso(datos.casoId, datos.decision);
+  verificarCaso(
+    @Param('token') token: string,
+    @UsuarioActual() quien: UsuarioAutenticado,
+    @Body() datos: VerificarCasoDto,
+  ) {
+    return this.scormService.verificarCaso(token, quien, datos.partidaId, datos.casoId, datos.decision);
   }
 
   @Post('publico/:token/partida')
@@ -120,7 +124,7 @@ export class ScormController {
     @UsuarioActual() quien: UsuarioAutenticado,
     @Body() datos: TerminarPartidaDto,
   ) {
-    return this.scormService.terminarPartida(token, quien, datos.respuestas);
+    return this.scormService.terminarPartida(token, quien, datos.partidaId);
   }
 
   /* Ajedrez de Preguntas: las preguntas y la nota salen de Ludus. */
@@ -181,7 +185,7 @@ export class ScormController {
     @UsuarioActual() quien: UsuarioAutenticado,
     @Body() datos: TerminarRunnerDto,
   ) {
-    return this.scormService.terminarRunner(token, quien, datos.respuestas);
+    return this.scormService.terminarRunner(token, quien, datos.partidaId);
   }
 
   /* Juegos ludicos: el lanzador manda el puntaje y aqui se registra (sin nota). */

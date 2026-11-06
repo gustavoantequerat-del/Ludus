@@ -44,6 +44,7 @@ export class InscripcionesService {
     estudianteIds: string[],
   ): Promise<Inscripcion[]> {
     const curso = await this.cursoConAcceso(quien, cursoId);
+    estudianteIds = [...new Set(estudianteIds)];
     await this.verificarEstudiantesDeInstitucion(curso.institucionId, estudianteIds);
     await this.inscripcionesRepo.delete({ cursoId: curso.id });
     const nuevas = estudianteIds.map((estudianteId) =>
@@ -59,6 +60,7 @@ export class InscripcionesService {
     estudianteIds: string[],
   ): Promise<Inscripcion[]> {
     const ruta = await this.rutaConAcceso(quien, rutaId);
+    estudianteIds = [...new Set(estudianteIds)];
     await this.verificarEstudiantesDeInstitucion(ruta.institucionId, estudianteIds);
     await this.inscripcionesRepo.delete({ rutaId: ruta.id });
     const nuevas = estudianteIds.map((estudianteId) =>

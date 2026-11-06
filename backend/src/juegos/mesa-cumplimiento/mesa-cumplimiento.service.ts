@@ -18,13 +18,14 @@ export interface CasoPublico {
 
 export interface RespuestaJugador {
   casoId: string;
-  decision: Decision;
+  /** null: el caso quedo sin decidir (se acabo el tiempo). */
+  decision: Decision | null;
 }
 
 export interface VeredictoCaso {
   casoId: string;
   entidad: string;
-  decisionTomada: Decision;
+  decisionTomada: Decision | null;
   decisionCorrecta: Decision;
   correcta: boolean;
   regla: string;
@@ -68,7 +69,7 @@ export class MesaCumplimientoService {
     return barajado.slice(0, total).map((caso) => this.aPublico(caso));
   }
 
-  /** Feedback inmediato de un caso, para mostrarlo apenas el jugador decide. */
+  /** Veredicto de un caso (la partida guarda la decision antes de mostrarlo). */
   async verificar(casoId: string, decision: Decision): Promise<VeredictoCaso> {
     this.decisionValida(decision);
     const caso = await this.casosRepo.findOne({ where: { id: casoId } });
@@ -91,7 +92,7 @@ export class MesaCumplimientoService {
     const porId = new Map(casos.map((caso) => [caso.id, caso]));
 
     const detalle = respuestas.map((respuesta) => {
-      this.decisionValida(respuesta.decision);
+      if (respuesta.decision !== null) this.decisionValida(respuesta.decision);
       const caso = porId.get(respuesta.casoId);
       if (!caso) throw new BadRequestException('El caso no existe');
       return this.veredicto(caso, respuesta.decision);
@@ -105,7 +106,7 @@ export class MesaCumplimientoService {
       (v) => !v.correcta && v.decisionTomada === 'rechazar',
     ).length;
     const erroresPorOmision = detalle.filter(
-      (v) => !v.correcta && v.decisionCorrecta === 'rechazar',
+      (v) => !v.correcta && v.decisionTomada !== null && v.decisionCorrecta === 'rechazar',
     ).length;
 
     return {
@@ -127,7 +128,7 @@ export class MesaCumplimientoService {
     return this.casosRepo.find({ where: { institucionId: IsNull(), activo: true } });
   }
 
-  private veredicto(caso: CasoCumplimiento, decision: Decision): VeredictoCaso {
+  private veredicto(caso: CasoCumplimiento, decision: Decision | null): VeredictoCaso {
     return {
       casoId: caso.id,
       entidad: caso.entidad,

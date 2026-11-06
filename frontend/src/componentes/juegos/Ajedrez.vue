@@ -268,6 +268,13 @@ async function responder(opcionId: string) {
         : veredicto.correcta ? 'Correcto!' : 'Incorrecto.',
     };
   } catch (fallo) {
+    // 409: el reloj termino mientras respondia; esa pregunta no cuenta.
+    if (axios.isAxiosError(fallo) && fallo.response?.status === 409) {
+      abierta.value = null;
+      pregunta.value = null;
+      await terminarPartida('tiempo');
+      return;
+    }
     error.value = mensajeDeError(fallo, 'No se pudo enviar la respuesta');
   } finally {
     enviando.value = false;

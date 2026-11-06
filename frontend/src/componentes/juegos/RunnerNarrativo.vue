@@ -74,7 +74,7 @@ async function responder(opcionId: string) {
   if (!pregunta.value || enviando.value) return;
   enviando.value = true;
   try {
-    const veredicto = await juegosServicio.verificarRunner(props.moduloId, pregunta.value.id, opcionId);
+    const veredicto = await juegosServicio.verificarRunner(props.moduloId, partida.value!.partidaId, pregunta.value.id, opcionId);
     respuestas.value.push({ preguntaId: pregunta.value.id, opcionId });
     acerto.value = veredicto.correcta;
     etapa.value = 'reaccion';
@@ -98,7 +98,7 @@ async function responder(opcionId: string) {
 async function terminar() {
   etapa.value = 'final';
   try {
-    resultado.value = await juegosServicio.terminarRunner(props.moduloId, respuestas.value);
+    resultado.value = await juegosServicio.terminarRunner(props.moduloId, partida.value!.partidaId);
     emit('terminada', { puntaje: resultado.value.puntaje, nota: resultado.value.nota });
   } catch (fallo) {
     error.value = mensajeDeError(fallo, 'No se pudo registrar la partida');

@@ -5,6 +5,7 @@ import { CLAVE_MAHJONG, CLAVE_MEMORAMA } from '../catalogo-nuevos';
 import { UsuarioAutenticado } from '../../comun/tipos/usuario-autenticado';
 import { Velocidad } from '../configuracion-juego.entidad';
 import { Mazo } from './mazo.entidad';
+import { IntentosService } from '../../resultados/intentos.service';
 
 /**
  * Cuanto quedan a la vista dos fichas que no son pareja antes de volver a
@@ -24,6 +25,7 @@ export class FichasService {
   constructor(
     private readonly mazos: MazosService,
     private readonly acceso: AccesoModuloService,
+    private readonly intentos: IntentosService,
   ) {}
 
   /**
@@ -68,6 +70,7 @@ export class FichasService {
 
   async armarPartida(quien: UsuarioAutenticado, moduloId: string, clave: string) {
     const configuracion = await this.acceso.configuracionDe(quien, moduloId, clave);
+    await this.intentos.exigirDisponible(quien, moduloId, configuracion.intentosPermitidos);
     const mazo = await this.mazos.paraPartida(configuracion.ajustes.mazoId, clave);
     const comun = {
       juego: { clave, nombre: configuracion.juego.nombre },

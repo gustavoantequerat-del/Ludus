@@ -108,6 +108,9 @@ export class RutasService {
     if (curso.institucionId !== ruta.institucionId) {
       throw new BadRequestException('El curso debe ser de la misma institucion que la ruta');
     }
+    if (await this.rutasCursosRepo.exist({ where: { rutaId, cursoId } })) {
+      throw new BadRequestException('Ese curso ya esta en la ruta');
+    }
     const total = await this.rutasCursosRepo.count({ where: { rutaId } });
     const rutaCurso = this.rutasCursosRepo.create({ rutaId, cursoId, orden: total + 1 });
     return this.rutasCursosRepo.save(rutaCurso);

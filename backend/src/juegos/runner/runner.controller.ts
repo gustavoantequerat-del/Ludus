@@ -36,6 +36,6 @@ export class RunnerController {
     @Param('moduloId') moduloId: string,
     @Body() datos: TerminarRunnerDto,
   ) {
-    return this.runnerService.terminar(quien, moduloId, datos.respuestas);
+    return this.runnerService.terminar(quien, moduloId, datos.partidaId);
   }
 }
