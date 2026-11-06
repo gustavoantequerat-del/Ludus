@@ -1398,3 +1398,278 @@ body {
     animation: none;
   }
 }
+
+/* --- Ajedrez: tutorial y botones del pie --- */
+
+.ajedrezPortadaAcciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ajedrezPie {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tutFondo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(8, 4, 16, 0.72);
+  animation: ajedrez-aparece 0.2s ease;
+}
+
+.tutCaja {
+  width: 100%;
+  max-width: 700px;
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  animation: ajedrez-tarjeta 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.tutCabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 8px;
+}
+
+.tutContador {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--apagado);
+}
+
+.tutTitulo {
+  margin: 2px 0 0;
+  font-size: 19px;
+}
+
+.tutCerrar {
+  width: 34px;
+  height: 34px;
+  border-radius: 99px;
+  border: 1px solid var(--linea-2);
+  background: transparent;
+  color: var(--tinta);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tutCuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 8px 20px 16px;
+}
+
+.tutCuerpoEntra {
+  animation: tut-entra-paso 0.3s ease-out;
+}
+
+.tutIlustracion {
+  display: flex;
+  justify-content: center;
+}
+
+.tutTexto p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #c9bee0;
+}
+
+.tutPie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px 18px;
+  border-top: 1px solid var(--linea-2);
+}
+
+.tutPuntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tutPunto {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.tutPuntoActivo {
+  width: 24px;
+  background: #a855f7;
+}
+
+.tutAcciones {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tutSvg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 12px;
+  overflow: visible;
+}
+
+.tutClara { fill: #e9dcfb; }
+.tutOscura { fill: #8a6bbf; }
+.tutResaltada { fill: rgba(255, 214, 102, 0.55); }
+
+.tutJaque {
+  fill: rgba(255, 70, 70, 0.75);
+  animation: tut-jaque 3.2s ease-in-out infinite;
+}
+
+.tutDestino {
+  fill: rgba(30, 14, 60, 0.45);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-punto 0.35s ease-out backwards;
+  animation-delay: calc(var(--i) * 0.06s + 0.15s);
+}
+
+.tutCaptura {
+  fill: none;
+  stroke: #ff5a5a;
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-girar 6s linear infinite;
+}
+
+.tutProhibida {
+  stroke: #ff4d4d;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.tutPieza {
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.tutOrigen { opacity: 0.35; }
+
+.tutFantasma { animation: tut-mover 3.2s ease-in-out infinite; }
+
+.tutCorona {
+  opacity: 0;
+  animation: tut-corona 3.2s ease-in-out infinite;
+}
+
+.tutPregunta {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-latido 1.2s ease-in-out infinite;
+}
+
+.tutPregunta circle {
+  fill: #ffce6a;
+  stroke: #1d1230;
+  stroke-width: 1.5;
+}
+
+.tutPreguntaTexto {
+  fill: #1d1230;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tutNombre {
+  fill: #c9bee0;
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+@keyframes tut-mover {
+  0%, 18% { transform: translate(0, 0); opacity: 1; }
+  48%, 80% { transform: translate(var(--dx), var(--dy)); opacity: 1; }
+  94% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+  100% { transform: translate(0, 0); opacity: 0; }
+}
+
+@keyframes tut-corona {
+  0%, 48% { opacity: 0; }
+  56%, 80% { opacity: 1; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes tut-jaque {
+  0%, 46% { opacity: 0; }
+  54%, 82% { opacity: 1; }
+  68% { opacity: 0.55; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes tut-punto {
+  from { transform: scale(0); opacity: 0; }
+}
+
+@keyframes tut-girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tut-latido {
+  50% { transform: scale(1.18); }
+}
+
+@keyframes tut-entra-paso {
+  from { opacity: 0; transform: translateX(14px); }
+}
+
+@media (max-width: 640px) {
+  .tutCuerpo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutFondo,
+  .tutCaja,
+  .tutCuerpoEntra,
+  .tutDestino,
+  .tutCaptura,
+  .tutPregunta {
+    animation: none;
+  }
+
+  .tutOrigen { opacity: 1; }
+  .tutFantasma { display: none; }
+
+  .tutCorona,
+  .tutJaque {
+    animation: none;
+    opacity: 1;
+  }
+}

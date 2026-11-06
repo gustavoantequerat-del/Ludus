@@ -447,7 +447,7 @@ export interface PartidaAjedrez {
 }
 
 export type ModoPreguntaAjedrez = 'normal' | 'rey' | 'critica' | 'examen';
-export type DesenlaceAjedrez = 'victoria' | 'derrota' | 'tablas' | 'tiempo' | 'rendicion';
+export type DesenlaceAjedrez = 'victoria' | 'derrota' | 'tablas' | 'tiempo' | 'rendicion' | 'examen';
 
 export interface PreguntaAjedrezEnJuego {
   preguntaId: string;

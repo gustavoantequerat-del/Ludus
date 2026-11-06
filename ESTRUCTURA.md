@@ -159,6 +159,8 @@ frontend/src/
 │   ├── ajedrez/pensar.ts            Pide la jugada al Worker (y si no hay Worker, la calcula en la pagina)
 │   ├── ajedrez/capturas.ts          Que pregunta sale en cada captura, sus avisos y su resultado (compartido con SCORM)
 │   ├── ajedrez/piezas-animadas.ts   Identidad de cada pieza entre jugadas, para animar deslizamientos y caidas
+│   ├── ajedrez/figuras.ts           Las 6 figuras SVG de las piezas (PiezaAjedrez, tutorial y SCORM)
+│   ├── ajedrez/tutorial.ts          Pasos del mini tutorial y su dibujo en SVG (compartido con SCORM)
 │   ├── ajedrez/scorm-entrada.ts     Entrada de `npm run ajedrez:scorm` (genera ajedrez-motor.js del paquete)
 │   ├── analitica.ts                 Google Analytics 4 opcional: vistas por ruta, user_id sin datos personales
 │   └── google.ts                    Boton "Continuar con Google" (Google Identity Services)
@@ -172,7 +174,7 @@ frontend/src/
 │   └── juegos/                     Los juegos jugables (MesaCumplimiento, Memorama, Mahjong, RunnerNarrativo, Ajedrez)
 │       ├── ReproductorVideo.vue      video de YouTube (API, avanza solo) o de Drive (iframe + "Continuar")
 │       ├── mahjong/tablero.ts        logica pura del Mahjong: disposiciones, fichas libres, reparto con solucion
-│       └── ajedrez/                  Tablero, PiezaAjedrez (6 figuras SVG propias) y TarjetaPregunta
+│       └── ajedrez/                  Tablero, PiezaAjedrez, TarjetaPregunta y TutorialAjedrez
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
 
@@ -455,7 +457,7 @@ PUT|DELETE /juegos/ajedrez/bancos/:id           PUT reemplaza el banco; no se bo
 POST     /juegos/ajedrez/partida/:moduloId                         empieza una partida (solo estudiante)
 POST     /juegos/ajedrez/partida/:moduloId/:partidaId/pregunta     { modo: normal | rey | critica } -> pregunta sin la correcta
 POST     /juegos/ajedrez/partida/:moduloId/:partidaId/responder    { preguntaId, opcionId } -> { correcta, respondidas, correctas }
-POST     /juegos/ajedrez/partida/:moduloId/:partidaId/terminar     { desenlace } -> modo examen (faltan N) o la nota
+POST     /juegos/ajedrez/partida/:moduloId/:partidaId/terminar     { desenlace: victoria|derrota|tablas|tiempo|rendicion|examen } -> modo examen (faltan N) o la nota
 
 GET|PUT  /cursos/:cursoId/inscripciones   reemplaza la lista completa de estudiantes
 GET|PUT  /rutas/:rutaId/inscripciones
@@ -913,6 +915,17 @@ nada. Si salieron menos de **X** preguntas (minimo del banco, 5 por defecto),
 la partida pasa a **modo examen**: preguntas sueltas hasta completar X, y la
 nota sale de todas.
 
+**Tomar examen**: durante la partida, junto a "Rendirse", el boton "Tomar
+examen" deja el tablero y pasa directo al modo examen (desenlace `examen`).
+Antes confirma cuantas preguntas faltan para llegar a X; si ya respondio X o
+mas, se califica con lo que lleva. Funciona igual en el paquete SCORM.
+
+**Tutorial**: la portada tiene "No se jugar: ver tutorial" y la partida
+"Como se mueven" (el reloj sigue corriendo). Son 12 pasos con un tablerito
+animado cada uno: las seis piezas, capturar con pregunta, jaque y mate,
+enroque, coronacion y captura al paso. Los pasos y los dibujos estan en
+`utilidades/ajedrez/tutorial.ts`; el paquete SCORM usa los mismos.
+
 **El servidor manda en todo lo que define la nota.** El tablero y el bot
 corren en el navegador, pero cada pregunta la elige el servidor (primero las
 que no salieron en la partida; cuando se agotan, se repiten sin repetir la
@@ -954,11 +967,12 @@ se puede guardar a medio armar; para elegirlo en un modulo necesita al menos
 10 preguntas y al menos X. La migracion carga un banco de ejemplo en el
 catalogo base.
 
-**Piezas**: seis figuras SVG propias (`PiezaAjedrez.vue`), las mismas para
-los dos bandos; el color lo pone el CSS. No hay imagenes que descargar.
+**Piezas**: seis figuras SVG propias (`utilidades/ajedrez/figuras.ts`), las
+mismas para los dos bandos y para Ludus, el tutorial y SCORM; el color lo pone
+el CSS. No hay imagenes que descargar.
 
 **SCORM**: el paquete trae `ajedrez-motor.js` (generado desde `motor.ts` y
-`bot.ts` y `capturas.ts` con `npm run ajedrez:scorm` en `frontend/`: no se
+`bot.ts`, `capturas.ts`, `figuras.ts` y `tutorial.ts` con `npm run ajedrez:scorm` en `frontend/`: no se
 edita a mano) y `juego-ajedrez.js`, que usa esas mismas reglas de captura. Si se cambian las reglas o el bot, hay que regenerar ese
 archivo. La nota sale de Ludus y el LMS recibe `passed` o `failed`.
 

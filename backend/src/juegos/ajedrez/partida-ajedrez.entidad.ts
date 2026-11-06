@@ -19,7 +19,8 @@ import { Usuario } from '../../usuarios/usuario.entidad';
  */
 export type ModoPregunta = 'normal' | 'rey' | 'critica' | 'examen';
 
-export type Desenlace = 'victoria' | 'derrota' | 'tablas' | 'tiempo' | 'rendicion';
+/** examen: el estudiante eligio dejar el tablero e ir directo a las preguntas. */
+export type Desenlace = 'victoria' | 'derrota' | 'tablas' | 'tiempo' | 'rendicion' | 'examen';
 
 export interface PreguntaHecha {
   preguntaId: string;

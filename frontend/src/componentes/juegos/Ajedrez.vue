@@ -19,6 +19,7 @@ import Boton from '@/componentes/base/Boton.vue';
 import Icono from '@/componentes/base/Icono.vue';
 import Tablero from './ajedrez/Tablero.vue';
 import TarjetaPregunta from './ajedrez/TarjetaPregunta.vue';
+import TutorialAjedrez from './ajedrez/TutorialAjedrez.vue';
 import { ajedrezServicio } from '@/servicios/ajedrez.servicio';
 import { mensajeDeError } from '@/utilidades/errores';
 import { formatearSegundos } from '@/utilidades/partidas';
@@ -79,7 +80,9 @@ const respondidas = ref(0);
 const correctas = ref(0);
 const segundos = ref(0);
 const tiempoAgotado = ref(false);
-const confirmarRendicion = ref(false);
+/** Confirmacion abierta antes de terminar a pedido del estudiante. */
+const confirmarFin = ref<'rendicion' | 'examen' | null>(null);
+const verTutorial = ref(false);
 const cierre = ref<CierreAjedrez | null>(null);
 const terminando = ref(false);
 
@@ -119,7 +122,25 @@ const textoDesenlace: Record<DesenlaceAjedrez, string> = {
   tablas: 'La partida termino en tablas',
   tiempo: 'Se acabo el tiempo',
   rendicion: 'Te rendiste',
+  examen: 'Elegiste tomar el examen',
 };
+/** Que pasa si el estudiante elige "Tomar examen" ahora. */
+const textoTomarExamen = computed(() => {
+  if (!partida.value) return '';
+  const faltan = partida.value.minimoPreguntas - respondidas.value;
+  if (faltan <= 0) {
+    return `Ya respondiste ${respondidas.value} preguntas: la partida termina y se califica con lo que llevas.`;
+  }
+  return `La partida termina y respondes ${faltan === 1 ? '1 pregunta' : `${faltan} preguntas`} seguidas, sin tablero, hasta completar ${partida.value.minimoPreguntas}. Tu nota sale de todas las que respondas.`;
+});
+const avisoExamen = computed(() => {
+  const minimo = partida.value?.minimoPreguntas ?? 0;
+  if (cierre.value?.desenlace === 'examen') {
+    return `Elegiste tomar el examen: responde las preguntas que faltan para completar ${minimo}.`;
+  }
+  const previo = cierre.value?.desenlace ? textoDesenlace[cierre.value.desenlace] + '. ' : '';
+  return `${previo}Te salieron menos de ${minimo} preguntas: responde las que faltan para calificar.`;
+});
 
 /* ---------------------------------------------------------------- *
  * Flujo de la partida
@@ -328,7 +349,7 @@ async function terminarPartida(desenlace: DesenlaceAjedrez) {
   terminando.value = true;
   if (reloj) clearInterval(reloj);
   reloj = null;
-  confirmarRendicion.value = false;
+  confirmarFin.value = null;
   confirmarCritica.value = null;
   try {
     cierre.value = await ajedrezServicio.terminar(props.moduloId, partida.value.partidaId, desenlace);
@@ -404,7 +425,10 @@ onBeforeUnmount(() => {
           Si te salen menos de {{ partida.minimoPreguntas }}, las que falten se responden en modo examen.
         </li>
       </ul>
-      <Boton variante="primario" icono="play" @click="comenzar">Comenzar</Boton>
+      <div :class="estilos.portadaAcciones">
+        <Boton icono="graduation-cap" @click="verTutorial = true">No se jugar: ver tutorial</Boton>
+        <Boton variante="primario" icono="play" @click="comenzar">Comenzar</Boton>
+      </div>
     </div>
 
     <!-- Partida -->
@@ -479,14 +503,23 @@ onBeforeUnmount(() => {
         </div>
 
         <div :class="estilos.rendirse">
-          <template v-if="!confirmarRendicion">
-            <Boton variante="fantasma" icono="flag" :deshabilitado="!!abierta" @click="confirmarRendicion = true">
+          <template v-if="!confirmarFin">
+            <Boton variante="fantasma" icono="book-open" @click="verTutorial = true">Como se mueven</Boton>
+            <Boton icono="graduation-cap" :deshabilitado="!!abierta" @click="confirmarFin = 'examen'">
+              Tomar examen
+            </Boton>
+            <Boton variante="fantasma" icono="flag" :deshabilitado="!!abierta" @click="confirmarFin = 'rendicion'">
               Rendirse
             </Boton>
           </template>
+          <template v-else-if="confirmarFin === 'examen'">
+            <span :class="estilos.rendirseTexto">{{ textoTomarExamen }}</span>
+            <Boton variante="secundario" @click="confirmarFin = null">Seguir jugando</Boton>
+            <Boton variante="primario" icono="graduation-cap" @click="terminarPartida('examen')">Ir al examen</Boton>
+          </template>
           <template v-else>
             <span :class="estilos.rendirseTexto">Seguro? La nota sale de las preguntas que respondiste.</span>
-            <Boton variante="secundario" @click="confirmarRendicion = false">No</Boton>
+            <Boton variante="secundario" @click="confirmarFin = null">No</Boton>
             <Boton variante="peligro" @click="terminarPartida('rendicion')">Si, rendirme</Boton>
           </template>
         </div>
@@ -497,8 +530,7 @@ onBeforeUnmount(() => {
     <div v-else-if="partida && etapa === 'examen'" :class="estilos.examen">
       <p :class="estilos.examenAviso">
         <Icono nombre="graduation-cap" :tamano="18" />
-        {{ cierre?.desenlace ? textoDesenlace[cierre.desenlace] + '. ' : '' }}Te salieron menos de
-        {{ partida.minimoPreguntas }} preguntas: responde las que faltan para calificar.
+        {{ avisoExamen }}
       </p>
       <TarjetaPregunta
         v-if="abierta && pregunta"
@@ -525,5 +557,11 @@ onBeforeUnmount(() => {
         Puntaje {{ cierre.puntaje }}{{ cierre.nota ? ` · calificacion ${cierre.nota}` : '' }}
       </span>
     </div>
+
+    <TutorialAjedrez
+      v-if="verTutorial"
+      :cierre="etapa === 'inicio' ? 'Listo, a jugar' : 'Volver a la partida'"
+      @cerrar="verTutorial = false"
+    />
   </div>
 </template>

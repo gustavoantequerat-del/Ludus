@@ -18,6 +18,6 @@ export class ResponderPreguntaDto {
 }
 
 export class TerminarAjedrezDto {
-  @IsIn(['victoria', 'derrota', 'tablas', 'tiempo', 'rendicion'])
+  @IsIn(['victoria', 'derrota', 'tablas', 'tiempo', 'rendicion', 'examen'])
   desenlace: Desenlace;
 }

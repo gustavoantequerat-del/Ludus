@@ -1,0 +1,367 @@
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--velo);
+  backdrop-filter: blur(4px);
+  animation: aparece 0.2s ease;
+}
+
+.caja {
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  background: var(--superficie);
+  border: 1px solid var(--linea-3);
+  box-shadow: var(--sombra);
+  animation: entra 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 12px;
+}
+
+.icono {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--primario-suave);
+  color: var(--tinta-primaria-suave);
+}
+
+.textosCabecera {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contador {
+  font: 600 11px var(--fuente-texto);
+  color: var(--apagado);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.titulo {
+  margin: 0;
+  font: 700 19px var(--fuente-titulos);
+  color: var(--tinta);
+}
+
+.cerrar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--linea-2);
+  background: transparent;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  padding: 8px 20px 18px;
+  animation: entra-paso 0.3s ease-out;
+}
+
+.ilustracion {
+  display: flex;
+  justify-content: center;
+}
+
+.explicacion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.parrafo {
+  margin: 0;
+  font: 500 14px/1.6 var(--fuente-texto);
+  color: var(--suave);
+}
+
+.leyenda {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font: 600 12px var(--fuente-texto);
+  color: var(--apagado);
+}
+
+.leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.muestraDestino {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(30, 14, 60, 0.55);
+  box-shadow: 0 0 0 2px var(--suave);
+}
+
+.muestraCaptura {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid #ff6b6b;
+}
+
+.muestraProhibida {
+  color: #ff6b6b;
+  font: 800 16px/1 var(--fuente-titulos);
+}
+
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--linea);
+}
+
+.puntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.punto {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 99px;
+  border: 0;
+  background: var(--pista);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.puntoActivo {
+  width: 24px;
+  background: var(--primario);
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* --- El tablerito (clases que usa svgTutorial) --- */
+
+.svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 12px;
+  overflow: visible;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
+}
+
+.clara {
+  fill: #e9dcfb;
+}
+
+.oscura {
+  fill: #8a6bbf;
+}
+
+.resaltada {
+  fill: rgba(255, 214, 102, 0.55);
+}
+
+.jaque {
+  fill: rgba(255, 70, 70, 0.75);
+  animation: tut-jaque 3.2s ease-in-out infinite;
+}
+
+.destino {
+  fill: rgba(30, 14, 60, 0.45);
+  animation: tut-punto 0.35s ease-out backwards;
+  animation-delay: calc(var(--i) * 0.06s + 0.15s);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.captura {
+  fill: none;
+  stroke: #ff5a5a;
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-girar 6s linear infinite;
+}
+
+.prohibida {
+  stroke: #ff4d4d;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.pieza {
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.blanca {
+  fill: #fbf8ff;
+  stroke: #1d1230;
+}
+
+.negra {
+  fill: #2a1c45;
+  stroke: #eee7fb;
+}
+
+.detalle {
+  fill: none;
+}
+
+.blanca .ojo {
+  fill: #1d1230;
+  stroke: none;
+}
+
+.negra .ojo {
+  fill: #eee7fb;
+  stroke: none;
+}
+
+.origen {
+  opacity: 0.35;
+}
+
+.fantasma {
+  animation: tut-mover 3.2s ease-in-out infinite;
+}
+
+.corona {
+  opacity: 0;
+  animation: tut-corona 3.2s ease-in-out infinite;
+}
+
+.pregunta circle {
+  fill: var(--alerta);
+  stroke: #1d1230;
+  stroke-width: 1.5;
+}
+
+.pregunta {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-latido 1.2s ease-in-out infinite;
+}
+
+.preguntaTexto {
+  fill: #1d1230;
+  font: 800 12px var(--fuente-titulos);
+}
+
+.nombre {
+  fill: var(--suave);
+  font: 700 8.5px var(--fuente-texto);
+}
+
+/* Ciclo de 3,2 s: quieta, se desliza, se queda, desaparece y vuelve. */
+@keyframes tut-mover {
+  0%, 18% { transform: translate(0, 0); opacity: 1; }
+  48%, 80% { transform: translate(var(--dx), var(--dy)); opacity: 1; }
+  94% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+  100% { transform: translate(0, 0); opacity: 0; }
+}
+
+@keyframes tut-corona {
+  0%, 48% { opacity: 0; }
+  56%, 80% { opacity: 1; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes tut-jaque {
+  0%, 46% { opacity: 0; }
+  54%, 82% { opacity: 1; }
+  68% { opacity: 0.55; }
+  94%, 100% { opacity: 0; }
+}
+
+@keyframes tut-punto {
+  from { transform: scale(0); opacity: 0; }
+}
+
+@keyframes tut-girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tut-latido {
+  50% { transform: scale(1.18); }
+}
+
+@keyframes aparece {
+  from { opacity: 0; }
+}
+
+@keyframes entra {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+}
+
+@keyframes entra-paso {
+  from { opacity: 0; transform: translateX(14px); }
+}
+
+@media (max-width: 640px) {
+  .cuerpo {
+    grid-template-columns: 1fr;
+  }
+
+  .svg {
+    max-width: 260px;
+  }
+}
+
+/* Sin movimiento: la pieza se queda en su casilla y lo demas se ve quieto. */
+@media (prefers-reduced-motion: reduce) {
+  .origen {
+    opacity: 1;
+  }
+
+  .fantasma {
+    display: none;
+  }
+
+  .corona,
+  .jaque {
+    opacity: 1;
+  }
+}

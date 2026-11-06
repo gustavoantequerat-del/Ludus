@@ -769,6 +769,293 @@
     return casillaDelRey(pos, "b") === null ? "derrota" : casillaDelRey(pos, "n") === null ? "victoria" : null;
   }
 
+  // src/utilidades/ajedrez/figuras.ts
+  var BASE = '<path d="M10 39 Q11 33 22.5 33 Q34 33 35 39 Z"/>';
+  function figura(tipo, clases) {
+    let detalle = (d) => `<path class="${clases.detalle}" d="${d}"/>`;
+    switch (tipo) {
+      case "p":
+        return '<circle cx="22.5" cy="13" r="5.5"/><path d="M17.5 21.5 Q22.5 17.5 27.5 21.5 L30 33 H15 Z"/>' + BASE;
+      case "t":
+        return '<path d="M11 8 H15.5 V11.5 H20 V8 H25 V11.5 H29.5 V8 H34 V15.5 L31 18.5 V30 L34 33 V38.5 H11 V33 L14 30 V18.5 L11 15.5 Z"/>' + detalle("M14 18.5 H31 M14 30 H31");
+      case "a":
+        return '<circle cx="22.5" cy="7.5" r="2.6"/><path d="M22.5 10.5 C15.5 15.5 13.5 22 17 27.5 H28 C31.5 22 29.5 15.5 22.5 10.5 Z"/><path d="M15.5 27.5 H29.5 V31.5 H15.5 Z"/>' + BASE + detalle("M19.5 17 L25.5 22.5");
+      case "c":
+        return `<path d="M12.5 38.5 H33 V34 C33.5 25 31 18 26.5 13 L27 8 L23.5 10.5 L21 8.5 L19.5 13 C15 15.5 11 20.5 9.5 25.5 L12.5 28 L17 25 L19.5 25.5 C15.5 29.5 13.5 33.5 12.5 38.5 Z"/><circle class="${clases.ojo}" cx="19.5" cy="17.5" r="1.4"/>`;
+      case "d":
+        return '<path d="M11.5 31 L8 15.5 L14.5 24 L15.5 12.5 L19.5 23 L22.5 10.5 L25.5 23 L29.5 12.5 L30.5 24 L37 15.5 L33.5 31 Z"/><circle cx="8" cy="14" r="2.2"/><circle cx="15.5" cy="11" r="2.2"/><circle cx="22.5" cy="9" r="2.2"/><circle cx="29.5" cy="11" r="2.2"/><circle cx="37" cy="14" r="2.2"/>' + BASE;
+      default:
+        return '<path d="M21 3.5 H24 V6.5 H27 V9.5 H24 V13.5 H21 V9.5 H18 V6.5 H21 Z"/><path d="M22.5 13.5 C30 13.5 36.5 17.5 34.5 24.5 L31 31 H14 L10.5 24.5 C8.5 17.5 15 13.5 22.5 13.5 Z"/>' + BASE + detalle("M14 31 H31");
+    }
+  }
+
+  // src/utilidades/ajedrez/tutorial.ts
+  var NOMBRES = {
+    p: "Peon",
+    c: "Caballo",
+    a: "Alfil",
+    t: "Torre",
+    d: "Dama",
+    r: "Rey"
+  };
+  function rayos(en, direcciones, columnas, filas, bloqueos = []) {
+    let ocupada = (c, f) => bloqueos.some(([bc, bf]) => bc === c && bf === f), salida = [];
+    for (let [dc, df] of direcciones) {
+      let c = en[0] + dc, f = en[1] + df;
+      for (; c >= 0 && f >= 0 && c < columnas && f < filas && !ocupada(c, f); )
+        salida.push([c, f]), c += dc, f += df;
+    }
+    return salida;
+  }
+  var RECTAS2 = [[1, 0], [-1, 0], [0, 1], [0, -1]], DIAGONALES2 = [[1, 1], [1, -1], [-1, 1], [-1, -1]], PASOS_TUTORIAL = [
+    {
+      titulo: "Tus piezas",
+      texto: [
+        "Juegas con las blancas contra el bot y mueves primero. En cada turno mueves una sola pieza.",
+        "Ganas si le das jaque mate al rey del bot: lo atrapas de forma que no pueda escapar.",
+        "Para mover, toca una pieza tuya: se marcan las casillas a las que puede ir. Despues toca una de esas casillas."
+      ],
+      columnas: 6,
+      filas: 1,
+      nombres: !0,
+      piezas: [
+        { tipo: "p", color: "b", en: [0, 0] },
+        { tipo: "c", color: "b", en: [1, 0] },
+        { tipo: "a", color: "b", en: [2, 0] },
+        { tipo: "t", color: "b", en: [3, 0] },
+        { tipo: "d", color: "b", en: [4, 0] },
+        { tipo: "r", color: "b", en: [5, 0] }
+      ]
+    },
+    {
+      titulo: "El peon",
+      texto: [
+        "Avanza recto hacia adelante, una casilla. En su primera jugada puede avanzar dos.",
+        "Captura de otra forma: en diagonal, una casilla hacia adelante. Nunca retrocede."
+      ],
+      columnas: 5,
+      filas: 5,
+      piezas: [
+        { tipo: "p", color: "b", en: [2, 3] },
+        { tipo: "c", color: "n", en: [3, 2] }
+      ],
+      destinos: [[2, 2], [2, 1]],
+      capturas: [[3, 2]],
+      movimientos: [{ desde: [2, 3], hasta: [2, 1] }]
+    },
+    {
+      titulo: "El caballo",
+      texto: [
+        "Se mueve en forma de L: dos casillas en una direccion y una hacia el costado.",
+        "Es la unica pieza que salta por encima de las demas."
+      ],
+      columnas: 5,
+      filas: 5,
+      piezas: [
+        { tipo: "c", color: "b", en: [2, 2] },
+        { tipo: "p", color: "b", en: [2, 1] },
+        { tipo: "p", color: "b", en: [3, 2] },
+        { tipo: "a", color: "n", en: [3, 0] }
+      ],
+      destinos: [[1, 0], [0, 1], [4, 1], [0, 3], [4, 3], [1, 4], [3, 4]],
+      capturas: [[3, 0]],
+      movimientos: [{ desde: [2, 2], hasta: [1, 0] }]
+    },
+    {
+      titulo: "El alfil",
+      texto: [
+        "Se mueve en diagonal, todas las casillas que quiera mientras no haya piezas en el camino.",
+        "Siempre se queda en casillas del mismo color."
+      ],
+      columnas: 5,
+      filas: 5,
+      piezas: [
+        { tipo: "a", color: "b", en: [2, 2] },
+        { tipo: "t", color: "n", en: [4, 0] }
+      ],
+      destinos: rayos([2, 2], DIAGONALES2, 5, 5, [[4, 0]]),
+      capturas: [[4, 0]],
+      movimientos: [{ desde: [2, 2], hasta: [0, 4] }]
+    },
+    {
+      titulo: "La torre",
+      texto: ["Se mueve en linea recta: adelante, atras y a los costados, todas las casillas libres."],
+      columnas: 5,
+      filas: 5,
+      piezas: [
+        { tipo: "t", color: "b", en: [2, 2] },
+        { tipo: "c", color: "n", en: [2, 0] }
+      ],
+      destinos: rayos([2, 2], RECTAS2, 5, 5, [[2, 0]]),
+      capturas: [[2, 0]],
+      movimientos: [{ desde: [2, 2], hasta: [4, 2] }]
+    },
+    {
+      titulo: "La dama",
+      texto: [
+        "Es la torre y el alfil juntos: en linea recta y en diagonal, todas las casillas libres.",
+        "Es tu pieza mas poderosa: cuidala."
+      ],
+      columnas: 5,
+      filas: 5,
+      piezas: [{ tipo: "d", color: "b", en: [2, 2] }],
+      destinos: rayos([2, 2], [...RECTAS2, ...DIAGONALES2], 5, 5),
+      movimientos: [{ desde: [2, 2], hasta: [0, 0] }]
+    },
+    {
+      titulo: "El rey",
+      texto: [
+        "Se mueve una casilla en cualquier direccion.",
+        "Nunca puede ir a una casilla atacada por el rival: aqui la torre negra ataca toda la fila de arriba."
+      ],
+      columnas: 5,
+      filas: 5,
+      piezas: [
+        { tipo: "r", color: "b", en: [2, 2] },
+        { tipo: "t", color: "n", en: [4, 1] }
+      ],
+      destinos: [[1, 2], [3, 2], [1, 3], [2, 3], [3, 3]],
+      prohibidas: [[1, 1], [2, 1], [3, 1]],
+      movimientos: [{ desde: [2, 2], hasta: [2, 3] }]
+    },
+    {
+      titulo: "Capturar con una pregunta",
+      texto: [
+        "Capturas moviendo tu pieza a la casilla de una pieza rival. En este juego, antes sale una pregunta.",
+        "Si aciertas, capturas. Si fallas, la que cae es tu pieza.",
+        "Cuando el bot te ataca tambien sale una pregunta: si aciertas, tu pieza se salva."
+      ],
+      columnas: 5,
+      filas: 4,
+      piezas: [
+        { tipo: "c", color: "b", en: [1, 3] },
+        { tipo: "a", color: "n", en: [2, 1] }
+      ],
+      capturas: [[2, 1]],
+      pregunta: [2, 1],
+      movimientos: [{ desde: [1, 3], hasta: [2, 1] }]
+    },
+    {
+      titulo: "Jaque y jaque mate",
+      texto: [
+        "Jaque es atacar al rey. Quien esta en jaque tiene que salvar a su rey en esa misma jugada.",
+        "Jaque mate es cuando no hay forma de salvarlo: la partida termina. Aqui la torre da mate porque los peones negros encierran a su rey.",
+        "Si tu rey esta en jaque, solo te deja hacer jugadas que lo saquen del jaque."
+      ],
+      columnas: 5,
+      filas: 3,
+      piezas: [
+        { tipo: "t", color: "b", en: [0, 2] },
+        { tipo: "r", color: "n", en: [3, 0] },
+        { tipo: "p", color: "n", en: [2, 1] },
+        { tipo: "p", color: "n", en: [3, 1] },
+        { tipo: "p", color: "n", en: [4, 1] }
+      ],
+      jaque: [3, 0],
+      movimientos: [{ desde: [0, 2], hasta: [0, 0] }]
+    },
+    {
+      titulo: "Enroque",
+      texto: [
+        "Una vez por partida, el rey avanza dos casillas hacia una torre y esa torre salta al otro lado del rey.",
+        "Se puede si ni el rey ni esa torre se movieron, no hay piezas en medio y el rey no esta en jaque ni pasa por casillas atacadas.",
+        "Para hacerlo, toca tu rey y despues la casilla que esta a dos pasos."
+      ],
+      columnas: 8,
+      filas: 2,
+      piezas: [
+        ...[0, 1, 2, 3, 4, 5, 6, 7].map((c) => ({ tipo: "p", color: "b", en: [c, 0] })),
+        { tipo: "t", color: "b", en: [0, 1] },
+        { tipo: "r", color: "b", en: [4, 1] },
+        { tipo: "t", color: "b", en: [7, 1] }
+      ],
+      destinos: [[6, 1], [2, 1]],
+      movimientos: [
+        { desde: [4, 1], hasta: [6, 1] },
+        { desde: [7, 1], hasta: [5, 1] }
+      ]
+    },
+    {
+      titulo: "Coronacion",
+      texto: [
+        "Si un peon tuyo llega hasta la ultima fila, se convierte en dama.",
+        "Por eso conviene empujar los peones que tienen el camino libre."
+      ],
+      columnas: 5,
+      filas: 3,
+      piezas: [{ tipo: "p", color: "b", en: [2, 1] }],
+      destinos: [[2, 0]],
+      movimientos: [{ desde: [2, 1], hasta: [2, 0] }],
+      corona: { tipo: "d", en: [2, 0] }
+    },
+    {
+      titulo: "Captura al paso",
+      texto: [
+        "Si un peon rival avanza dos casillas y queda justo al lado de tu peon, en tu jugada siguiente puedes capturarlo como si hubiera avanzado una sola.",
+        "Tu peon va a la casilla que el otro salto. Tambien sale una pregunta."
+      ],
+      columnas: 5,
+      filas: 4,
+      piezas: [
+        { tipo: "p", color: "b", en: [2, 2] },
+        { tipo: "p", color: "n", en: [3, 2] }
+      ],
+      resaltadas: [[3, 0], [3, 2]],
+      destinos: [[2, 1]],
+      capturas: [[3, 1]],
+      movimientos: [{ desde: [2, 2], hasta: [3, 1] }]
+    }
+  ], LADO = 40, ALTO_NOMBRE = 18;
+  function svgTutorial(paso, clases) {
+    var _a, _b, _c, _d, _e, _f;
+    let ancho = paso.columnas * LADO, alto = paso.filas * LADO + (paso.nombres ? ALTO_NOMBRE : 0), x = (p) => p[0] * LADO, y = (p) => p[1] * LADO, centro = (p) => `cx="${x(p) + LADO / 2}" cy="${y(p) + LADO / 2}"`, partes = [];
+    for (let f = 0; f < paso.filas; f++)
+      for (let c = 0; c < paso.columnas; c++) {
+        let clase = (c + f) % 2 === 0 ? clases.clara : clases.oscura;
+        partes.push(`<rect class="${clase}" x="${c * LADO}" y="${f * LADO}" width="${LADO}" height="${LADO}"/>`);
+      }
+    for (let p of (_a = paso.resaltadas) != null ? _a : [])
+      partes.push(`<rect class="${clases.resaltada}" x="${x(p)}" y="${y(p)}" width="${LADO}" height="${LADO}"/>`);
+    paso.jaque && partes.push(`<rect class="${clases.jaque}" x="${x(paso.jaque)}" y="${y(paso.jaque)}" width="${LADO}" height="${LADO}"/>`);
+    let moviles = new Set(((_b = paso.movimientos) != null ? _b : []).map((m) => m.desde.join())), dibujarPieza = (tipo, color, p, extra = "") => `<svg class="${clases.pieza} ${color === "b" ? clases.blanca : clases.negra} ${extra}" x="${x(p) + 3}" y="${y(p) + 3}" width="${LADO - 6}" height="${LADO - 6}" viewBox="0 0 45 45">` + figura(tipo, { detalle: clases.detalle, ojo: clases.ojo }) + "</svg>";
+    for (let pieza of paso.piezas) {
+      let seMueve = moviles.has(pieza.en.join());
+      partes.push(dibujarPieza(pieza.tipo, pieza.color, pieza.en, seMueve ? clases.origen : ""));
+    }
+    ((_c = paso.destinos) != null ? _c : []).forEach((p, i) => {
+      partes.push(`<circle class="${clases.destino}" style="--i:${i}" ${centro(p)} r="6"/>`);
+    }), ((_d = paso.capturas) != null ? _d : []).forEach((p, i) => {
+      partes.push(`<circle class="${clases.captura}" style="--i:${i}" ${centro(p)} r="17"/>`);
+    });
+    for (let p of (_e = paso.prohibidas) != null ? _e : []) {
+      let a = x(p) + 13, b = y(p) + 13;
+      partes.push(`<path class="${clases.prohibida}" d="M${a} ${b} l14 14 M${a + 14} ${b} l-14 14"/>`);
+    }
+    for (let { desde, hasta } of (_f = paso.movimientos) != null ? _f : []) {
+      let pieza = paso.piezas.find((pz) => pz.en[0] === desde[0] && pz.en[1] === desde[1]);
+      if (!pieza) continue;
+      let dx = (hasta[0] - desde[0]) * LADO, dy = (hasta[1] - desde[1]) * LADO;
+      partes.push(`<g class="${clases.fantasma}" style="--dx:${dx}px;--dy:${dy}px">${dibujarPieza(pieza.tipo, pieza.color, desde)}</g>`);
+    }
+    if (paso.corona && partes.push(`<g class="${clases.corona}">${dibujarPieza(paso.corona.tipo, "b", paso.corona.en)}</g>`), paso.pregunta) {
+      let cx = x(paso.pregunta) + LADO - 6, cy = y(paso.pregunta) + 6;
+      partes.push(
+        `<g class="${clases.pregunta}"><circle cx="${cx}" cy="${cy}" r="9"/><text class="${clases.preguntaTexto}" x="${cx}" y="${cy + 4}" text-anchor="middle">?</text></g>`
+      );
+    }
+    if (paso.nombres)
+      for (let pieza of paso.piezas)
+        partes.push(
+          `<text class="${clases.nombre}" x="${x(pieza.en) + LADO / 2}" y="${paso.filas * LADO + 13}" text-anchor="middle">${NOMBRES[pieza.tipo]}</text>`
+        );
+    return `<svg class="${clases.svg}" viewBox="0 0 ${ancho} ${alto}" role="img" aria-hidden="true">${partes.join("")}</svg>`;
+  }
+
   // src/utilidades/ajedrez/scorm-entrada.ts
-  window.LudusAjedrez = __spreadProps(__spreadValues(__spreadValues({}, motor_exports), capturas_exports), { elegirJugada });
+  window.LudusAjedrez = __spreadProps(__spreadValues(__spreadValues({}, motor_exports), capturas_exports), {
+    elegirJugada,
+    figura,
+    PASOS_TUTORIAL,
+    svgTutorial
+  });
 })();

@@ -18,18 +18,18 @@
     tablas: 'La partida termino en tablas.',
     tiempo: 'Se acabo el tiempo.',
     rendicion: 'Te rendiste.',
+    examen: 'Elegiste tomar el examen.',
   };
 
-  /* Las seis figuras, iguales a PiezaAjedrez.vue. */
-  var BASE = '<path d="M10 39 Q11 33 22.5 33 Q34 33 35 39 Z"/>';
-  var FIGURAS = {
-    p: '<circle cx="22.5" cy="13" r="5.5"/><path d="M17.5 21.5 Q22.5 17.5 27.5 21.5 L30 33 H15 Z"/>' + BASE,
-    t: '<path d="M11 8 H15.5 V11.5 H20 V8 H25 V11.5 H29.5 V8 H34 V15.5 L31 18.5 V30 L34 33 V38.5 H11 V33 L14 30 V18.5 L11 15.5 Z"/><path class="piezaDetalle" d="M14 18.5 H31 M14 30 H31"/>',
-    a: '<circle cx="22.5" cy="7.5" r="2.6"/><path d="M22.5 10.5 C15.5 15.5 13.5 22 17 27.5 H28 C31.5 22 29.5 15.5 22.5 10.5 Z"/><path d="M15.5 27.5 H29.5 V31.5 H15.5 Z"/>' + BASE + '<path class="piezaDetalle" d="M19.5 17 L25.5 22.5"/>',
-    c: '<path d="M12.5 38.5 H33 V34 C33.5 25 31 18 26.5 13 L27 8 L23.5 10.5 L21 8.5 L19.5 13 C15 15.5 11 20.5 9.5 25.5 L12.5 28 L17 25 L19.5 25.5 C15.5 29.5 13.5 33.5 12.5 38.5 Z"/><circle class="piezaOjo" cx="19.5" cy="17.5" r="1.4"/>',
-    d: '<path d="M11.5 31 L8 15.5 L14.5 24 L15.5 12.5 L19.5 23 L22.5 10.5 L25.5 23 L29.5 12.5 L30.5 24 L37 15.5 L33.5 31 Z"/><circle cx="8" cy="14" r="2.2"/><circle cx="15.5" cy="11" r="2.2"/><circle cx="22.5" cy="9" r="2.2"/><circle cx="29.5" cy="11" r="2.2"/><circle cx="37" cy="14" r="2.2"/>' + BASE,
-    r: '<path d="M21 3.5 H24 V6.5 H27 V9.5 H24 V13.5 H21 V9.5 H18 V6.5 H21 Z"/><path d="M22.5 13.5 C30 13.5 36.5 17.5 34.5 24.5 L31 31 H14 L10.5 24.5 C8.5 17.5 15 13.5 22.5 13.5 Z"/>' + BASE + '<path class="piezaDetalle" d="M14 31 H31"/>',
+  /* Nombres de clase del tablerito del tutorial (las reglas viven en estilos.css). */
+  var CLASES_TUTORIAL = {
+    svg: 'tutSvg', clara: 'tutClara', oscura: 'tutOscura', resaltada: 'tutResaltada', destino: 'tutDestino',
+    captura: 'tutCaptura', prohibida: 'tutProhibida', jaque: 'tutJaque', pregunta: 'tutPregunta',
+    preguntaTexto: 'tutPreguntaTexto', pieza: 'tutPieza', blanca: 'piezaBlanca', negra: 'piezaNegra',
+    detalle: 'piezaDetalle', ojo: 'piezaOjo', origen: 'tutOrigen', fantasma: 'tutFantasma', corona: 'tutCorona',
+    nombre: 'tutNombre',
   };
+  var CLASES_FIGURA = { detalle: 'piezaDetalle', ojo: 'piezaOjo' };
 
   function el(id) {
     return C.elemento(id);
@@ -80,7 +80,7 @@
           '<svg viewBox="0 0 45 45" class="' + (pieza.color === 'b' ? 'piezaBlanca' : 'piezaNegra') +
           (animar ? ' ajedrezLlega' : '') + '"' +
           (animar ? ' style="--dx:' + animar.dx + ';--dy:' + animar.dy + '"' : '') +
-          '>' + FIGURAS[pieza.tipo] + '</svg>';
+          '>' + M.figura(pieza.tipo, CLASES_FIGURA) + '</svg>';
       }
       if (estado.destello && estado.destello.casilla === casilla) {
         boton.className += estado.destello.correcta ? ' ajedrezDestelloBien' : ' ajedrezDestelloMal';
@@ -314,10 +314,15 @@
           estado.etapa = 'examen';
           el('ajedrez-mesa').classList.add('ajedrezExamen');
           mostrar('ajedrez-rendirse', false);
+          mostrar('ajedrez-examen', false);
+          mostrar('ajedrez-tutorial-abrir', false);
           mensaje(
-            TEXTO_DESENLACE[cierre.desenlace] +
-              ' Te salieron menos de ' + estado.partida.minimoPreguntas +
-              ' preguntas: responde las que faltan para calificar.',
+            cierre.desenlace === 'examen'
+              ? 'Elegiste tomar el examen: responde las preguntas que faltan para completar ' +
+                  estado.partida.minimoPreguntas + '.'
+              : TEXTO_DESENLACE[cierre.desenlace] +
+                  ' Te salieron menos de ' + estado.partida.minimoPreguntas +
+                  ' preguntas: responde las que faltan para calificar.',
           );
           siguienteExamen();
           return;
@@ -431,6 +436,9 @@
         });
         el('ajedrez-mesa').classList.remove('ajedrezExamen');
         mostrar('ajedrez-rendirse', true);
+        mostrar('ajedrez-examen', true);
+        mostrar('ajedrez-tutorial-abrir', true);
+        mostrar('ajedrez-tutorial', false);
         mostrar('ajedrez-velo', false);
         mostrar('ajedrez-tiempo', false);
         mostrar('ajedrez-portada', true);
@@ -442,7 +450,109 @@
       });
   }
 
+  /* ------------------------------------------------------------------ *
+   * Tutorial
+   * ------------------------------------------------------------------ */
+
+  var pasoTutorial = 0;
+
+  function pintarTutorial() {
+    var pasos = M.PASOS_TUTORIAL;
+    var paso = pasos[pasoTutorial];
+    el('tut-contador').textContent = 'Como se juega · ' + (pasoTutorial + 1) + ' de ' + pasos.length;
+    el('tut-titulo').textContent = paso.titulo;
+    // Dibujo generado por svgTutorial con datos fijos del tutorial (no hay datos del usuario).
+    el('tut-ilustracion').innerHTML = M.svgTutorial(paso, CLASES_TUTORIAL);
+    var texto = el('tut-texto');
+    texto.innerHTML = '';
+    paso.texto.forEach(function (parrafo) {
+      var p = document.createElement('p');
+      p.textContent = parrafo;
+      texto.appendChild(p);
+    });
+    var puntos = el('tut-puntos');
+    puntos.innerHTML = '';
+    pasos.forEach(function (otro, i) {
+      var punto = document.createElement('button');
+      punto.type = 'button';
+      punto.className = 'tutPunto' + (i === pasoTutorial ? ' tutPuntoActivo' : '');
+      punto.setAttribute('aria-label', 'Paso ' + (i + 1) + ': ' + otro.titulo);
+      punto.addEventListener('click', function () {
+        pasoTutorial = i;
+        pintarTutorial();
+      });
+      puntos.appendChild(punto);
+    });
+    // Reinicia la animacion de entrada del paso.
+    var cuerpo = el('tut-cuerpo');
+    cuerpo.classList.remove('tutCuerpoEntra');
+    void cuerpo.offsetWidth;
+    cuerpo.classList.add('tutCuerpoEntra');
+    mostrar('tut-anterior', pasoTutorial > 0);
+    var ultimo = pasoTutorial === pasos.length - 1;
+    el('tut-siguiente').textContent = ultimo
+      ? estado && estado.etapa === 'inicio' ? 'Listo, a jugar' : 'Volver a la partida'
+      : 'Siguiente';
+  }
+
+  function abrirTutorial() {
+    pasoTutorial = 0;
+    pintarTutorial();
+    mostrar('ajedrez-tutorial', true);
+  }
+
+  function cerrarTutorial() {
+    mostrar('ajedrez-tutorial', false);
+  }
+
+  function textoTomarExamen() {
+    var faltan = estado.partida.minimoPreguntas - estado.respondidas;
+    if (faltan <= 0) {
+      return 'Ya respondiste ' + estado.respondidas + ' preguntas: la partida termina y se califica con lo que llevas. Seguir?';
+    }
+    return (
+      'La partida termina y respondes ' + (faltan === 1 ? '1 pregunta' : faltan + ' preguntas') +
+      ' seguidas, sin tablero, hasta completar ' + estado.partida.minimoPreguntas +
+      '. Tu nota sale de todas las que respondas. Ir al examen?'
+    );
+  }
+
   function enlazar() {
+    document.getElementById('ajedrez-ver-tutorial').addEventListener('click', abrirTutorial);
+    document.getElementById('ajedrez-tutorial-abrir').addEventListener('click', abrirTutorial);
+    document.getElementById('tut-cerrar').addEventListener('click', cerrarTutorial);
+    document.getElementById('ajedrez-tutorial').addEventListener('click', function (evento) {
+      if (evento.target === evento.currentTarget) cerrarTutorial();
+    });
+    document.getElementById('tut-anterior').addEventListener('click', function () {
+      pasoTutorial = Math.max(0, pasoTutorial - 1);
+      pintarTutorial();
+    });
+    document.getElementById('tut-siguiente').addEventListener('click', function () {
+      if (pasoTutorial === M.PASOS_TUTORIAL.length - 1) {
+        cerrarTutorial();
+        return;
+      }
+      pasoTutorial++;
+      pintarTutorial();
+    });
+    document.addEventListener('keydown', function (evento) {
+      if (document.getElementById('ajedrez-tutorial').classList.contains('oculto')) return;
+      if (evento.key === 'Escape') cerrarTutorial();
+      if (evento.key === 'ArrowRight' && pasoTutorial < M.PASOS_TUTORIAL.length - 1) {
+        pasoTutorial++;
+        pintarTutorial();
+      }
+      if (evento.key === 'ArrowLeft' && pasoTutorial > 0) {
+        pasoTutorial--;
+        pintarTutorial();
+      }
+    });
+    document.getElementById('ajedrez-examen').addEventListener('click', function () {
+      if (estado && estado.etapa === 'jugando' && !estado.captura && window.confirm(textoTomarExamen())) {
+        terminar('examen');
+      }
+    });
     document.getElementById('ajedrez-comenzar').addEventListener('click', comenzar);
     document.getElementById('ajedrez-continuar').addEventListener('click', continuar);
     document.getElementById('ajedrez-aceptar').addEventListener('click', function () {

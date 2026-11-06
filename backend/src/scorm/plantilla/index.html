@@ -232,7 +232,10 @@
             <div id="ajedrez-portada" class="ajedrezPortada">
               <p class="subtitulo" id="ajedrez-instrucciones"></p>
               <ul class="ajedrezReglas" id="ajedrez-reglas"></ul>
-              <button class="boton botonPrimario" type="button" id="ajedrez-comenzar">Comenzar</button>
+              <div class="ajedrezPortadaAcciones">
+                <button class="boton botonSecundario" type="button" id="ajedrez-ver-tutorial">No se jugar: ver tutorial</button>
+                <button class="boton botonPrimario" type="button" id="ajedrez-comenzar">Comenzar</button>
+              </div>
             </div>
 
             <div id="ajedrez-mesa" class="ajedrezMesa oculto">
@@ -262,7 +265,33 @@
                 </div>
               </div>
               <div class="ajedrezPie">
+                <button class="boton botonSecundario" type="button" id="ajedrez-tutorial-abrir">Como se mueven</button>
+                <button class="boton botonSecundario" type="button" id="ajedrez-examen">Tomar examen</button>
                 <button class="boton botonSecundario" type="button" id="ajedrez-rendirse">Rendirse</button>
+              </div>
+            </div>
+
+            <!-- Mini tutorial: los pasos y dibujos vienen de ajedrez-motor.js -->
+            <div class="tutFondo oculto" id="ajedrez-tutorial" role="dialog" aria-modal="true" aria-labelledby="tut-titulo">
+              <div class="tutCaja">
+                <div class="tutCabecera">
+                  <div>
+                    <span class="tutContador" id="tut-contador"></span>
+                    <h2 class="tutTitulo" id="tut-titulo"></h2>
+                  </div>
+                  <button class="tutCerrar" type="button" id="tut-cerrar" aria-label="Cerrar tutorial">&times;</button>
+                </div>
+                <div class="tutCuerpo" id="tut-cuerpo">
+                  <div class="tutIlustracion" id="tut-ilustracion"></div>
+                  <div class="tutTexto" id="tut-texto"></div>
+                </div>
+                <div class="tutPie">
+                  <div class="tutPuntos" id="tut-puntos"></div>
+                  <div class="tutAcciones">
+                    <button class="boton botonSecundario" type="button" id="tut-anterior">Anterior</button>
+                    <button class="boton botonPrimario" type="button" id="tut-siguiente">Siguiente</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
