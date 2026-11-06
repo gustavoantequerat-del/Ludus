@@ -30,7 +30,8 @@ const emit = defineEmits<{ abrir: [] }>();
 </script>
 
 <template>
-  <div :class="estilos.tarjeta">
+  <!-- Toda la tarjeta abre (un clic en cualquier parte); los botones de accion no. -->
+  <div :class="estilos.tarjeta" @click="emit('abrir')">
     <div :class="estilos.cabecera" :style="{ backgroundImage: `linear-gradient(135deg, ${colorInicio}, ${colorFin})` }">
       <Icono :nombre="icono" :tamano="30" />
       <span v-if="etiqueta" :class="estilos.etiqueta">{{ etiqueta }}</span>
@@ -61,7 +62,7 @@ const emit = defineEmits<{ abrir: [] }>();
             botonTono === 'secundario' ? estilos.botonSecundarioTono : '',
             botonTono === 'apagado' ? estilos.botonApagado : '',
           ]"
-          @click="emit('abrir')"
+          @click.stop="emit('abrir')"
         >
           <Icono :nombre="botonIcono" :tamano="14" />{{ botonTexto }}
         </button>
@@ -70,7 +71,7 @@ const emit = defineEmits<{ abrir: [] }>();
           :key="a.titulo"
           :class="[estilos.accion, a.peligro ? estilos.accionPeligro : '']"
           :title="a.titulo"
-          @click="a.accion()"
+          @click.stop="a.accion()"
         >
           <Icono :nombre="a.icono" :tamano="15" />
         </button>

@@ -189,3 +189,7 @@
     padding: 12px;
   }
 }
+
+.aviso > svg {
+  flex: none;
+}

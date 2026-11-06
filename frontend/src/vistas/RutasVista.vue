@@ -51,11 +51,6 @@ async function abrirCrear() {
   form.value = { nombre: '', descripcion: '', institucionId: esSuperadmin.value ? instituciones.value[0]?.id : undefined };
   modalAbierto.value = 'formulario';
 }
-function abrirEditar(ruta: Ruta) {
-  edicion.value = ruta;
-  form.value = { nombre: ruta.nombre, descripcion: ruta.descripcion };
-  modalAbierto.value = 'formulario';
-}
 function abrirEliminar(ruta: Ruta) {
   edicion.value = ruta;
   modalAbierto.value = 'eliminar';
@@ -67,13 +62,12 @@ function cerrarModal() {
 async function confirmar() {
   try {
     if (modalAbierto.value === 'formulario') {
-      if (edicion.value) {
-        await rutasServicio.actualizar(edicion.value.id, { nombre: form.value.nombre, descripcion: form.value.descripcion });
-        notificar('Cambios guardados');
-      } else {
-        await rutasServicio.crear(form.value);
-        notificar('Ruta creada');
-      }
+      // Al crearla se entra directo: ahi se agregan cursos y estudiantes y se edita todo.
+      const nueva = await rutasServicio.crear(form.value);
+      notificar('Ruta creada: ahora agrega sus cursos');
+      cerrarModal();
+      enrutador.push({ name: 'ruta-detalle', params: { id: nueva.id } });
+      return;
     } else if (modalAbierto.value === 'eliminar' && edicion.value) {
       await rutasServicio.eliminar(edicion.value.id);
       notificar('Eliminado');
@@ -116,7 +110,6 @@ onMounted(cargar);
         esEstudiante
           ? []
           : [
-              { icono: 'pencil', titulo: 'Editar', accion: () => abrirEditar(ruta) },
               { icono: 'trash-2', titulo: 'Eliminar', peligro: true, accion: () => abrirEliminar(ruta) },
             ]
       "
@@ -126,10 +119,10 @@ onMounted(cargar);
 
   <Modal
     v-if="modalAbierto === 'formulario'"
-    :titulo="edicion ? 'Editar ruta' : 'Nueva ruta'"
+    titulo="Nueva ruta"
     descripcion="Completa los datos para guardar el registro."
-    :icono="edicion ? 'pencil' : 'plus'"
-    :etiqueta-confirmar="edicion ? 'Guardar cambios' : 'Crear'"
+    icono="plus"
+    etiqueta-confirmar="Crear y abrir"
     @cerrar="cerrarModal"
     @confirmar="confirmar"
   >

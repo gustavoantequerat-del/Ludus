@@ -1,25 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import * as iconosLucide from 'lucide-vue-next';
+import { ICONOS, ICONO_DESCONOCIDO } from './iconos';
 
 const props = withDefaults(
   defineProps<{
+    /** Nombre del icono de lucide en kebab-case (ver iconos.ts). */
     nombre: string;
     tamano?: number;
   }>(),
   { tamano: 16 },
 );
 
-function aPascalCase(nombreKebab: string): string {
-  return nombreKebab
-    .split('-')
-    .map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1))
-    .join('');
-}
-
 const componenteIcono = computed(() => {
-  const clave = aPascalCase(props.nombre) as keyof typeof iconosLucide;
-  return (iconosLucide[clave] as any) ?? iconosLucide.HelpCircle;
+  const icono = ICONOS[props.nombre];
+  if (!icono && import.meta.env.DEV) console.warn(`[Ludus] Icono "${props.nombre}" sin registrar en iconos.ts`);
+  return icono ?? ICONO_DESCONOCIDO;
 });
 </script>
 

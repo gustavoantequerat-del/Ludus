@@ -276,6 +276,23 @@ ejemplo `exceljs` y `google-auth-library`); si no, no hace dano.
 `migracion:ejecutar` aplica solo las migraciones que falten; las que ya
 corrieron no se repiten.
 
+> **Version para la prueba en campo (ranking y reglas del servidor)**: trae la
+> migracion `PartidasEIntegridad`. Crea `partidas_juego`; borra inscripciones
+> duplicadas (queda la mas antigua) y rechaza solicitudes pendientes
+> repetidas antes de agregar indices unicos; y apaga "califica" en los
+> modulos con juego ludico. Tres cosas a tener en cuenta:
+>
+> 1. **Los paquetes SCORM de la Mesa de Cumplimiento y del Runner hay que
+>    volver a descargarlos** y subirlos al LMS: los viejos no mandan la
+>    partida y Ludus les responde "este paquete SCORM es de una version
+>    anterior". Los de ajedrez, memorama y mahjong siguen funcionando (para
+>    tener el tutorial del ajedrez, igual conviene renovarlos).
+> 2. **Los intentos permitidos ahora se cumplen.** Un estudiante que ya jugo
+>    un modulo tantas veces como permite su configuracion no puede volver a
+>    jugarlo: si hace falta, el docente sube "Intentos permitidos" en el
+>    modulo.
+> 3. Desactivar un usuario o una institucion corta su sesion al instante.
+
 > **Version con landing y registro de estudiantes**: trae la migracion
 > `CodigoRegistro`, que le da un codigo de registro a cada institucion que ya
 > exista (no toca nada mas). Despues de actualizar, cada admin ve el codigo de

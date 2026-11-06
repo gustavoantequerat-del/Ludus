@@ -178,6 +178,11 @@ frontend/src/
 └── vistas/                        Una vista por pantalla (ver seccion 5)
 ```
 
+**Iconos**: se usan los de lucide, pero solo los registrados en
+`componentes/base/iconos.ts` (importarlos todos inflaba el bundle principal
+de 224 KB a 964 KB). Si una pantalla usa uno nuevo, se agrega ahi; si falta,
+se ve un signo de pregunta y la consola de desarrollo lo avisa.
+
 **Sobre el CSS**: no hay ningun bloque `<style>` dentro de archivos `.vue`.
 Cada componente que necesita estilos propios importa su archivo
 `Nombre.module.css` (CSS Modules: las clases se generan con nombres unicos y
@@ -223,6 +228,7 @@ usuario 1───* acceso (cada inicio de sesion: metodo clave/google/scorm, IP
 
 institucion 1───* banco_ajedrez (preguntas de 4 opciones, minutos, minimo X; null = catalogo base)
 usuario(estudiante) 1───* partida_ajedrez (preguntas que dio el servidor y como se respondieron)
+usuario(estudiante) 1───* partida_juego (Mesa y Runner: preguntas dadas y la primera respuesta a cada una)
 configuracion_juego.ajustes ──> banco_ajedrez (por id, dentro del jsonb)
 ```
 
@@ -411,6 +417,7 @@ GET|PATCH|DELETE /usuarios/:id
 GET      /accesos?dias=30               inicios de sesion + resumen (superadmin todos, admin su institucion)
 
 GET|POST /cursos                        alcance segun rol; superadmin indica institucionId; docenteId debe ser docente de esa institucion
+GET      /cursos/:id/ranking            ranking al consultar (ver 6.9): docente/admin con nombres y en progreso; estudiante con anonimos fuera del podio
 GET      /cursos/explorar               estudiante: cursos de su institucion en los que no esta
 GET|PATCH|DELETE /cursos/:id
 POST|PATCH|DELETE /cursos/:id/modulos[/:moduloId]
@@ -422,9 +429,9 @@ POST|DELETE /rutas/:id/cursos[/:cursoId]
 
 GET      /juegos                         catalogo (todos los roles autenticados)
 GET|PUT  /juegos/modulos/:moduloId/configuracion
-GET      /juegos/partida/:moduloId        expedientes de la partida, sin respuestas
-POST     /juegos/partida/verificar        { casoId, decision } -> veredicto del caso
-POST     /juegos/partida/:moduloId/terminar  califica en el servidor y registra el intento
+GET      /juegos/partida/:moduloId        abre la partida en el servidor: { partidaId, casos sin respuestas }
+POST     /juegos/partida/verificar        { partidaId, casoId, decision } -> veredicto; la primera decision es la que vale
+POST     /juegos/partida/:moduloId/terminar  { partidaId } -> califica con lo guardado en la partida
 ```
 
 Contenido de un juego jugable: cuelga de su clave, porque es de ese juego y
@@ -448,9 +455,9 @@ GET      /juegos/mahjong/partida/:moduloId      mazo y tamano del tablero
 
 GET|POST /juegos/runner-narrativo/historias      los videos son links de YouTube o Drive; un link de otro sitio -> 400
 PUT|DELETE /juegos/runner-narrativo/historias/:id  PUT reemplaza la historia entera, con sus preguntas en orden
-GET      /juegos/runner-narrativo/partida/:moduloId           historia sin respuestas ni videos de reaccion
-POST     /juegos/runner-narrativo/partida/:moduloId/verificar { preguntaId, opcionId } -> { correcta, video: { fuente, id } | null }
-POST     /juegos/runner-narrativo/partida/:moduloId/terminar  { respuestas } -> nota (solo estudiante)
+GET      /juegos/runner-narrativo/partida/:moduloId           { partidaId, historia sin respuestas ni videos de reaccion }
+POST     /juegos/runner-narrativo/partida/:moduloId/verificar { partidaId, preguntaId, opcionId } -> { correcta, video }; en orden y una vez
+POST     /juegos/runner-narrativo/partida/:moduloId/terminar  { partidaId } -> nota (solo estudiante)
 
 GET|POST /juegos/ajedrez/bancos                 bancos de preguntas (superadmin/admin/docente)
 PUT|DELETE /juegos/ajedrez/bancos/:id           PUT reemplaza el banco; no se borra si un modulo lo usa
@@ -683,10 +690,11 @@ backend (`src/juegos/mesa-cumplimiento/`), nunca en el cliente:
 - `GET /juegos/partida/:moduloId` entrega los expedientes **sin** la respuesta
   correcta (con el personaje y el fondo de la escena); la cantidad sale de
   `paresContenido` de la configuracion.
-- `POST /juegos/partida/verificar` devuelve el veredicto de un caso, para dar
-  retroalimentacion inmediata con la regla del curso.
-- `POST /juegos/partida/:moduloId/terminar` recalcula la nota en el servidor a
-  partir de las respuestas y registra el intento como cualquier otro resultado.
+- `POST /juegos/partida/verificar` guarda la decision en la partida (la
+  primera es la que vale) y devuelve el veredicto, para dar retroalimentacion
+  inmediata con la regla del curso.
+- `POST /juegos/partida/:moduloId/terminar` califica con lo guardado en la
+  partida (ver 6.10) y registra el intento como cualquier otro resultado.
 
 El catalogo de juegos tiene ahora `clave` (identificador estable) y `jugable`.
 El frontend y el paquete SCORM usan esa clave para decidir que juego
@@ -1019,6 +1027,69 @@ mouse y al presionar; los avisos entran con un rebote. Todo es CSS en los
 `.module.css` de cada componente (mas `NumeroAnimado.vue`). Una sola regla en
 `base.css` apaga animaciones y transiciones si el sistema pide "reducir
 movimiento".
+
+## 6.9 Ranking del curso
+
+Cada curso tiene su ranking (boton "Ranking" en el curso, y "Ver ranking del
+curso" al terminar un modulo que califica). Se calcula al consultar con los
+resultados de ese momento; no se guarda nada aparte
+(`cursos/ranking-calculo.ts`, funcion pura, y `ranking-curso.service.ts`).
+
+- **Cuentan** los modulos que califican y tienen juego configurado.
+- De cada modulo vale la **mejor** nota del estudiante; su nota del curso es
+  el promedio.
+- **Termino** el curso quien tiene resultado en todos esos modulos. Solo
+  ellos entran al ranking; si eres el primero en terminar, eres el primero.
+- **Empate**: va primero quien termino antes (cuando completo su ultimo modulo).
+- **Estudiante**: ve el podio (3 primeros) con nombre y la tabla con los
+  demas anonimos ("Estudiante 5"), salvo su propia fila. Si todavia no
+  termino, ve cuantos modulos le faltan. No recibe ids de nadie.
+- **Docente y admins**: ven todos los nombres y, aparte, quienes van en
+  progreso (modulos hechos y nota parcial).
+- El podio es un SVG propio (`componentes/ranking/Podio.vue`) que se dibuja
+  con 1, 2 o 3 escalones segun cuantos terminaron.
+
+## 6.10 Reglas que hace cumplir el servidor
+
+Revisadas y probadas de punta a punta (en Ludus y en SCORM) antes de la prueba en campo:
+
+- **Intentos permitidos** (1 a 5, por modulo) en todos los juegos, en Ludus y
+  en SCORM. Un intento es una partida terminada o una empezada con al menos
+  una respuesta (abandonar no lo devuelve; abrir el juego y salir sin
+  responder, si). El docente y los admins pueden abrir el juego sin gastar
+  nada (`resultados/intentos.service.ts`).
+- **Mesa de Cumplimiento y Runner** guardan su partida en el servidor
+  (`partidas_juego`): la primera respuesta a cada pregunta es la que vale, el
+  Runner se responde en orden y termina en el primer error, y la nota sale
+  de lo guardado (lo que mande el navegador al terminar se ignora). El
+  veredicto solo se da para casos de la propia partida, asi que ya no sirve
+  para averiguar respuestas. La Mesa respeta su limite de tiempo (con 20 s de
+  gracia).
+- **Ajedrez**: si el reloj termina con una pregunta abierta, se puede
+  responder hasta 2 minutos despues; despues, no. Que tipo de pregunta sale
+  (normal, rey, critica) lo decide el tablero, que corre en el navegador: es
+  el limite de tener el bot en el navegador.
+- **Sesiones**: cada pedido se valida contra la base. Desactivar a un usuario
+  o a su institucion, o cambiarle el rol, vale al instante (no al vencer el
+  token). Una institucion desactivada tampoco puede ingresar.
+- Un estudiante solo ve y juega modulos de **cursos donde esta inscrito**.
+- Un **admin de institucion** no cambia a nadie de institucion ni edita o
+  borra a otro admin (eso es del superadmin).
+- **Solicitudes**: una sola pendiente por curso o ruta, una sola aprobacion
+  (si dos admins aprueban a la vez, gana una) e inscripciones sin duplicados
+  (indices unicos).
+- Un **juego ludico no califica** (su puntaje lo manda el navegador) y los
+  puntajes se acotan a 0-100.
+- Las **rutas** son de la institucion: cualquier docente o admin de ella las
+  gestiona (no tienen un docente dueno, a diferencia de los cursos).
+
+## 6.11 Cursos y rutas: todo se edita adentro
+
+La tarjeta de un curso o una ruta se abre con un clic en cualquier parte;
+ya no tiene el lapiz que solo cambiaba nombre y descripcion. Adentro esta
+todo: "Editar curso/ruta" (nombre, descripcion, docente), modulos o cursos,
+estudiantes y el ranking. Al crear uno, se entra directo a su detalle para
+seguir armandolo.
 
 ## 7. Simplificaciones deliberadas (KISS)
 

@@ -23,9 +23,9 @@ const ANCHO = 120;
 const BASE_Y = 250;
 /** Posicion en pantalla de cada puesto: 2 - 1 - 3. */
 const LUGARES: Record<number, { x: number; alto: number; clase: string; retraso: number }> = {
-  1: { x: 140, alto: 120, clase: estilos.oro, retraso: 0.45 },
-  2: { x: 10, alto: 85, clase: estilos.plata, retraso: 0.2 },
-  3: { x: 270, alto: 60, clase: estilos.bronce, retraso: 0 },
+  1: { x: 140, alto: 130, clase: estilos.oro, retraso: 0.45 },
+  2: { x: 10, alto: 100, clase: estilos.plata, retraso: 0.2 },
+  3: { x: 270, alto: 78, clase: estilos.bronce, retraso: 0 },
 };
 
 const escalones = computed<Escalon[]>(() =>
@@ -57,8 +57,8 @@ function recortar(nombre: string) {
       <g :class="estilos.bloque">
         <rect :x="e.x" :y="BASE_Y - e.alto" :width="ANCHO" :height="e.alto" rx="10" :class="estilos.cuerpo" />
         <rect :x="e.x" :y="BASE_Y - e.alto" :width="ANCHO" :height="e.alto" rx="10" fill="url(#podio-brillo)" />
-        <text :x="e.x + ANCHO / 2" :y="BASE_Y - e.alto + 44" text-anchor="middle" :class="estilos.numero">{{ e.fila.posicion }}</text>
-        <text :x="e.x + ANCHO / 2" :y="BASE_Y - e.alto + 66" text-anchor="middle" :class="estilos.nota">{{ e.fila.nota.toFixed(1) }}</text>
+        <text :x="e.x + ANCHO / 2" :y="BASE_Y - e.alto + 40" text-anchor="middle" :class="estilos.numero">{{ e.fila.posicion }}</text>
+        <text :x="e.x + ANCHO / 2" :y="BASE_Y - e.alto + 62" text-anchor="middle" :class="estilos.nota">{{ e.fila.nota.toFixed(1) }}</text>
       </g>
       <!-- Persona sobre el escalon -->
       <g :class="estilos.persona">

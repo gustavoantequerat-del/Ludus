@@ -64,17 +64,6 @@ async function abrirCrear() {
   form.value = { nombre: '', descripcion: '', institucionId: instituciones.value[0]?.id, docenteId: null };
   modalAbierto.value = 'formulario';
 }
-async function abrirEditar(curso: Curso) {
-  edicion.value = curso;
-  await cargarInstituciones();
-  form.value = {
-    nombre: curso.nombre,
-    descripcion: curso.descripcion,
-    institucionId: curso.institucionId,
-    docenteId: curso.docenteId,
-  };
-  modalAbierto.value = 'formulario';
-}
 function elegirInstitucion(id: string) {
   form.value.institucionId = id;
   // El docente tiene que ser de la institucion del curso.
@@ -82,7 +71,7 @@ function elegirInstitucion(id: string) {
 }
 function datosFormulario(): DatosCurso {
   const datos: DatosCurso = { nombre: form.value.nombre, descripcion: form.value.descripcion };
-  if (esSuperadmin.value && !edicion.value) datos.institucionId = form.value.institucionId;
+  if (esSuperadmin.value) datos.institucionId = form.value.institucionId;
   if (eligeDocente.value) datos.docenteId = form.value.docenteId ?? null;
   return datos;
 }
@@ -102,13 +91,12 @@ function cerrarModal() {
 async function confirmar() {
   try {
     if (modalAbierto.value === 'formulario') {
-      if (edicion.value) {
-        await cursosServicio.actualizar(edicion.value.id, datosFormulario());
-        notificar('Cambios guardados');
-      } else {
-        await cursosServicio.crear(datosFormulario());
-        notificar('Curso creado');
-      }
+      // Al crearlo se entra directo: ahi se agregan modulos y estudiantes y se edita todo.
+      const nuevo = await cursosServicio.crear(datosFormulario());
+      notificar('Curso creado: ahora agrega sus modulos');
+      cerrarModal();
+      enrutador.push({ name: 'curso-detalle', params: { id: nuevo.id } });
+      return;
     } else if (modalAbierto.value === 'eliminar' && edicion.value) {
       await cursosServicio.eliminar(edicion.value.id);
       notificar('Eliminado');
@@ -162,7 +150,6 @@ onMounted(cargar);
         esEstudiante
           ? [{ icono: 'log-out', titulo: 'Solicitar salida', peligro: true, accion: () => abrirSolicitarSalida(curso) }]
           : [
-              { icono: 'pencil', titulo: 'Editar', accion: () => abrirEditar(curso) },
               { icono: 'trash-2', titulo: 'Eliminar', peligro: true, accion: () => abrirEliminar(curso) },
             ]
       "
@@ -172,10 +159,10 @@ onMounted(cargar);
 
   <Modal
     v-if="modalAbierto === 'formulario'"
-    :titulo="edicion ? 'Editar curso' : 'Nuevo curso'"
+    titulo="Nuevo curso"
     descripcion="Completa los datos para guardar el registro."
-    :icono="edicion ? 'pencil' : 'plus'"
-    :etiqueta-confirmar="edicion ? 'Guardar cambios' : 'Crear'"
+    icono="plus"
+    etiqueta-confirmar="Crear y abrir"
     @cerrar="cerrarModal"
     @confirmar="confirmar"
   >

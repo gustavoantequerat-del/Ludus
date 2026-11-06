@@ -21,6 +21,8 @@ import { IntentosService } from '../../resultados/intentos.service';
 
 /** Margen sobre el tiempo de la partida para la latencia y el reloj del navegador. */
 const GRACIA_TIEMPO_MS = 15_000;
+/** Tiempo extra para responder la pregunta que quedo abierta cuando termino el reloj. */
+const MARGEN_PREGUNTA_ABIERTA_MS = 120_000;
 
 /**
  * Partida del Ajedrez de Preguntas.
@@ -135,8 +137,9 @@ export class AjedrezService {
       (p) => p.opcionId === null && p.preguntaId === respuesta.preguntaId,
     );
     if (!pendiente) throw new BadRequestException('Esa pregunta no esta esperando respuesta');
-    // En el tablero el reloj corre tambien para responder; el modo examen no tiene reloj.
-    if (partida.estado === 'jugando' && this.tiempoVencido(partida)) {
+    // Si el reloj termina con una pregunta abierta, se deja terminar de responderla,
+    // pero no indefinidamente: hay un margen extra. El modo examen no tiene reloj.
+    if (partida.estado === 'jugando' && this.tiempoVencido(partida, MARGEN_PREGUNTA_ABIERTA_MS)) {
       throw new ConflictException('Se acabo el tiempo de la partida');
     }
 
@@ -219,9 +222,9 @@ export class AjedrezService {
     return partida.preguntas.filter((p) => p.opcionId !== null).length;
   }
 
-  private tiempoVencido(partida: PartidaAjedrez): boolean {
+  private tiempoVencido(partida: PartidaAjedrez, margenExtraMs = 0): boolean {
     if (!partida.minutos) return false;
-    return Date.now() > partida.iniciadaEn.getTime() + partida.minutos * 60_000 + GRACIA_TIEMPO_MS;
+    return Date.now() > partida.iniciadaEn.getTime() + partida.minutos * 60_000 + GRACIA_TIEMPO_MS + margenExtraMs;
   }
 
   /**

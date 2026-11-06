@@ -9,6 +9,8 @@ import Icono from '@/componentes/base/Icono.vue';
 import Insignia from '@/componentes/base/Insignia.vue';
 import Modal from '@/componentes/base/Modal.vue';
 import ListaSeleccionable from '@/componentes/base/ListaSeleccionable.vue';
+import CampoTexto from '@/componentes/base/CampoTexto.vue';
+import { mensajeDeError } from '@/utilidades/errores';
 import { rutasServicio } from '@/servicios/rutas.servicio';
 import { cursosServicio } from '@/servicios/cursos.servicio';
 import { inscripcionesServicio } from '@/servicios/inscripciones.servicio';
@@ -34,7 +36,14 @@ const candidatosAsignar = ref<Usuario[]>([]);
 const seleccionAsignar = ref<string[]>([]);
 const cursoAAgregar = ref('');
 
-const modalAbierto = ref<'asignar' | 'agregarCurso' | 'quitarCurso' | null>(null);
+const modalAbierto = ref<'asignar' | 'agregarCurso' | 'quitarCurso' | 'editar' | 'eliminar' | null>(null);
+/** Nombre y descripcion de la ruta: se editan aqui, junto con todo lo demas. */
+const formRuta = ref({ nombre: '', descripcion: '' });
+
+function abrirEditarRuta() {
+  formRuta.value = { nombre: ruta.value?.nombre ?? '', descripcion: ruta.value?.descripcion ?? '' };
+  modalAbierto.value = 'editar';
+}
 const cursoAQuitar = ref<string | null>(null);
 
 function estadoCurso(cursoId: string): 'ok' | 'info' | 'neutro' {
@@ -89,7 +98,28 @@ function cerrarModal() {
 }
 
 async function confirmar() {
-  if (modalAbierto.value === 'asignar') {
+  try {
+    await aplicarModal();
+  } catch (fallo) {
+    notificar(mensajeDeError(fallo));
+    return;
+  }
+  if (modalAbierto.value === 'eliminar') {
+    enrutador.push({ name: 'rutas' });
+    return;
+  }
+  cerrarModal();
+  await cargar();
+}
+
+async function aplicarModal() {
+  if (modalAbierto.value === 'editar') {
+    await rutasServicio.actualizar(props.id, { nombre: formRuta.value.nombre, descripcion: formRuta.value.descripcion });
+    notificar('Cambios guardados');
+  } else if (modalAbierto.value === 'eliminar') {
+    await rutasServicio.eliminar(props.id);
+    notificar('Ruta eliminada');
+  } else if (modalAbierto.value === 'asignar') {
     await inscripcionesServicio.asignarARuta(props.id, seleccionAsignar.value);
     notificar(`${seleccionAsignar.value.length} estudiantes asignados`);
   } else if (modalAbierto.value === 'agregarCurso' && cursoAAgregar.value) {
@@ -99,8 +129,6 @@ async function confirmar() {
     await rutasServicio.quitarCurso(props.id, cursoAQuitar.value);
     notificar('Curso quitado de la ruta');
   }
-  cerrarModal();
-  await cargar();
 }
 
 onMounted(cargar);
@@ -114,7 +142,11 @@ onMounted(cargar);
       miga-de-returno="Rutas"
       @volver="enrutador.push({ name: 'rutas' })"
     >
-      <Boton v-if="!esEstudiante" variante="primario" icono="plus" @click="abrirAgregarCurso">Agregar curso</Boton>
+      <template v-if="!esEstudiante">
+        <Boton variante="fantasma" icono="trash-2" @click="modalAbierto = 'eliminar'">Eliminar</Boton>
+        <Boton variante="secundario" icono="pencil" @click="abrirEditarRuta">Editar ruta</Boton>
+        <Boton variante="primario" icono="plus" @click="abrirAgregarCurso">Agregar curso</Boton>
+      </template>
     </Encabezado>
 
     <div :class="estilos.columna">
@@ -187,6 +219,30 @@ onMounted(cargar);
       @update:model-value="(v) => (cursoAAgregar = v[v.length - 1] ?? '')"
     />
   </Modal>
+
+  <Modal
+    v-if="modalAbierto === 'editar'"
+    titulo="Editar ruta"
+    descripcion="El nombre y la descripcion que ven los estudiantes."
+    icono="pencil"
+    etiqueta-confirmar="Guardar cambios"
+    @cerrar="cerrarModal"
+    @confirmar="confirmar"
+  >
+    <CampoTexto v-model="formRuta.nombre" etiqueta="Nombre de la ruta" marcador="Ruta de matematicas" />
+    <CampoTexto v-model="formRuta.descripcion" etiqueta="Descripcion" tipo="area" marcador="Que van a lograr los estudiantes" />
+  </Modal>
+
+  <Modal
+    v-if="modalAbierto === 'eliminar'"
+    titulo="Eliminar ruta?"
+    :descripcion="`Se elimina la ruta «${ruta?.nombre}» y sus inscripciones. Los cursos siguen existiendo. No se puede deshacer.`"
+    icono="trash-2"
+    peligro
+    etiqueta-confirmar="Eliminar"
+    @cerrar="cerrarModal"
+    @confirmar="confirmar"
+  />
 
   <Modal
     v-if="modalAbierto === 'quitarCurso'"
